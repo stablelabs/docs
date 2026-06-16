@@ -9,12 +9,14 @@
  * Used by both the auto-draft CI workflow (.github/workflows/i18n-translate.yml)
  * and one-off local backfills.
  *
- *   ANTHROPIC_API_KEY=... node docs/lib/i18n-translate.mjs <locale> [--stale] [--limit N] [page ...]
+ *   ANTHROPIC_API_KEY=... node docs/lib/i18n-translate.mjs <locale> [--stale] [--force] [--limit N] [page ...]
  *
  *   <locale>     cn | ko (required)
- *   --stale      also re-translate pages whose source_sha drifted (default: missing only)
+ *   --stale      in a full sweep, also re-translate pages whose source_sha drifted (default: missing only)
+ *   --force      re-translate every candidate even if its translation is in sync
  *   --limit N    translate at most N pages this run (default: all)
- *   page ...     explicit en-relative paths to translate (overrides discovery)
+ *   page ...     explicit en-relative paths to consider; in-sync ones are still
+ *                skipped (drift is always checked) unless --force is given
  *
  * Model: claude-opus-4-8, adaptive thinking, streamed (pages can be long).
  */
@@ -35,6 +37,7 @@ if (!LANGUAGE[locale]) {
   process.exit(2)
 }
 const includeStale = rest.includes('--stale')
+const force = rest.includes('--force')
 const relinkOnly = rest.includes('--relink')
 const limitIdx = rest.indexOf('--limit')
 const limit = limitIdx !== -1 ? Number(rest[limitIdx + 1]) : Infinity
@@ -69,17 +72,29 @@ const blobSha = (file) =>
 // and are intentionally left alone. Idempotent.
 const localizeLinks = (body, locale) => body.replaceAll('](/en/', `](/${locale}/`)
 
-// Discover which en pages this locale needs.
+// Discover which en pages this locale actually needs translating.
+//
+// Candidates are the explicit paths if given, else every en page. A candidate
+// is only translated when its target is missing or its source drifted — so a
+// page whose translation already matches the current en `source_sha` is skipped
+// (no wasted API call). `--force` re-translates every candidate regardless.
+//
+// Drift is always checked for explicit paths: the caller named them because
+// they changed, so an in-sync one is genuinely nothing to do. For a full sweep
+// drift is gated behind `--stale` (otherwise the default is missing-only).
 function discover() {
-  if (explicit.length) return explicit
-  const enFiles = walk(join(PAGES, SOURCE))
-    .map((p) => relative(join(PAGES, SOURCE), p))
-    .sort()
+  const candidates = explicit.length
+    ? explicit
+    : walk(join(PAGES, SOURCE))
+        .map((p) => relative(join(PAGES, SOURCE), p))
+        .sort()
+  if (force) return candidates
+  const checkDrift = explicit.length > 0 || includeStale
   const needed = []
-  for (const rel of enFiles) {
+  for (const rel of candidates) {
     const target = join(PAGES, locale, rel)
     if (!existsSync(target)) needed.push(rel)
-    else if (includeStale && frontmatterSha(target) !== blobSha(join(PAGES, SOURCE, rel)))
+    else if (checkDrift && frontmatterSha(target) !== blobSha(join(PAGES, SOURCE, rel)))
       needed.push(rel)
   }
   return needed
