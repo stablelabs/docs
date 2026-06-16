@@ -72,8 +72,9 @@ const wrapStyle: React.CSSProperties = {
 
 const itemStyle: React.CSSProperties = {
   display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.5rem',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '0.4rem',
 }
 
 function buttonStyle(hover: boolean, disabled: boolean): React.CSSProperties {
