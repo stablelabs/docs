@@ -21,7 +21,7 @@ uint256 erc20  = IERC20(USDT0).balanceOf(user); // 6 decimals
 ```
 
 :::warning
-Balance reconciliation emits extra `Transfer` events at the reserve address `0x6D11e1A6BdCC974ebE1cA73CC2c1Ea3fDE624370`. Indexers that replay `Transfer` events must filter transfers to and from this address, or they will silently double-count balances.
+Balance reconciliation emits extra `Transfer` events at the reserve address `0x5113954bbC0eD721F1C68671EBa3d91e9e9bF7b5`. Indexers that replay `Transfer` events must filter transfers to and from this address, or they will silently double-count balances.
 :::
 
 Read more: [USDT0 as gas](/en/explanation/usdt-as-gas-token) · [USDT0 behavior on Stable](/en/explanation/usdt0-behavior).
