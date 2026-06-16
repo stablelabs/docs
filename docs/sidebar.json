@@ -1,5 +1,5 @@
 {
-  "/en/": [
+  "/en": [
     {
       "text": "Learn",
       "collapsed": true,
@@ -657,7 +657,7 @@
       ]
     }
   ],
-  "/ko/": [
+  "/ko": [
     {
       "text": "Learn",
       "collapsed": true,
@@ -1315,7 +1315,7 @@
       ]
     }
   ],
-  "/cn/": [
+  "/cn": [
     {
       "text": "Learn",
       "collapsed": true,
