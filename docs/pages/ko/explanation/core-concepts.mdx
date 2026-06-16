@@ -23,7 +23,7 @@ uint256 erc20  = IERC20(USDT0).balanceOf(user); // 6 decimals
 ```
 
 :::warning
-잔액 조정은 예약 주소 `0x6D11e1A6BdCC974ebE1cA73CC2c1Ea3fDE624370`에서 추가 `Transfer` 이벤트를 발생시킵니다. `Transfer` 이벤트를 재생하는 인덱서는 이 주소로 또는 이 주소로부터의 전송을 필터링해야 하며, 그렇지 않으면 잔액을 조용히 이중 계산하게 됩니다.
+잔액 조정은 예약 주소 `0x5113954bbC0eD721F1C68671EBa3d91e9e9bF7b5`에서 추가 `Transfer` 이벤트를 발생시킵니다. `Transfer` 이벤트를 재생하는 인덱서는 이 주소로 또는 이 주소로부터의 전송을 필터링해야 하며, 그렇지 않으면 잔액을 조용히 이중 계산하게 됩니다.
 :::
 
 더 읽어보기: [가스로서의 USDT0](/ko/explanation/usdt-as-gas-token) · [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior).

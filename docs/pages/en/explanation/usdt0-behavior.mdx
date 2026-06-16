@@ -44,7 +44,7 @@ Each reconciliation transfer emits an additional `Transfer` event. A single logi
 - **Receiver adjustment**: If the receiver's fractional balance overflows, 0.000001 USDT0 is moved from the reserve address to the receiver. This emits an extra `Transfer` event.
 - **Both adjustments**: If both conditions occur in the same transfer, the reserve is bypassed. The sender transfers 0.000001 USDT0 directly to the receiver as part of the main transfer. No extra event is emitted.
 
-These auxiliary events involve the reserve address `0x6D11e1A6BdCC974ebE1cA73CC2c1Ea3fDE624370`. Indexers and off-chain services that track USDT0 balances by replaying `Transfer` events must filter or account for transfers to and from this address.
+These auxiliary events involve the reserve address `0x5113954bbC0eD721F1C68671EBa3d91e9e9bF7b5`. Indexers and off-chain services that track USDT0 balances by replaying `Transfer` events must filter or account for transfers to and from this address.
 
 ## Contract design requirements
 

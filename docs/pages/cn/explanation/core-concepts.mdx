@@ -23,7 +23,7 @@ uint256 erc20  = IERC20(USDT0).balanceOf(user); // 6 decimals
 ```
 
 :::warning
-余额协调会在储备地址 `0x6D11e1A6BdCC974ebE1cA73CC2c1Ea3fDE624370` 处发出额外的 `Transfer` 事件。回放 `Transfer` 事件的索引器必须过滤掉与该地址之间的转账，否则会在无声中重复计算余额。
+余额协调会在储备地址 `0x5113954bbC0eD721F1C68671EBa3d91e9e9bF7b5` 处发出额外的 `Transfer` 事件。回放 `Transfer` 事件的索引器必须过滤掉与该地址之间的转账，否则会在无声中重复计算余额。
 :::
 
 阅读更多：[USDT0 作为 gas](/cn/explanation/usdt-as-gas-token) · [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
