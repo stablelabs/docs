@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './AddToMetaMask.css'
 
 /* One-click "Add Stable to MetaMask" button.
 
@@ -7,6 +6,13 @@ import './AddToMetaMask.css'
    `wallet_addEthereumChain` call is all that's needed — once the network is
    added, MetaMask shows the native USDT0 balance automatically (no
    `wallet_watchAsset` for a separate ERC-20 is required).
+
+   Styling is inline (not a separate .css import) on purpose: Vocs's production
+   build does not reliably extract CSS imported from a component used only
+   inside MDX, so an imported stylesheet renders in `vocs dev` but vanishes on
+   the static deploy. Inline styles ship with the hydrated component in every
+   environment. Values reference Vocs theme variables so the button still tracks
+   the light/dark toggle.
 
    Network params mirror reference/connect.mdx — keep them in sync. */
 
@@ -57,9 +63,54 @@ function statusText(status: Status): string {
   }
 }
 
+const wrapStyle: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.75rem',
+  margin: '1rem 0',
+}
+
+const itemStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+}
+
+function buttonStyle(hover: boolean, disabled: boolean): React.CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '0.55rem 1rem',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    lineHeight: 1,
+    color: 'var(--vocs-color_backgroundAccentText)',
+    background: hover
+      ? 'var(--vocs-color_backgroundAccentHover)'
+      : 'var(--vocs-color_backgroundAccent)',
+    border: '1px solid var(--vocs-color_backgroundAccent)',
+    borderRadius: 'var(--vocs-borderRadius_8)',
+    cursor: disabled ? 'progress' : 'pointer',
+    opacity: disabled ? 0.6 : 1,
+    transition: 'background-color 0.15s ease',
+  }
+}
+
+function statusStyle(status: Status): React.CSSProperties {
+  const color =
+    status === 'success'
+      ? 'var(--vocs-color_successText)'
+      : status === 'error' || status === 'no-wallet'
+        ? 'var(--vocs-color_dangerText)'
+        : 'var(--vocs-color_text3)'
+  return { fontSize: '0.8125rem', color }
+}
+
 function AddButton({ network }: { network: NetworkKey }) {
   const [status, setStatus] = useState<Status>('idle')
+  const [hover, setHover] = useState(false)
   const params = NETWORKS[network]
+  const disabled = status === 'pending'
 
   async function add() {
     // `ethereum` is injected by MetaMask (and most EVM wallets) on the client.
@@ -90,18 +141,20 @@ function AddButton({ network }: { network: NetworkKey }) {
   }
 
   return (
-    <span className="a2mm__item">
+    <span style={itemStyle}>
       <button
         type="button"
-        className="a2mm__btn"
+        style={buttonStyle(hover && !disabled, disabled)}
         onClick={add}
-        disabled={status === 'pending'}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        disabled={disabled}
         aria-label={`Add Stable ${params.label} to MetaMask`}
       >
         Add Stable {params.label}
       </button>
       {status !== 'idle' && (
-        <span className={`a2mm__status a2mm__status--${status}`} role="status">
+        <span style={statusStyle(status)} role="status">
           {statusText(status)}
         </span>
       )}
@@ -111,7 +164,7 @@ function AddButton({ network }: { network: NetworkKey }) {
 
 export function AddToMetaMask() {
   return (
-    <div className="a2mm">
+    <div style={wrapStyle}>
       <AddButton network="mainnet" />
       <AddButton network="testnet" />
     </div>
