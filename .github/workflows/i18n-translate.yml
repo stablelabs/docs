@@ -62,8 +62,10 @@ jobs:
         if: steps.guard.outputs.skip != 'true'
         run: |
           BASE="${{ github.event.pull_request.base.sha }}"
-          pages=$(git diff --name-only --diff-filter=ACMR "$BASE"...HEAD -- 'docs/pages/en/**/*.mdx' \
-            | sed 's#^docs/pages/en/##')
+          # Directory pathspec + grep, not 'en/**/*.mdx': git's `**` glob requires an
+          # intermediate dir, so the latter silently misses top-level pages (e.g. index.mdx).
+          pages=$(git diff --name-only --diff-filter=ACMR "$BASE"...HEAD -- 'docs/pages/en' \
+            | grep '\.mdx$' | sed 's#^docs/pages/en/##')
           {
             echo 'pages<<EOF'
             echo "$pages"

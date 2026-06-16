@@ -74,6 +74,18 @@ end in `index` (e.g. `-guides`, `-overview`). Do not reach for `-index` as a
 
 ## Related
 
+- **Multi-sidebar keys must be slash-less, or locale-index pages lose their
+  sidebar.** Our `docs/sidebar.json` is a per-locale multi-sidebar object keyed
+  `/en`, `/cn`, `/ko`. Vocs selects the sidebar with
+  `pathname.startsWith(key)` (`useSidebar.js`). A locale index page renders at
+  the bare path `/cn`, so a key of `/cn/` (trailing slash) does **not** match
+  (`'/cn'.startsWith('/cn/')` is `false`) — `useSidebar` returns no items,
+  `showSidebar` is false, and the page renders with an empty sidebar. Deep pages
+  (`/cn/explanation/…`) still match, so the breakage is invisible except on the
+  index. Keep the keys slash-less (`/en`, `/cn`, `/ko`). The generator
+  (`docs/lib/i18n-sidebar.mjs`) emits slash-less keys, so this holds across
+  regeneration — do not reintroduce trailing slashes when hand-editing the `/en`
+  section. Same Vocs path-matching family as the filename rule above.
 - **Node ≥ 22 is required to build.** Vocs uses `globSync` from `node:fs`, which
   does not exist on Node 20 (`docs:build` throws
   `does not provide an export named 'globSync'`). Pinned in `.nvmrc` (`22`) and
