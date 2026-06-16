@@ -26,7 +26,7 @@
  *   npm run style:check
  */
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 const PAGES = 'docs/pages'
@@ -154,9 +154,42 @@ for (const { rel, level, msg } of issues) {
   console.log(`  ${level} ${rel}: ${msg}`)
 }
 
-console.log(
-  `\n${blocking === 0 ? '✓' : '✗'} ${files.length} en pages — ` +
-    `${blocking} blocking, ${warnings} warning${warnings === 1 ? '' : 's'}`,
-)
+const summary =
+  `${blocking === 0 ? '✓' : '✗'} ${files.length} en pages — ` +
+  `${blocking} blocking, ${warnings} warning${warnings === 1 ? '' : 's'}`
+
+console.log(`\n${summary}`)
+
+// Optional Markdown report for CI to post as a PR comment. Writing it never
+// changes the exit code — blocking issues still fail the job.
+if (process.env.STYLE_REPORT) {
+  writeFileSync(process.env.STYLE_REPORT, renderReport())
+}
+
+function renderReport() {
+  const lines = ['## Styleguide check', '', `**${summary}**`, '']
+  if (issues.length === 0) {
+    lines.push('No styleguide issues found. ✨')
+    return lines.join('\n')
+  }
+  // Group issues by file, blocking errors first within each group.
+  const byFile = new Map()
+  for (const it of issues) {
+    if (!byFile.has(it.rel)) byFile.set(it.rel, [])
+    byFile.get(it.rel).push(it)
+  }
+  if (blocking > 0) {
+    lines.push('Blocking issues must be fixed before merge; warnings are advisory.', '')
+  }
+  for (const [rel, list] of byFile) {
+    lines.push(`### \`docs/pages/en/${rel}\``)
+    for (const { level, msg } of list) {
+      lines.push(`- ${level === '✗' ? '**✗ blocking**' : '⚠ warning'}: ${msg}`)
+    }
+    lines.push('')
+  }
+  lines.push('<sub>Enforced by `npm run style:check` — see [STYLEGUIDE.md](../blob/HEAD/STYLEGUIDE.md).</sub>')
+  return lines.join('\n')
+}
 
 process.exit(blocking === 0 ? 0 : 1)
