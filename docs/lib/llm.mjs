@@ -19,7 +19,7 @@
 const BASE = (process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/$/, '')
 const KEY = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY
 
-export const TRANSLATE_MODEL = process.env.TRANSLATE_MODEL || 'google/gemini-2.0-flash-001'
+export const TRANSLATE_MODEL = process.env.TRANSLATE_MODEL || 'google/gemini-2.5-flash'
 // Unset → callers skip the review pass entirely.
 export const REVIEW_MODEL = process.env.REVIEW_MODEL || null
 // Output-token ceiling per call. Keep this within the chosen model's max output
