@@ -26,7 +26,7 @@ uint256 erc20  = IERC20(USDT0).balanceOf(user); // 6 decimals
 잔액 조정은 예약 주소 `0x6D11e1A6BdCC974ebE1cA73CC2c1Ea3fDE624370`에서 추가 `Transfer` 이벤트를 발생시킵니다. `Transfer` 이벤트를 재생하는 인덱서는 이 주소로 또는 이 주소로부터의 전송을 필터링해야 하며, 그렇지 않으면 잔액을 조용히 이중 계산하게 됩니다.
 :::
 
-더 읽어보기: [가스로서의 USDT0](/en/explanation/usdt-as-gas-token) · [Stable에서의 USDT0 동작](/en/explanation/usdt0-behavior).
+더 읽어보기: [가스로서의 USDT0](/ko/explanation/usdt-as-gas-token) · [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior).
 
 ## 보장된 블록 공간
 
@@ -34,7 +34,7 @@ Stable은 각 블록 용량의 일부를 사전 할당된 엔터프라이즈 워
 
 이 동작은 호출자 수준에서 투명합니다. 여러분은 평소대로 트랜잭션을 제출하고, 할당은 등록된 계정에 대해 프로토콜 수준에서 적용됩니다.
 
-더 읽어보기: [보장된 블록 공간](/en/explanation/guaranteed-blockspace).
+더 읽어보기: [보장된 블록 공간](/ko/explanation/guaranteed-blockspace).
 
 ## USDT 전송 집계기
 
@@ -42,7 +42,7 @@ Stable은 각 블록 용량의 일부를 사전 할당된 엔터프라이즈 워
 
 호출자 측 전송 API는 변경되지 않습니다. 여러분은 평소대로 전송을 제출하고 코드 변경 없이 처리량을 얻습니다.
 
-더 읽어보기: [USDT 전송 집계기](/en/explanation/usdt-transfer-aggregator).
+더 읽어보기: [USDT 전송 집계기](/ko/explanation/usdt-transfer-aggregator).
 
 ## EVM 호환성
 
@@ -79,17 +79,17 @@ Included at gas price: 1000000000
 내부 변수에서 네이티브 잔액을 미러링하는 컨트랙트를 포팅하는 것은 Stable에서 안전하지 않습니다. 외부 `USDT0.transferFrom` 호출은 어떠한 컨트랙트 코드도 실행하지 않고 컨트랙트의 네이티브 잔액을 고갈시킬 수 있습니다. 항상 전송 시점에 `address(this).balance`로 지급 능력을 확인하세요.
 :::
 
-더 읽어보기: [Ethereum과의 차이점](/en/explanation/ethereum-comparison) · [Stable의 컨트랙트](/en/explanation/contracts-overview) · [USDT0 마이그레이션 체크리스트](/en/explanation/usdt0-behavior).
+더 읽어보기: [Ethereum과의 차이점](/ko/explanation/ethereum-comparison) · [Stable의 컨트랙트](/ko/explanation/contracts-overview) · [USDT0 마이그레이션 체크리스트](/ko/explanation/usdt0-behavior).
 
 ## 기밀 전송 (예정)
 
 Stable은 권한이 있는 당사자에게는 감사 가능성을 유지하면서 금액을 숨기는 영지식 전송 기능을 계획하고 있습니다. 아직 출시되지 않았습니다.
 
-더 읽어보기: [기밀 전송](/en/explanation/confidential-transfer).
+더 읽어보기: [기밀 전송](/ko/explanation/confidential-transfer).
 
 ## 다음 추천
 
-- [**빠른 시작**](/en/tutorial/quick-start) — 테스트넷에 연결하고 첫 트랜잭션을 전송합니다.
-- [**USDT0 동작**](/en/explanation/usdt0-behavior) — 이중 역할의 함정에 빠지지 않고 컨트랙트를 Stable로 포팅합니다.
-- [**가스 가격 책정**](/en/reference/gas-pricing-api) — Stable의 수수료 모델에 맞게 트랜잭션을 올바르게 구성합니다.
-- [**프로덕션 준비**](/en/how-to/production-readiness) — 메인넷에 출시하기 전에 통합을 검증합니다.
+- [**빠른 시작**](/ko/tutorial/quick-start) — 테스트넷에 연결하고 첫 트랜잭션을 전송합니다.
+- [**USDT0 동작**](/ko/explanation/usdt0-behavior) — 이중 역할의 함정에 빠지지 않고 컨트랙트를 Stable로 포팅합니다.
+- [**가스 가격 책정**](/ko/reference/gas-pricing-api) — Stable의 수수료 모델에 맞게 트랜잭션을 올바르게 구성합니다.
+- [**프로덕션 준비**](/ko/how-to/production-readiness) — 메인넷에 출시하기 전에 통합을 검증합니다.

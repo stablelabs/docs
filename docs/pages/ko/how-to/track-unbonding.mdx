@@ -11,13 +11,13 @@ diataxis: "how-to"
 언본딩 기간이 완료되면, 프로토콜은 시스템 트랜잭션을 통해 `StableSystem` 프리컴파일(`0x0000000000000000000000000000000000009999`)에서 `UnbondingCompleted` 이벤트를 발생시킵니다. 이를 통해 dApp은 커스텀 인덱서를 실행하거나 REST 엔드포인트를 폴링하지 않고도 사용자에게 실시간으로 알리고 잔액을 업데이트할 수 있습니다.
 
 :::note
-**개념:** 시스템 트랜잭션이 SDK 계층의 이벤트를 EVM으로 연결하는 방식과 그 중요성에 대해서는 [시스템 트랜잭션](/en/explanation/system-transactions)을 참고하세요.
+**개념:** 시스템 트랜잭션이 SDK 계층의 이벤트를 EVM으로 연결하는 방식과 그 중요성에 대해서는 [시스템 트랜잭션](/ko/explanation/system-transactions)을 참고하세요.
 :::
 
 ## 사전 요구 사항
 
-- [시스템 트랜잭션](/en/explanation/system-transactions)에 대한 이해.
-- [스테이킹](/en/explanation/staking-module), 특히 `undelegate`와 언본딩 프로세스에 대한 이해.
+- [시스템 트랜잭션](/ko/explanation/system-transactions)에 대한 이해.
+- [스테이킹](/ko/explanation/staking-module), 특히 `undelegate`와 언본딩 프로세스에 대한 이해.
 - 표준 web3 라이브러리(예: [ethers.js](https://docs.ethers.org/) v6)를 사용한 컨트랙트 이벤트 구독 및 필터링 경험.
 
 ## 개요
@@ -183,6 +183,6 @@ setupEventListener();
 
 ## 다음 추천 항목
 
-- [**시스템 트랜잭션 개념**](/en/explanation/system-transactions) — 프로토콜 수준의 이벤트가 EVM에 도달하는 방식을 이해합니다.
-- [**스테이킹 모듈 개념**](/en/explanation/staking-module) — 위임 및 언본딩 흐름을 검토합니다.
-- [**스테이킹 프리컴파일 레퍼런스**](/en/reference/staking-module-api) — 여기서 추적하는 이벤트를 트리거하는 메서드를 찾아봅니다.
+- [**시스템 트랜잭션 개념**](/ko/explanation/system-transactions) — 프로토콜 수준의 이벤트가 EVM에 도달하는 방식을 이해합니다.
+- [**스테이킹 모듈 개념**](/ko/explanation/staking-module) — 위임 및 언본딩 흐름을 검토합니다.
+- [**스테이킹 프리컴파일 레퍼런스**](/ko/reference/staking-module-api) — 여기서 추적하는 이벤트를 트리거하는 메서드를 찾아봅니다.

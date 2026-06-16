@@ -11,13 +11,13 @@ diataxis: "how-to"
 当解绑周期完成时，协议会通过系统交易，借助 `StableSystem` 预编译合约（`0x0000000000000000000000000000000000009999`）发出 `UnbondingCompleted` 事件。这使得 dApp 能够实时通知用户并更新余额，而无需运行自定义索引器或轮询 REST 端点。
 
 :::note
-**概念：** 关于系统交易如何将 SDK 层事件桥接到 EVM 以及其重要性，请参阅 [系统交易](/en/explanation/system-transactions)。
+**概念：** 关于系统交易如何将 SDK 层事件桥接到 EVM 以及其重要性，请参阅 [系统交易](/cn/explanation/system-transactions)。
 :::
 
 ## 前置条件
 
-- 了解 [系统交易](/en/explanation/system-transactions)。
-- 熟悉 [质押](/en/explanation/staking-module)，特别是 `undelegate` 和解绑流程。
+- 了解 [系统交易](/cn/explanation/system-transactions)。
+- 熟悉 [质押](/cn/explanation/staking-module)，特别是 `undelegate` 和解绑流程。
 - 具备使用标准 web3 库（例如 [ethers.js](https://docs.ethers.org/) v6）订阅和筛选合约事件的经验。
 
 ## 概述
@@ -183,6 +183,6 @@ setupEventListener();
 
 ## 后续推荐
 
-- [**系统交易概念**](/en/explanation/system-transactions) — 了解协议层事件如何到达 EVM。
-- [**质押模块概念**](/en/explanation/staking-module) — 回顾委托和解绑流程。
-- [**质押预编译参考**](/en/reference/staking-module-api) — 查找触发此处所追踪事件的方法。
+- [**系统交易概念**](/cn/explanation/system-transactions) — 了解协议层事件如何到达 EVM。
+- [**质押模块概念**](/cn/explanation/staking-module) — 回顾委托和解绑流程。
+- [**质押预编译参考**](/cn/reference/staking-module-api) — 查找触发此处所追踪事件的方法。

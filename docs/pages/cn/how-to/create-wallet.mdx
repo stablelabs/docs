@@ -11,7 +11,7 @@ diataxis: "how-to"
 Stable 钱包是一个符合以太坊标准的密钥对。任何能生成 EVM 账户的钱包库都可以在 Stable 上直接使用，无需修改。本指南展示两种方式：适用于大多数应用的 ethers.js，以及面向需要为代理和支付提供开箱即用自托管层的集成场景的 Tether [WDK（钱包开发工具包）](https://github.com/tetherto/wdk)。
 
 :::note
-无需注册，也无需进行 Stable 专属的账户设置。钱包可以立即从[测试网水龙头](/en/how-to/use-faucet)或主网转账接收 USDT0。
+无需注册，也无需进行 Stable 专属的账户设置。钱包可以立即从[测试网水龙头](/cn/how-to/use-faucet)或主网转账接收 USDT0。
 :::
 
 ## 前提条件
@@ -70,7 +70,7 @@ Seed phrase: liberty shoot ... (12 words)
 
 ## 方式 2：Tether WDK
 
-WDK 将密钥派生、签名和交易提交封装到单一接口中。当你希望实现自托管而无需重新实现常见账户流程时，它是正确的选择，并且它能直接与 [x402](/en/how-to/build-pay-per-call) 集成以实现代理支付。
+WDK 将密钥派生、签名和交易提交封装到单一接口中。当你希望实现自托管而无需重新实现常见账户流程时，它是正确的选择，并且它能直接与 [x402](/cn/how-to/build-pay-per-call) 集成以实现代理支付。
 
 ```bash
 npm install @tetherto/wdk @tetherto/wdk-wallet-evm
@@ -125,7 +125,7 @@ Seed phrase: liberty shoot ... (12 words)
 open https://faucet.stable.xyz
 ```
 
-粘贴地址并选择按钮即可接收 1 个测试网 USDT0（足够进行数千次原生转账）。对于主网，可从任何受支持的交易所或桥转入 USDT0；参见[跨链桥接到 Stable](/en/explanation/usdt0-bridging)。
+粘贴地址并选择按钮即可接收 1 个测试网 USDT0（足够进行数千次原生转账）。对于主网，可从任何受支持的交易所或桥转入 USDT0；参见[跨链桥接到 Stable](/cn/explanation/usdt0-bridging)。
 
 ## 查询余额
 
@@ -150,6 +150,6 @@ Balance: 1.0 USDT0
 
 ## 推荐的后续步骤
 
-- [**使用 EIP-7702 进行委托**](/en/how-to/account-abstraction) — 为该钱包添加批量支付、支出限额和会话密钥。
-- [**发送你的第一笔 USDT0**](/en/tutorial/send-usdt0) — 在同一余额上进行原生和 ERC-20 转账。
-- [**为测试网钱包注资**](/en/how-to/use-faucet) — 用于获取更大测试余额的水龙头和 Sepolia 桥接选项。
+- [**使用 EIP-7702 进行委托**](/cn/how-to/account-abstraction) — 为该钱包添加批量支付、支出限额和会话密钥。
+- [**发送你的第一笔 USDT0**](/cn/tutorial/send-usdt0) — 在同一余额上进行原生和 ERC-20 转账。
+- [**为测试网钱包注资**](/cn/how-to/use-faucet) — 用于获取更大测试余额的水龙头和 Sepolia 桥接选项。

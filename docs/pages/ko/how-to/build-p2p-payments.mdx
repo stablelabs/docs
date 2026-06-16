@@ -10,7 +10,7 @@ diataxis: "how-to"
 
 이 가이드는 Stable에서 P2P 결제 애플리케이션을 구축하는 과정을 안내합니다. 이 앱은 결제의 전체 수명 주기를 처리합니다. 발신자는 USDT0를 직접 전송하고, 수신자는 들어오는 결제를 실시간으로 감지하며, 양쪽 모두 자신의 거래 내역을 조회할 수 있습니다. 모바일 앱이든 웹 체크아웃이든 백엔드 서비스든, 모든 지갑이나 결제 인터페이스와 동일한 아키텍처입니다.
 
-미들웨어도 중개자도 없습니다. 개념적 개요는 [P2P 결제](/en/reference/p2p-payments)를 참고하세요. ABI 작업을 건너뛰고 몇 줄로 작동하는 `transfer`에 도달하려면 [Stable SDK](/en/explanation/sdk-overview)를 사용하세요.
+미들웨어도 중개자도 없습니다. 개념적 개요는 [P2P 결제](/ko/reference/p2p-payments)를 참고하세요. ABI 작업을 건너뛰고 몇 줄로 작동하는 `transfer`에 도달하려면 [Stable SDK](/ko/explanation/sdk-overview)를 사용하세요.
 
 ## 구축할 내용
 
@@ -42,7 +42,7 @@ step 4. Bob receives payment (real-time event)
 ## 사전 요구 사항
 
 - Node.js 20 이상.
-- 테스트넷 USDT0가 있는 개인 키 (지갑에 자금을 충전하려면 [빠른 시작](/en/tutorial/quick-start) 참고).
+- 테스트넷 USDT0가 있는 개인 키 (지갑에 자금을 충전하려면 [빠른 시작](/ko/tutorial/quick-start) 참고).
 
 ## 프로젝트 설정
 
@@ -303,6 +303,6 @@ received  0.01  USDT0  0xFaucet...     0x22b1...3f09
 
 ## 다음 추천
 
-- [**구독 및 수금**](/en/how-to/subscribe-and-collect) — EIP-7702 위임을 사용한 풀 기반 정기 구독.
-- [**인보이스로 결제하기**](/en/how-to/pay-with-invoice) — ERC-3009와 결정론적 nonce로 인보이스를 정산합니다.
-- [**첫 USDT0 보내기**](/en/tutorial/send-usdt0) — 기본적인 네이티브 vs. ERC-20 전송 흐름을 참고하세요.
+- [**구독 및 수금**](/ko/how-to/subscribe-and-collect) — EIP-7702 위임을 사용한 풀 기반 정기 구독.
+- [**인보이스로 결제하기**](/ko/how-to/pay-with-invoice) — ERC-3009와 결정론적 nonce로 인보이스를 정산합니다.
+- [**첫 USDT0 보내기**](/ko/tutorial/send-usdt0) — 기본적인 네이티브 vs. ERC-20 전송 흐름을 참고하세요.

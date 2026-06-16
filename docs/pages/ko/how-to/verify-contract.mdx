@@ -12,13 +12,13 @@ diataxis: "how-to"
 
 ## 사전 준비
 
-- Stable 테스트넷 또는 메인넷에 이미 배포된 컨트랙트. 아직 배포하지 않았다면 [스마트 컨트랙트 배포하기](/en/tutorial/smart-contract)를 참조하세요.
+- Stable 테스트넷 또는 메인넷에 이미 배포된 컨트랙트. 아직 배포하지 않았다면 [스마트 컨트랙트 배포하기](/ko/tutorial/smart-contract)를 참조하세요.
 - Foundry 설치 (PATH에서 `forge` 사용 가능).
 - `forge create` 출력에서 얻은 배포된 컨트랙트 주소.
 
 ## 1. 배포된 주소 확인
 
-이전 배포에서 얻은 `Deployed to` 주소가 있는지 확인하세요. [스마트 컨트랙트 배포하기](/en/tutorial/smart-contract) 흐름에서는 `forge create` 이후에 출력된 값입니다.
+이전 배포에서 얻은 `Deployed to` 주소가 있는지 확인하세요. [스마트 컨트랙트 배포하기](/ko/tutorial/smart-contract) 흐름에서는 `forge create` 이후에 출력된 값입니다.
 
 ```bash
 cast code 0xDeployedContractAddress --rpc-url https://rpc.testnet.stable.xyz | head -c 20
@@ -82,6 +82,6 @@ https://testnet.stablescan.xyz/address/0xDeployedContractAddress
 
 ## 다음 추천
 
-- [**컨트랙트 이벤트 인덱싱**](/en/how-to/index-contract) — ethers.js로 온체인 이벤트를 구독하고 실시간 이벤트 스트림을 구축하세요.
-- [**스마트 컨트랙트 배포하기**](/en/tutorial/smart-contract) — 새로운 Foundry 프로젝트를 구성하고 Stable 테스트넷에 배포하세요.
-- [**JSON-RPC 레퍼런스**](/en/reference/json-rpc-api) — Stable이 온체인 상호작용을 위해 지원하는 `eth_*` 메서드를 확인하세요.
+- [**컨트랙트 이벤트 인덱싱**](/ko/how-to/index-contract) — ethers.js로 온체인 이벤트를 구독하고 실시간 이벤트 스트림을 구축하세요.
+- [**스마트 컨트랙트 배포하기**](/ko/tutorial/smart-contract) — 새로운 Foundry 프로젝트를 구성하고 Stable 테스트넷에 배포하세요.
+- [**JSON-RPC 레퍼런스**](/ko/reference/json-rpc-api) — Stable이 온체인 상호작용을 위해 지원하는 `eth_*` 메서드를 확인하세요.

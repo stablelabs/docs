@@ -11,7 +11,7 @@ diataxis: "how-to"
 本指南将引导你构建一个订阅支付系统，订阅者只需授权一次，服务提供方便可在每个计费周期通过 EIP-7702 账户抽象自动收款。
 
 :::note
-**概念：** 关于订阅模型、权衡取舍以及与卡片预存计费的比较，请参阅[订阅计费](/en/reference/subscriptions)。
+**概念：** 关于订阅模型、权衡取舍以及与卡片预存计费的比较，请参阅[订阅计费](/cn/reference/subscriptions)。
 :::
 
 ## 你将构建的内容
@@ -180,7 +180,7 @@ contract SubscriptionManager {
 ```
 
 :::note
-此合约作为参考实现提供，仅用于测试目的。委托合约对订阅者的 EOA 拥有完全的执行权限，因此在生产环境中，请使用经过审计和验证的合约。有关 EIP-7702 委托和安全性的更多背景信息，请参阅 [EIP-7702](/en/explanation/eip-7702)。
+此合约作为参考实现提供，仅用于测试目的。委托合约对订阅者的 EOA 拥有完全的执行权限，因此在生产环境中，请使用经过审计和验证的合约。有关 EIP-7702 委托和安全性的更多背景信息，请参阅 [EIP-7702](/cn/explanation/eip-7702)。
 :::
 
 ## 配置
@@ -386,6 +386,6 @@ Subscription cancelled, tx: 0xdef0...5678
 
 ## 下一步推荐
 
-- [**订阅计费概念**](/en/reference/subscriptions) — 了解基于拉取的计费模型。
-- [**账户抽象**](/en/how-to/account-abstraction) — 了解批量支付、支出限额和会话密钥如何在单一委托下组合。
-- [**EIP-7702 概念**](/en/explanation/eip-7702) — 回顾使这一切成为可能的委托模型。
+- [**订阅计费概念**](/cn/reference/subscriptions) — 了解基于拉取的计费模型。
+- [**账户抽象**](/cn/how-to/account-abstraction) — 了解批量支付、支出限额和会话密钥如何在单一委托下组合。
+- [**EIP-7702 概念**](/cn/explanation/eip-7702) — 回顾使这一切成为可能的委托模型。

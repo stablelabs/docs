@@ -13,11 +13,11 @@ diataxis: "tutorial"
 本页将引导你通过这两条路径发送 USDT0，并确认它们都从同一个余额中扣款。
 
 :::note
-更喜欢使用带类型的客户端？[Stable SDK](/en/explanation/sdk-overview) 提供了一个统一的 `transfer({ to, amount, token? })`，它涵盖了两条路径，在链上处理小数位，并为你切换钱包所在的链。
+更喜欢使用带类型的客户端？[Stable SDK](/cn/explanation/sdk-overview) 提供了一个统一的 `transfer({ to, amount, token? })`，它涵盖了两条路径，在链上处理小数位，并为你切换钱包所在的链。
 :::
 
 :::note
-**18 位与 6 位小数**：原生 USDT0 使用 18 位小数（标准 EVM 精度），而 ERC-20 接口报告 6 位小数（标准 USDT 精度）。两者反映的是同一个余额，因此由于小数对账，`address(x).balance` 和 `USDT0.balanceOf(x)` 可能相差最多 0.000001 USDT0。请参阅 [USDT0 在 Stable 上的行为](/en/explanation/usdt0-behavior)。
+**18 位与 6 位小数**：原生 USDT0 使用 18 位小数（标准 EVM 精度），而 ERC-20 接口报告 6 位小数（标准 USDT 精度）。两者反映的是同一个余额，因此由于小数对账，`address(x).balance` 和 `USDT0.balanceOf(x)` 可能相差最多 0.000001 USDT0。请参阅 [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
 :::
 
 ## 你将构建什么
@@ -42,7 +42,7 @@ step 3. Result
 ## 前提条件
 
 - Node.js 20 或更高版本
-- 一个持有测试网 USDT0 的私钥。请参阅[快速开始](/en/tutorial/quick-start)为钱包充值。
+- 一个持有测试网 USDT0 的私钥。请参阅[快速开始](/cn/tutorial/quick-start)为钱包充值。
 
 **USDT0 合约地址**
 
@@ -155,10 +155,10 @@ Native balance: 0.008979 USDT0
 ERC-20 balance: 0.008979 USDT0
 ```
 
-这两个值代表的是同一个余额。由于[小数余额对账](/en/explanation/usdt0-behavior#balance-reconciliation)，它们可能相差最多 0.000001 USDT0。
+这两个值代表的是同一个余额。由于[小数余额对账](/cn/explanation/usdt0-behavior#balance-reconciliation)，它们可能相差最多 0.000001 USDT0。
 
 ## 推荐的下一步
 
-- [**零 gas 交易**](/en/how-to/zero-gas-transactions) — 通过豁免服务支付 gas 费来发送 USDT0。
-- [**构建 P2P 支付应用**](/en/how-to/build-p2p-payments) — 创建钱包、发送、接收并查询支付历史。
-- [**USDT0 在 Stable 上的行为**](/en/explanation/usdt0-behavior) — 了解双角色余额对账和合约设计。
+- [**零 gas 交易**](/cn/how-to/zero-gas-transactions) — 通过豁免服务支付 gas 费来发送 USDT0。
+- [**构建 P2P 支付应用**](/cn/how-to/build-p2p-payments) — 创建钱包、发送、接收并查询支付历史。
+- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior) — 了解双角色余额对账和合约设计。

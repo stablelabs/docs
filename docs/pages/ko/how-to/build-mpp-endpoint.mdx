@@ -8,10 +8,10 @@ diataxis: "how-to"
 
 # Stable에서 MPP 엔드포인트 구축하기
 
-이 가이드는 Stable에서 USDT0를 위한 커스텀 [MPP](/en/explanation/mpp) 결제 메서드를 작성하고 MPP로 보호되는 엔드포인트를 제공하는 과정을 설명합니다. 구매자는 [ERC-3009](/en/explanation/erc-3009) `transferWithAuthorization`에 서명하고, 서버는 `mppx`의 `verify()` 훅을 통해 이를 검증하며, 정산은 여러분이 제어하는 별도의 단계에서 이루어집니다.
+이 가이드는 Stable에서 USDT0를 위한 커스텀 [MPP](/ko/explanation/mpp) 결제 메서드를 작성하고 MPP로 보호되는 엔드포인트를 제공하는 과정을 설명합니다. 구매자는 [ERC-3009](/ko/explanation/erc-3009) `transferWithAuthorization`에 서명하고, 서버는 `mppx`의 `verify()` 훅을 통해 이를 검증하며, 정산은 여러분이 제어하는 별도의 단계에서 이루어집니다.
 
 :::note
-**개념:** MPP가 무엇이며 x402와 어떤 관련이 있는지는 [Machine Payments Protocol (MPP)](/en/explanation/mpp)를 참고하세요. x402에 해당하는 내용은 [호출당 과금 API 구축하기](/en/how-to/build-pay-per-call)를 참고하세요.
+**개념:** MPP가 무엇이며 x402와 어떤 관련이 있는지는 [Machine Payments Protocol (MPP)](/ko/explanation/mpp)를 참고하세요. x402에 해당하는 내용은 [호출당 과금 API 구축하기](/ko/how-to/build-pay-per-call)를 참고하세요.
 :::
 
 :::note
@@ -42,7 +42,7 @@ step 4. Verify settlement on Stablescan
 
 ## 사전 준비
 
-- Stable에 자금이 있는 USDT0 지갑. [Faucet 사용하기](/en/how-to/use-faucet) 또는 [USDT0 옮기기](/en/tutorial/send-usdt0)를 참고하세요.
+- Stable에 자금이 있는 USDT0 지갑. [Faucet 사용하기](/ko/how-to/use-faucet) 또는 [USDT0 옮기기](/ko/tutorial/send-usdt0)를 참고하세요.
 - `mppx`, `viem`, `zod`가 설치된 Node 20+.
 - Stable의 판매자 계정(EOA). 기본 정산 경로에서는 판매자가 USDT0로 가스를 지불합니다. [Gas Waiver](#alternative-settle-through-the-gas-waiver) 섹션에서는 가스가 없는 변형을 보여줍니다.
 
@@ -255,7 +255,7 @@ export async function settleDirect(credential: {
 
 ### 대안: Gas Waiver를 통한 정산
 
-Stable의 [Gas Waiver](/en/how-to/integrate-gas-waiver)를 사용하여 내부 트랜잭션을 `gasPrice = 0`으로 제출합니다. 판매자는 여전히 래핑 트랜잭션에 서명하지만 가스는 지불하지 않습니다. Waiver Server API 키가 필요합니다.
+Stable의 [Gas Waiver](/ko/how-to/integrate-gas-waiver)를 사용하여 내부 트랜잭션을 `gasPrice = 0`으로 제출합니다. 판매자는 여전히 래핑 트랜잭션에 서명하지만 가스는 지불하지 않습니다. Waiver Server API 키가 필요합니다.
 
 ```typescript
 // src/settle-waiver.ts
@@ -289,7 +289,7 @@ export async function settleViaWaiver(
 { txHash: "0x8f3a1b2c..." }
 ```
 
-게시 전에 서명된 내부 트랜잭션(`gasPrice: 0`, 인코딩된 `transferWithAuthorization` 호출)을 구성하는 방법은 [Gas waiver 프로토콜](/en/reference/gas-waiver-api)을 참고하세요.
+게시 전에 서명된 내부 트랜잭션(`gasPrice: 0`, 인코딩된 `transferWithAuthorization` 호출)을 구성하는 방법은 [Gas waiver 프로토콜](/ko/reference/gas-waiver-api)을 참고하세요.
 
 ### 대안: x402 facilitator에 위임
 
@@ -463,6 +463,6 @@ Payment-Receipt: reference="0x8f3a1b2c...", status="success", timestamp="2026-06
 
 ## 다음 권장 사항
 
-- [**MPP 개념**](/en/explanation/mpp) — MPP가 x402와 어떤 관련이 있는지, 그리고 다른 의도들이 어떻게 생겼는지 읽어보세요.
-- [**MPP 세션**](/en/explanation/mpp-sessions) — 요청당 정산이 너무 비쌀 때 오프체인 바우처로 마이크로페이먼트를 스트리밍하세요.
-- [**Facilitators**](/en/reference/agentic-facilitators) — 직접 제출하는 대신 Semantic Pay나 Heurist를 정산 대상으로 사용하세요.
+- [**MPP 개념**](/ko/explanation/mpp) — MPP가 x402와 어떤 관련이 있는지, 그리고 다른 의도들이 어떻게 생겼는지 읽어보세요.
+- [**MPP 세션**](/ko/explanation/mpp-sessions) — 요청당 정산이 너무 비쌀 때 오프체인 바우처로 마이크로페이먼트를 스트리밍하세요.
+- [**Facilitators**](/ko/reference/agentic-facilitators) — 직접 제출하는 대신 Semantic Pay나 Heurist를 정산 대상으로 사용하세요.

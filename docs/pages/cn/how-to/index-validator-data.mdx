@@ -11,7 +11,7 @@ diataxis: "how-to"
 验证者数据存储在链上，可通过标准 EVM JSON-RPC 读取。你通过 staking、slashing 和 governance 预编译合约查询当前状态，并从它们的事件日志重建历史。这意味着索引器或分析平台可以通过 `eth_call` 和 `eth_getLogs` 读取所需的一切，无需访问节点的 `stabled` CLI 或 Cosmos REST。
 
 :::note
-**概念：** 关于 staking 模块跟踪的内容以及委托的工作原理，请参阅 [Staking 模块](/en/explanation/staking-module)。关于每个方法的输入和输出，请参阅 [Staking 预编译参考](/en/reference/staking-module-api)。
+**概念：** 关于 staking 模块跟踪的内容以及委托的工作原理，请参阅 [Staking 模块](/cn/explanation/staking-module)。关于每个方法的输入和输出，请参阅 [Staking 预编译参考](/cn/reference/staking-module-api)。
 :::
 
 ## 每个数据点的来源
@@ -36,7 +36,7 @@ diataxis: "how-to"
 | Gov | `0x0000000000000000000000000000000000000805` | 提案、计票和投票日志 |
 | Slashing | `0x0000000000000000000000000000000000000806` | 签名信息和在线率 |
 
-在 `https://rpc.stable.xyz` 连接到主网（Chain ID `988`）。关于端点和限制，请参阅 [主网信息](/en/reference/mainnet-information)。
+在 `https://rpc.stable.xyz` 连接到主网（Chain ID `988`）。关于端点和限制，请参阅 [主网信息](/cn/reference/mainnet-information)。
 
 ## 验证者名称、质押和佣金
 
@@ -70,7 +70,7 @@ StableNode-01 4500000000000000000000000 50000000000000000
 StableNode-02 3900000000000000000000000 100000000000000000
 ```
 
-`tokens` 和 `commission` 值缩放为 18 位小数。将 `commission` 除以 1e18 即可得到分数形式的费率（例如 `0.05` 表示 5%）。关于完整的 `Validator` 结构体和 `BOND_STATUS_*` 值，请参阅 [Staking 预编译参考](/en/reference/staking-module-api#validators)。
+`tokens` 和 `commission` 值缩放为 18 位小数。将 `commission` 除以 1e18 即可得到分数形式的费率（例如 `0.05` 表示 5%）。关于完整的 `Validator` 结构体和 `BOND_STATUS_*` 值，请参阅 [Staking 预编译参考](/cn/reference/staking-module-api#validators)。
 
 ## 质押随时间的变化
 
@@ -96,7 +96,7 @@ console.log(`${logs.length} delegations indexed`);
 1842 delegations indexed
 ```
 
-`Unbond` 和 `Redelegate` 遵循相同的结构，并额外携带 `completionTime`。关于确切的签名，请参阅 staking 参考的 [事件部分](/en/reference/staking-module-api#events)。
+`Unbond` 和 `Redelegate` 遵循相同的结构，并额外携带 `completionTime`。关于确切的签名，请参阅 staking 参考的 [事件部分](/cn/reference/staking-module-api#events)。
 
 ## 加入日期
 
@@ -139,7 +139,7 @@ uptime = (signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow
 `signedBlocksWindow` 为 `10000`、`missedBlocksCounter` 为 `25` 的验证者在窗口内的在线率为 99.75%。这是一个滚动数值，而非终身在线率。要跟踪在线率历史，请按固定间隔对计数器进行快照并存储每次读数。
 
 :::note
-slashing 预编译遵循 Cosmos EVM `x/slashing` 接口。其地址列在 [系统模块预编译表](/en/how-to/use-system-modules#whats-exposed) 中。请从链的预编译接口生成确切的方法 ABI。
+slashing 预编译遵循 Cosmos EVM `x/slashing` 接口。其地址列在 [系统模块预编译表](/cn/how-to/use-system-modules#whats-exposed) 中。请从链的预编译接口生成确切的方法 ABI。
 :::
 
 ## 投票历史
@@ -171,12 +171,12 @@ console.log(`${logs.length} votes indexed across all proposals`);
 迄今为止的每个提案（提案 #1 到 #7）都已确认有实时投票日志。当你只需要每个提案的最终计数时，使用 `getTallyResult()`；当你需要每个验证者的记录时，使用事件日志。
 
 :::note
-gov 预编译遵循 Cosmos EVM `x/gov` 接口。其地址列在 [系统模块预编译表](/en/how-to/use-system-modules#whats-exposed) 中。请从链的预编译接口生成确切的方法 ABI 和 `VoteOption` 枚举。
+gov 预编译遵循 Cosmos EVM `x/gov` 接口。其地址列在 [系统模块预编译表](/cn/how-to/use-system-modules#whats-exposed) 中。请从链的预编译接口生成确切的方法 ABI 和 `VoteOption` 枚举。
 :::
 
 ## 推荐的后续步骤
 
-- [**Staking 预编译参考**](/en/reference/staking-module-api) — 查找完整的 validators()、委托方法和事件签名。
-- [**创建验证者**](/en/how-to/run-validator) — 将已同步的节点注册为验证者，使其出现在上述数据中。
-- [**索引器和分析**](/en/reference/indexers) — 浏览已经提供标准化 Stable 数据的索引提供商。
-- [**主网信息**](/en/reference/mainnet-information) — 在开始索引之前获取 Chain ID、RPC 端点和速率限制。
+- [**Staking 预编译参考**](/cn/reference/staking-module-api) — 查找完整的 validators()、委托方法和事件签名。
+- [**创建验证者**](/cn/how-to/run-validator) — 将已同步的节点注册为验证者，使其出现在上述数据中。
+- [**索引器和分析**](/cn/reference/indexers) — 浏览已经提供标准化 Stable 数据的索引提供商。
+- [**主网信息**](/cn/reference/mainnet-information) — 在开始索引之前获取 Chain ID、RPC 端点和速率限制。

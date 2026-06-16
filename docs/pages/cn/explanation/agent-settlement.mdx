@@ -24,10 +24,10 @@ diataxis: "explanation"
 两个层级承担不同的职责，互为补充而非相互替代：
 
 - **x402** 是*支付标准*。它是一种 HTTP 原生协议，服务器以 `402 Payment Required` 响应，客户端签署授权，由 facilitator 提交。
-- **MPP（Machine Payments Protocol）** 是 IETF 标准化路线上的标准，它通过更广泛的意图和多通道支持取代 x402；x402 是 Stable 目前支持的向后兼容子集。参见 [MPP](/en/explanation/mpp)。
+- **MPP（Machine Payments Protocol）** 是 IETF 标准化路线上的标准，它通过更广泛的意图和多通道支持取代 x402；x402 是 Stable 目前支持的向后兼容子集。参见 [MPP](/cn/explanation/mpp)。
 - **Stable** 是*结算层*。USDT0 的链上转账实际上在这里发生。
 
-**facilitator** 位于两者之间：它验证已签名的付款并提交链上调用，从而使开发者无需运行结算基础设施。请参见 [Facilitators](/en/reference/agentic-facilitators)，了解目前支持 Stable 的提供商。
+**facilitator** 位于两者之间：它验证已签名的付款并提交链上调用，从而使开发者无需运行结算基础设施。请参见 [Facilitators](/cn/reference/agentic-facilitators)，了解目前支持 Stable 的提供商。
 
 ```text
 agent (client)  ──HTTP──▶  resource server  ──signed payment──▶  facilitator  ──tx──▶  Stable
@@ -45,13 +45,13 @@ agent (client)  ──HTTP──▶  resource server  ──signed payment──
 
 ## 从这里开始
 
-- [**构建按调用付费的 API**](/en/how-to/build-pay-per-call) — 搭建一个 x402 门控的端点，并在请求中结算一笔真实的 USDT0 付款。
-- [**在 Stable 上构建 MPP 端点**](/en/how-to/build-mpp-endpoint) — 为 USDT0 编写三个 MPP 自定义方法钩子，并在 Stable 上结算。
-- [**使用 AI 进行开发**](/en/how-to/develop-with-ai) — 将 Docs MCP 和 Runtime MCP 接入你的 AI 编辑器，并粘贴 Stable 上下文块。
-- [**通过 MCP 服务器付费**](/en/how-to/pay-with-mcp) — 将 x402 付费 API 暴露为 MCP 工具，使代理可以通过自然语言提示词调用它们。
+- [**构建按调用付费的 API**](/cn/how-to/build-pay-per-call) — 搭建一个 x402 门控的端点，并在请求中结算一笔真实的 USDT0 付款。
+- [**在 Stable 上构建 MPP 端点**](/cn/how-to/build-mpp-endpoint) — 为 USDT0 编写三个 MPP 自定义方法钩子，并在 Stable 上结算。
+- [**使用 AI 进行开发**](/cn/how-to/develop-with-ai) — 将 Docs MCP 和 Runtime MCP 接入你的 AI 编辑器，并粘贴 Stable 上下文块。
+- [**通过 MCP 服务器付费**](/cn/how-to/pay-with-mcp) — 将 x402 付费 API 暴露为 MCP 工具，使代理可以通过自然语言提示词调用它们。
 
 ## 推荐的后续阅读
 
-- [**深入了解 x402**](/en/explanation/x402) — 阅读 HTTP 支付协议在 Stable 上端到端的工作方式。
-- [**MPP**](/en/explanation/mpp) — x402 所属的更广泛的 IETF 标准化路线标准。
-- [**Facilitators**](/en/reference/agentic-facilitators) — 查看哪些 facilitator 已在 Stable 上结算 USDT0 付款。
+- [**深入了解 x402**](/cn/explanation/x402) — 阅读 HTTP 支付协议在 Stable 上端到端的工作方式。
+- [**MPP**](/cn/explanation/mpp) — x402 所属的更广泛的 IETF 标准化路线标准。
+- [**Facilitators**](/cn/reference/agentic-facilitators) — 查看哪些 facilitator 已在 Stable 上结算 USDT0 付款。

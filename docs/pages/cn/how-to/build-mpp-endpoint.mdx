@@ -8,10 +8,10 @@ diataxis: "how-to"
 
 # 在 Stable 上构建 MPP 端点
 
-本指南将逐步介绍如何为 Stable 上的 USDT0 编写自定义 [MPP](/en/explanation/mpp) 支付方法，并提供一个受 MPP 保护的端点。买方签署一个 [ERC-3009](/en/explanation/erc-3009) `transferWithAuthorization`，服务器通过 `mppx` 的 `verify()` 钩子对其进行验证，结算则在你控制的单独步骤中完成。
+本指南将逐步介绍如何为 Stable 上的 USDT0 编写自定义 [MPP](/cn/explanation/mpp) 支付方法，并提供一个受 MPP 保护的端点。买方签署一个 [ERC-3009](/cn/explanation/erc-3009) `transferWithAuthorization`，服务器通过 `mppx` 的 `verify()` 钩子对其进行验证，结算则在你控制的单独步骤中完成。
 
 :::note
-**概念：** 关于什么是 MPP 以及它与 x402 的关系，请参阅 [机器支付协议（MPP）](/en/explanation/mpp)。关于 x402 的等价实现，请参阅 [构建按次调用付费 API](/en/how-to/build-pay-per-call)。
+**概念：** 关于什么是 MPP 以及它与 x402 的关系，请参阅 [机器支付协议（MPP）](/cn/explanation/mpp)。关于 x402 的等价实现，请参阅 [构建按次调用付费 API](/cn/how-to/build-pay-per-call)。
 :::
 
 :::note
@@ -42,7 +42,7 @@ step 4. Verify settlement on Stablescan
 
 ## 前提条件
 
-- 在 Stable 上有一个已注资的 USDT0 钱包。请参阅 [使用水龙头](/en/how-to/use-faucet) 或 [转移 USDT0](/en/tutorial/send-usdt0)。
+- 在 Stable 上有一个已注资的 USDT0 钱包。请参阅 [使用水龙头](/cn/how-to/use-faucet) 或 [转移 USDT0](/cn/tutorial/send-usdt0)。
 - 安装了 `mppx`、`viem` 和 `zod` 的 Node 20+。
 - 在 Stable 上有一个卖方账户（一个 EOA）。在默认结算路径下，卖方以 USDT0 支付 gas；[Gas Waiver](#alternative-settle-through-the-gas-waiver) 一节展示了零 gas 的变体。
 
@@ -255,7 +255,7 @@ export async function settleDirect(credential: {
 
 ### 替代方案：通过 Gas Waiver 结算
 
-使用 Stable 的 [Gas Waiver](/en/how-to/integrate-gas-waiver) 以 `gasPrice = 0` 提交内层交易。卖方仍然签署包装交易，但不支付 gas。需要一个 Waiver Server API 密钥。
+使用 Stable 的 [Gas Waiver](/cn/how-to/integrate-gas-waiver) 以 `gasPrice = 0` 提交内层交易。卖方仍然签署包装交易，但不支付 gas。需要一个 Waiver Server API 密钥。
 
 ```typescript
 // src/settle-waiver.ts
@@ -289,7 +289,7 @@ export async function settleViaWaiver(
 { txHash: "0x8f3a1b2c..." }
 ```
 
-关于如何在发布前构建已签名的内层交易（`gasPrice: 0`，已编码的 `transferWithAuthorization` 调用），请参阅 [Gas waiver 协议](/en/reference/gas-waiver-api)。
+关于如何在发布前构建已签名的内层交易（`gasPrice: 0`，已编码的 `transferWithAuthorization` 调用），请参阅 [Gas waiver 协议](/cn/reference/gas-waiver-api)。
 
 ### 替代方案：交给 x402 facilitator
 
@@ -463,6 +463,6 @@ Payment-Receipt: reference="0x8f3a1b2c...", status="success", timestamp="2026-06
 
 ## 推荐的后续内容
 
-- [**MPP 概念**](/en/explanation/mpp) — 了解 MPP 如何与 x402 关联，以及其他意图是什么样的。
-- [**MPP 会话**](/en/explanation/mpp-sessions) — 当按请求结算成本过高时，使用链下凭证流式传输微支付。
-- [**Facilitators**](/en/reference/agentic-facilitators) — 使用 Semantic Pay 或 Heurist 作为结算目标，而不是直接提交。
+- [**MPP 概念**](/cn/explanation/mpp) — 了解 MPP 如何与 x402 关联，以及其他意图是什么样的。
+- [**MPP 会话**](/cn/explanation/mpp-sessions) — 当按请求结算成本过高时，使用链下凭证流式传输微支付。
+- [**Facilitators**](/cn/reference/agentic-facilitators) — 使用 Semantic Pay 或 Heurist 作为结算目标，而不是直接提交。

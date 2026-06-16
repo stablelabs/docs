@@ -13,7 +13,7 @@ Stable 通过位于固定地址的**预编译合约（precompiled contracts）**
 本指南展示了如何同时从 Solidity 和 ethers.js 调用预编译合约，以及何时应该使用它而非普通合约。
 
 :::note
-**概念**：关于系统模块的作用以及它们为何是预编译合约，请参阅[系统模块](/en/explanation/system-modules-overview)。关于各模块的方法签名和事件，请参阅[系统模块参考](/en/reference/system-modules-api-overview)。
+**概念**：关于系统模块的作用以及它们为何是预编译合约，请参阅[系统模块](/cn/explanation/system-modules-overview)。关于各模块的方法签名和事件，请参阅[系统模块参考](/cn/reference/system-modules-api-overview)。
 :::
 
 ## 暴露了哪些内容
@@ -173,19 +173,19 @@ Amount: 100.0 STABLE
 Tx: 0x12ab...
 ```
 
-关于完整的系统交易机制以及按用户筛选 / 历史查询的模式，请参阅[追踪解绑完成](/en/how-to/track-unbonding)。
+关于完整的系统交易机制以及按用户筛选 / 历史查询的模式，请参阅[追踪解绑完成](/cn/how-to/track-unbonding)。
 
 ## 各模块参考
 
 每个预编译合约的完整方法列表、事件和授权规则都在其对应的参考页面中。
 
-- [Bank 预编译合约](/en/reference/bank-module-api)：STABLE 代币转账和供应量查询。
-- [Distribution 预编译合约](/en/reference/distribution-module-api)：奖励领取和佣金。
-- [Staking 预编译合约](/en/reference/staking-module-api)：委托、解除委托、重新委托、验证人查询。
-- [系统交易](/en/reference/system-transactions-api)：StableSystem 事件格式和授权。
+- [Bank 预编译合约](/cn/reference/bank-module-api)：STABLE 代币转账和供应量查询。
+- [Distribution 预编译合约](/cn/reference/distribution-module-api)：奖励领取和佣金。
+- [Staking 预编译合约](/cn/reference/staking-module-api)：委托、解除委托、重新委托、验证人查询。
+- [系统交易](/cn/reference/system-transactions-api)：StableSystem 事件格式和授权。
 
 ## 推荐的后续阅读
 
-- [**追踪解绑完成**](/en/how-to/track-unbonding) — 订阅通过 StableSystem 预编译合约发出的 UnbondingCompleted 事件。
-- [**系统模块参考**](/en/reference/system-modules-api-overview) — 直接查看各模块的 ABI、方法签名和事件结构。
-- [**系统模块概念**](/en/explanation/system-modules-overview) — 理解 Stable 为何通过预编译合约暴露 SDK 模块。
+- [**追踪解绑完成**](/cn/how-to/track-unbonding) — 订阅通过 StableSystem 预编译合约发出的 UnbondingCompleted 事件。
+- [**系统模块参考**](/cn/reference/system-modules-api-overview) — 直接查看各模块的 ABI、方法签名和事件结构。
+- [**系统模块概念**](/cn/explanation/system-modules-overview) — 理解 Stable 为何通过预编译合约暴露 SDK 模块。

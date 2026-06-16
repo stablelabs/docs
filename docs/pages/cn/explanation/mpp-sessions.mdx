@@ -40,10 +40,10 @@ diataxis: "explanation"
 1. 一个面向 USDT0 的会话感知托管合约，用于持有存款并暴露 `settleVouchers`（或等效）函数。
 2. 一个协调者，在卖方侧签发凭证并在买方侧进行验证，将提交批量发送给托管合约。
 
-在两者都上线之前，MPP 会话在 Stable 上还无法使用。对于当今的高频代理支付，开销最低的模式是通过 Stable 的 [Gas 减免](/en/how-to/integrate-gas-waiver) 提交的 **单次扣费** 意图，它消除了卖方侧的每笔交易 gas 成本，并使买方的 USDT0 余额成为唯一需要管理的资产。请参阅 [在 Stable 上构建 MPP 端点](/en/how-to/build-mpp-endpoint) 了解每个请求的单次扣费模式。
+在两者都上线之前，MPP 会话在 Stable 上还无法使用。对于当今的高频代理支付，开销最低的模式是通过 Stable 的 [Gas 减免](/cn/how-to/integrate-gas-waiver) 提交的 **单次扣费** 意图，它消除了卖方侧的每笔交易 gas 成本，并使买方的 USDT0 余额成为唯一需要管理的资产。请参阅 [在 Stable 上构建 MPP 端点](/cn/how-to/build-mpp-endpoint) 了解每个请求的单次扣费模式。
 
 ## 下一步推荐
 
-- [**MPP 概念**](/en/explanation/mpp) — 阅读更广泛的标准，包括单次扣费和订阅意图。
-- [**代理结算**](/en/explanation/agent-settlement) — 了解 MPP 会话在 Stable 代理支付通道中的位置。
-- [**在 Stable 上构建 MPP 端点**](/en/how-to/build-mpp-endpoint) — 在会话功能尚未到来之前，今天就使用单次扣费意图。
+- [**MPP 概念**](/cn/explanation/mpp) — 阅读更广泛的标准，包括单次扣费和订阅意图。
+- [**代理结算**](/cn/explanation/agent-settlement) — 了解 MPP 会话在 Stable 代理支付通道中的位置。
+- [**在 Stable 上构建 MPP 端点**](/cn/how-to/build-mpp-endpoint) — 在会话功能尚未到来之前，今天就使用单次扣费意图。

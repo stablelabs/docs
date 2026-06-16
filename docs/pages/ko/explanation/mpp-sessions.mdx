@@ -40,10 +40,10 @@ diataxis: "explanation"
 1. 예치금을 보관하고 `settleVouchers`(또는 동등한) 함수를 노출하는, USDT0용 세션 인식 에스크로 컨트랙트.
 2. 판매자 측에서 바우처를 발행하고 구매자 측에서 검증하며, 에스크로 제출을 배치 처리하는 퍼실리테이터.
 
-이 두 가지가 모두 출시되기 전까지 MPP 세션은 Stable에서 사용할 수 없습니다. 오늘날 고빈도 에이전트 결제를 위한 가장 오버헤드가 낮은 패턴은 Stable의 [가스 면제](/en/how-to/integrate-gas-waiver)를 통해 제출되는 **charge** 인텐트로, 판매자 측의 트랜잭션당 가스 비용을 제거하고 구매자의 USDT0 잔액을 유일하게 관리할 자산으로 유지합니다. 요청당 charge 패턴은 [Stable에서 MPP 엔드포인트 구축하기](/en/how-to/build-mpp-endpoint)를 참고하세요.
+이 두 가지가 모두 출시되기 전까지 MPP 세션은 Stable에서 사용할 수 없습니다. 오늘날 고빈도 에이전트 결제를 위한 가장 오버헤드가 낮은 패턴은 Stable의 [가스 면제](/ko/how-to/integrate-gas-waiver)를 통해 제출되는 **charge** 인텐트로, 판매자 측의 트랜잭션당 가스 비용을 제거하고 구매자의 USDT0 잔액을 유일하게 관리할 자산으로 유지합니다. 요청당 charge 패턴은 [Stable에서 MPP 엔드포인트 구축하기](/ko/how-to/build-mpp-endpoint)를 참고하세요.
 
 ## 다음 추천
 
-- [**MPP 개념**](/en/explanation/mpp) — charge 및 subscription 인텐트를 포함한 더 넓은 표준을 읽어보세요.
-- [**에이전트 정산**](/en/explanation/agent-settlement) — MPP 세션이 Stable의 에이전트 결제 레일에서 어디에 위치할지 확인하세요.
-- [**Stable에서 MPP 엔드포인트 구축하기**](/en/how-to/build-mpp-endpoint) — 세션이 출시되기 전까지 오늘날 charge 인텐트를 사용하세요.
+- [**MPP 개념**](/ko/explanation/mpp) — charge 및 subscription 인텐트를 포함한 더 넓은 표준을 읽어보세요.
+- [**에이전트 정산**](/ko/explanation/agent-settlement) — MPP 세션이 Stable의 에이전트 결제 레일에서 어디에 위치할지 확인하세요.
+- [**Stable에서 MPP 엔드포인트 구축하기**](/ko/how-to/build-mpp-endpoint) — 세션이 출시되기 전까지 오늘날 charge 인텐트를 사용하세요.

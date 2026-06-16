@@ -11,7 +11,7 @@ diataxis: "how-to"
 Stable 지갑은 이더리움 표준 키 쌍입니다. EVM 계정을 생성하는 모든 지갑 라이브러리는 수정 없이 Stable에서 작동합니다. 이 가이드에서는 두 가지 경로를 소개합니다: 대부분의 애플리케이션을 위한 ethers.js, 그리고 에이전트와 결제를 위한 턴키 방식의 자가 수탁(self-custody) 계층을 원하는 통합을 위한 Tether의 [WDK (Wallet Development Kit)](https://github.com/tetherto/wdk)입니다.
 
 :::note
-등록도, Stable 전용 계정 설정도 필요 없습니다. 지갑은 [테스트넷 포셋](/en/how-to/use-faucet)이나 메인넷 전송으로부터 즉시 USDT0를 받을 수 있습니다.
+등록도, Stable 전용 계정 설정도 필요 없습니다. 지갑은 [테스트넷 포셋](/ko/how-to/use-faucet)이나 메인넷 전송으로부터 즉시 USDT0를 받을 수 있습니다.
 :::
 
 ## 사전 준비 사항
@@ -70,7 +70,7 @@ Seed phrase: liberty shoot ... (12 words)
 
 ## 옵션 2: Tether WDK
 
-WDK는 키 파생, 서명, 트랜잭션 제출을 하나의 인터페이스로 감쌉니다. 일반적인 계정 흐름을 재구현하지 않고 자가 수탁을 원할 때 적합한 선택이며, 에이전트 결제를 위한 [x402](/en/how-to/build-pay-per-call)와 직접 통합됩니다.
+WDK는 키 파생, 서명, 트랜잭션 제출을 하나의 인터페이스로 감쌉니다. 일반적인 계정 흐름을 재구현하지 않고 자가 수탁을 원할 때 적합한 선택이며, 에이전트 결제를 위한 [x402](/ko/how-to/build-pay-per-call)와 직접 통합됩니다.
 
 ```bash
 npm install @tetherto/wdk @tetherto/wdk-wallet-evm
@@ -125,7 +125,7 @@ Seed phrase: liberty shoot ... (12 words)
 open https://faucet.stable.xyz
 ```
 
-주소를 붙여넣고 버튼을 선택해 1 테스트넷 USDT0(수천 건의 네이티브 전송에 충분한 양)를 받으세요. 메인넷의 경우, 지원되는 거래소나 브리지에서 USDT0를 전송하세요. [Stable로 브리징하기](/en/explanation/usdt0-bridging)를 참조하세요.
+주소를 붙여넣고 버튼을 선택해 1 테스트넷 USDT0(수천 건의 네이티브 전송에 충분한 양)를 받으세요. 메인넷의 경우, 지원되는 거래소나 브리지에서 USDT0를 전송하세요. [Stable로 브리징하기](/ko/explanation/usdt0-bridging)를 참조하세요.
 
 ## 잔액 확인하기
 
@@ -150,6 +150,6 @@ Balance: 1.0 USDT0
 
 ## 다음 권장 단계
 
-- [**EIP-7702로 위임하기**](/en/how-to/account-abstraction) — 이 지갑에 일괄 결제, 지출 한도, 세션 키를 추가하세요.
-- [**첫 USDT0 보내기**](/en/tutorial/send-usdt0) — 동일한 잔액에서의 네이티브 및 ERC-20 전송.
-- [**테스트넷 지갑에 자금 충전하기**](/en/how-to/use-faucet) — 더 큰 테스트 잔액을 위한 포셋 및 Sepolia 브리지 옵션.
+- [**EIP-7702로 위임하기**](/ko/how-to/account-abstraction) — 이 지갑에 일괄 결제, 지출 한도, 세션 키를 추가하세요.
+- [**첫 USDT0 보내기**](/ko/tutorial/send-usdt0) — 동일한 잔액에서의 네이티브 및 ERC-20 전송.
+- [**테스트넷 지갑에 자금 충전하기**](/ko/how-to/use-faucet) — 더 큰 테스트 잔액을 위한 포셋 및 Sepolia 브리지 옵션.

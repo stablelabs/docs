@@ -12,7 +12,7 @@ diataxis: "how-to"
 
 ## 前置条件
 
-- 在 Stable 测试网或主网上部署的合约。如果你需要一个，请参阅 [部署](/en/tutorial/smart-contract) 和 [验证](/en/how-to/verify-contract)。
+- 在 Stable 测试网或主网上部署的合约。如果你需要一个，请参阅 [部署](/cn/tutorial/smart-contract) 和 [验证](/cn/how-to/verify-contract)。
 - Node.js 20 或更高版本。
 - 你想要索引的事件的合约地址和 ABI。
 
@@ -121,7 +121,7 @@ Backfilled 3 events from block 1282351 to 1284371
 ```
 
 :::warning
-过宽的区块范围（数百万个区块）可能超出 RPC 速率限制并导致超时。对于生产环境的索引器，请按 10k 区块窗口分页，或使用 [Stablescan 的 Etherscan 兼容 API](/en/how-to/build-p2p-payments#transaction-history) 进行已索引的历史查询。
+过宽的区块范围（数百万个区块）可能超出 RPC 速率限制并导致超时。对于生产环境的索引器，请按 10k 区块窗口分页，或使用 [Stablescan 的 Etherscan 兼容 API](/cn/how-to/build-p2p-payments#transaction-history) 进行已索引的历史查询。
 :::
 
 ## 4. 按索引参数过滤事件
@@ -189,6 +189,6 @@ setupWatcher();
 
 ## 后续推荐
 
-- [**追踪解绑完成**](/en/how-to/track-unbonding) — 索引协议发出的系统交易事件（解绑完成）。
-- [**构建 P2P 支付应用**](/en/how-to/build-p2p-payments) — 将索引应用于 USDT0 Transfer 事件并构建支付历史视图。
-- [**JSON-RPC 参考**](/en/reference/json-rpc-api) — 查看 Stable 支持哪些 `eth_getLogs` 及相关方法。
+- [**追踪解绑完成**](/cn/how-to/track-unbonding) — 索引协议发出的系统交易事件（解绑完成）。
+- [**构建 P2P 支付应用**](/cn/how-to/build-p2p-payments) — 将索引应用于 USDT0 Transfer 事件并构建支付历史视图。
+- [**JSON-RPC 参考**](/cn/reference/json-rpc-api) — 查看 Stable 支持哪些 `eth_getLogs` 及相关方法。

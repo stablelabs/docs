@@ -11,7 +11,7 @@ diataxis: "how-to"
 Gas Waiver를 사용하면 애플리케이션이 사용자를 대신해 가스를 부담할 수 있습니다. 사용자는 `gasPrice = 0`으로 트랜잭션에 서명하고, 거버넌스에 등록된 waiver가 이를 감싸며, 검증자는 사용자에게 비용이 들지 않게 호출을 실행합니다. 이 가이드는 조건을 충족하는 전송 과정을 살펴보고, 가스가 면제되었는지 확인하는 방법을 보여주며, waiver가 무엇을 다루고 다루지 않는지 설명합니다.
 
 :::note
-**개념**: 래퍼 트랜잭션 메커니즘, 권한 모델, 보안 보장에 대해서는 [Gas waiver](/en/explanation/gas-waiver)와 [Gas waiver 프로토콜 레퍼런스](/en/reference/gas-waiver-api)를 참조하세요.
+**개념**: 래퍼 트랜잭션 메커니즘, 권한 모델, 보안 보장에 대해서는 [Gas waiver](/ko/explanation/gas-waiver)와 [Gas waiver 프로토콜 레퍼런스](/ko/reference/gas-waiver-api)를 참조하세요.
 :::
 
 ## 무엇을 만들 것인가
@@ -200,10 +200,10 @@ Gas fee paid:        0 USDT0 (wei-equivalent)
 - **사용자가 제출한 래퍼**: 사용자가 `0x...f333`에 직접 제출하면 실패합니다. 등록된 waiver 주소만 래핑할 수 있습니다.
 - **수수료 추출**: 검증자는 내부 또는 래퍼 트랜잭션 어느 쪽에서도 0이 아닌 `gasPrice`를 허용하지 않습니다.
 
-전체 정책 모델과 waiver별 범위 규칙은 [Gas waiver 프로토콜](/en/reference/gas-waiver-api)을 참조하세요.
+전체 정책 모델과 waiver별 범위 규칙은 [Gas waiver 프로토콜](/ko/reference/gas-waiver-api)을 참조하세요.
 
 ## 다음 추천 사항
 
-- [**Waiver 서버 통합하기**](/en/how-to/integrate-gas-waiver) — 전체 API 레퍼런스, 배치 제출, 오류 코드, NDJSON 스트리밍.
-- [**셀프 호스팅 Gas Waiver**](/en/how-to/self-hosted-gas-waiver) — 자체 waiver 주소를 등록하고 호스팅된 API 없이 래퍼를 브로드캐스트합니다.
-- [**Gas waiver 프로토콜**](/en/reference/gas-waiver-api) — 전체 명세를 읽어보세요: 마커 라우팅, 래퍼 형식, 거버넌스 제어.
+- [**Waiver 서버 통합하기**](/ko/how-to/integrate-gas-waiver) — 전체 API 레퍼런스, 배치 제출, 오류 코드, NDJSON 스트리밍.
+- [**셀프 호스팅 Gas Waiver**](/ko/how-to/self-hosted-gas-waiver) — 자체 waiver 주소를 등록하고 호스팅된 API 없이 래퍼를 브로드캐스트합니다.
+- [**Gas waiver 프로토콜**](/ko/reference/gas-waiver-api) — 전체 명세를 읽어보세요: 마커 라우팅, 래퍼 형식, 거버넌스 제어.

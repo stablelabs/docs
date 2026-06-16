@@ -12,7 +12,7 @@ diataxis: "how-to"
 
 ## 사전 준비
 
-- Stable 테스트넷 또는 메인넷에 배포된 컨트랙트. 필요하다면 [배포](/en/tutorial/smart-contract)와 [검증](/en/how-to/verify-contract)을 참고하세요.
+- Stable 테스트넷 또는 메인넷에 배포된 컨트랙트. 필요하다면 [배포](/ko/tutorial/smart-contract)와 [검증](/ko/how-to/verify-contract)을 참고하세요.
 - Node.js 20 이상.
 - 컨트랙트 주소와 인덱싱하려는 이벤트의 ABI.
 
@@ -121,7 +121,7 @@ Backfilled 3 events from block 1282351 to 1284371
 ```
 
 :::warning
-넓은 블록 범위(수백만 블록)는 RPC 속도 제한을 초과하고 타임아웃이 발생할 수 있습니다. 프로덕션 인덱서의 경우 10k 블록 단위로 페이지네이션하거나, 인덱싱된 과거 쿼리를 위해 [Stablescan의 Etherscan 호환 API](/en/how-to/build-p2p-payments#transaction-history)를 사용하세요.
+넓은 블록 범위(수백만 블록)는 RPC 속도 제한을 초과하고 타임아웃이 발생할 수 있습니다. 프로덕션 인덱서의 경우 10k 블록 단위로 페이지네이션하거나, 인덱싱된 과거 쿼리를 위해 [Stablescan의 Etherscan 호환 API](/ko/how-to/build-p2p-payments#transaction-history)를 사용하세요.
 :::
 
 ## 4. 인덱싱된 인수로 이벤트 필터링
@@ -189,6 +189,6 @@ setupWatcher();
 
 ## 다음 추천
 
-- [**언본딩 완료 추적**](/en/how-to/track-unbonding) — 프로토콜에서 발생하는 시스템 트랜잭션 이벤트(언본딩 완료)를 인덱싱합니다.
-- [**P2P 결제 앱 구축**](/en/how-to/build-p2p-payments) — USDT0 Transfer 이벤트에 인덱싱을 적용하고 결제 내역 화면을 구축합니다.
-- [**JSON-RPC 레퍼런스**](/en/reference/json-rpc-api) — Stable이 지원하는 `eth_getLogs` 및 관련 메서드를 확인합니다.
+- [**언본딩 완료 추적**](/ko/how-to/track-unbonding) — 프로토콜에서 발생하는 시스템 트랜잭션 이벤트(언본딩 완료)를 인덱싱합니다.
+- [**P2P 결제 앱 구축**](/ko/how-to/build-p2p-payments) — USDT0 Transfer 이벤트에 인덱싱을 적용하고 결제 내역 화면을 구축합니다.
+- [**JSON-RPC 레퍼런스**](/ko/reference/json-rpc-api) — Stable이 지원하는 `eth_getLogs` 및 관련 메서드를 확인합니다.

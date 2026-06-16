@@ -8,11 +8,11 @@ diataxis: "reference"
 
 # 按 API 请求计费
 
-使用 [x402](/en/explanation/x402) 中间件，通过每次请求的定价来实现任何 HTTP 端点的货币化。服务器声明价格，客户端按调用付费，结算在请求生命周期内完成。无需账户、无需 API 密钥、无需计费周期。
+使用 [x402](/cn/explanation/x402) 中间件，通过每次请求的定价来实现任何 HTTP 端点的货币化。服务器声明价格，客户端按调用付费，结算在请求生命周期内完成。无需账户、无需 API 密钥、无需计费周期。
 
 ## 工作原理
 
-服务器为其希望货币化的端点添加 x402 中间件。当请求未携带付款到达时，服务器返回 HTTP `402 Payment Required` 以及包含价格、代币和网络的 `PAYMENT-REQUIRED` 头。客户端为指定金额签署一个 [ERC-3009](/en/explanation/erc-3009) 授权并重新提交。Facilitator 在链上结算付款，服务器返回资源。
+服务器为其希望货币化的端点添加 x402 中间件。当请求未携带付款到达时，服务器返回 HTTP `402 Payment Required` 以及包含价格、代币和网络的 `PAYMENT-REQUIRED` 头。客户端为指定金额签署一个 [ERC-3009](/cn/explanation/erc-3009) 授权并重新提交。Facilitator 在链上结算付款，服务器返回资源。
 
 ### 请求流程
 
@@ -48,6 +48,6 @@ x402 为 Express（`@x402/express`）、Hono（`@x402/hono`）和 Next.js（`@x4
 
 **另请参阅：**
 
-- [x402（HTTP 原生支付）](/en/explanation/x402)
-- [ERC-3009（带授权的转账）](/en/explanation/erc-3009)
-- [Gas 豁免](/en/how-to/integrate-gas-waiver)
+- [x402（HTTP 原生支付）](/cn/explanation/x402)
+- [ERC-3009（带授权的转账）](/cn/explanation/erc-3009)
+- [Gas 豁免](/cn/how-to/integrate-gas-waiver)

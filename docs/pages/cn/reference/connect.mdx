@@ -32,16 +32,16 @@ diataxis: "reference"
 | WebSocket | `wss://rpc.testnet.stable.xyz` |
 | 区块浏览器 | [https://testnet.stablescan.xyz](https://testnet.stablescan.xyz) |
 
-有关第三方 RPC 提供商，请参阅 [RPC 提供商](/en/reference/rpc-providers)。如需一个为你预先接入这些端点的类型化客户端，请参阅 [Stable SDK](/en/explanation/sdk-overview)。
+有关第三方 RPC 提供商，请参阅 [RPC 提供商](/cn/reference/rpc-providers)。如需一个为你预先接入这些端点的类型化客户端，请参阅 [Stable SDK](/cn/explanation/sdk-overview)。
 
 ## 速率限制
 
 公共 RPC 端点（`https://rpc.stable.xyz` 和 `https://rpc.testnet.stable.xyz`）的速率限制为**每个 IP 每 10 秒 1,000 个请求**。超过限制的请求会返回 `HTTP 429`。
 
-如需更高的吞吐量，请使用[第三方 RPC 提供商](/en/reference/rpc-providers)。
+如需更高的吞吐量，请使用[第三方 RPC 提供商](/cn/reference/rpc-providers)。
 
 :::note
-USDT0 作为原生 gas 代币时使用 **18 位小数**（由 `address(x).balance` 返回），作为 ERC-20 代币时使用 **6 位小数**（由 `USDT0.balanceOf(x)` 返回）。这两个接口操作的是同一个底层余额。viem 和 ethers.js 等库报告 18 位小数，因为它们读取的是原生 gas 代币。有关如何协调精度差异的详细信息，请参阅 [USDT0 在 Stable 上的行为](/en/explanation/usdt0-behavior)。
+USDT0 作为原生 gas 代币时使用 **18 位小数**（由 `address(x).balance` 返回），作为 ERC-20 代币时使用 **6 位小数**（由 `USDT0.balanceOf(x)` 返回）。这两个接口操作的是同一个底层余额。viem 和 ethers.js 等库报告 18 位小数，因为它们读取的是原生 gas 代币。有关如何协调精度差异的详细信息，请参阅 [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
 :::
 
 ## 将 Stable 添加到你的钱包
@@ -81,6 +81,6 @@ cast chain-id --rpc-url https://rpc.testnet.stable.xyz
 
 ## 下一步推荐
 
-- [**快速开始**](/en/tutorial/quick-start) — 五分钟内发送你的第一笔测试网交易。
-- [**获取测试网 USDT0**](/en/how-to/use-faucet) — 从水龙头为钱包注资或从 Sepolia 跨链转入。
-- [**USDT0 在 Stable 上的行为**](/en/explanation/usdt0-behavior) — 在针对余额编写代码之前，了解 18/6 位小数的双重角色。
+- [**快速开始**](/cn/tutorial/quick-start) — 五分钟内发送你的第一笔测试网交易。
+- [**获取测试网 USDT0**](/cn/how-to/use-faucet) — 从水龙头为钱包注资或从 Sepolia 跨链转入。
+- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior) — 在针对余额编写代码之前，了解 18/6 位小数的双重角色。

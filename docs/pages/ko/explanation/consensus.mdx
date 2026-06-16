@@ -25,7 +25,7 @@ PBFT나 HotStuff 같은 전통적인 뷰 기반 BFT 프로토콜은 안정적인
 
 Narwhal과 Tusk 같은 1세대 DAG 기반 엔진은 데이터 전파를 합의 순서화로부터 분리함으로써 단일 제안자 병목 현상을 제거하고 네트워크 불안정 상황에서의 견고성도 향상시킬 수 있음을 보여줍니다. 그러나 이들의 아키텍처는 기존의 높이 기반 블록 시맨틱과 멤풀 설계에서 벗어나기 때문에 CometBFT와 같은 시스템과 직접적으로 호환되지는 않습니다.
 
-[Autobahn](/en/explanation/autobahn)은 Stable의 합의 계층과 더 자연스럽게 통합되는 PBFT-on-DAG 아키텍처를 제공하며, 정상적인 조건에서 낮은 지연 시간을 제공하는 동시에 네트워크 결함 발생 시 빠른 복구를 제공합니다. Stable 팀은 Autobahn 논문 저자들과 긴밀한 관계를 유지하고 있으며, Autobahn의 아키텍처를 활용하여 StableBFT의 성능을 극대화할 것입니다.
+[Autobahn](/ko/explanation/autobahn)은 Stable의 합의 계층과 더 자연스럽게 통합되는 PBFT-on-DAG 아키텍처를 제공하며, 정상적인 조건에서 낮은 지연 시간을 제공하는 동시에 네트워크 결함 발생 시 빠른 복구를 제공합니다. Stable 팀은 Autobahn 논문 저자들과 긴밀한 관계를 유지하고 있으며, Autobahn의 아키텍처를 활용하여 StableBFT의 성능을 극대화할 것입니다.
 
 Autobahn 위에 구축된 StableBFT는 다음을 가능하게 합니다:
 
@@ -37,6 +37,6 @@ Autobahn 위에 구축된 StableBFT는 다음을 가능하게 합니다:
 
 ## 다음 권장 사항
 
-- [**Autobahn**](/en/explanation/autobahn) — StableBFT의 DAG 기반 업그레이드 경로를 뒷받침하는 프로토콜 논문을 읽어보세요.
-- [**실행**](/en/explanation/execution) — 블록이 합의에서 병렬 실행으로 어떻게 이동하는지 확인하세요.
-- [**완결성**](/en/explanation/finality) — RPC를 기반으로 구축할 때 Stable의 단일 슬롯 완결성을 적용하세요.
+- [**Autobahn**](/ko/explanation/autobahn) — StableBFT의 DAG 기반 업그레이드 경로를 뒷받침하는 프로토콜 논문을 읽어보세요.
+- [**실행**](/ko/explanation/execution) — 블록이 합의에서 병렬 실행으로 어떻게 이동하는지 확인하세요.
+- [**완결성**](/ko/explanation/finality) — RPC를 기반으로 구축할 때 Stable의 단일 슬롯 완결성을 적용하세요.

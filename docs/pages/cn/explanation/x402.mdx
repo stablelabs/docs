@@ -8,15 +8,15 @@ diataxis: "explanation"
 
 # 将 HTTP 端点货币化
 
-x402 是一个基于 HTTP 构建的支付协议。服务器返回 `402 Payment Required` 以及付款详情，客户端签署一份 [ERC-3009](/en/explanation/erc-3009) 授权，促成方在链上结算。整个交换过程通过标准的 HTTP 标头完成。客户端只需要一个钱包：无需注册、无需 API 密钥、无需信用卡登记。
+x402 是一个基于 HTTP 构建的支付协议。服务器返回 `402 Payment Required` 以及付款详情，客户端签署一份 [ERC-3009](/cn/explanation/erc-3009) 授权，促成方在链上结算。整个交换过程通过标准的 HTTP 标头完成。客户端只需要一个钱包：无需注册、无需 API 密钥、无需信用卡登记。
 
 这适用于任何客户端为资源或服务向服务器付款的场景：API 访问、数字内容、商户结账或代理之间的付款。
 
 ## x402 与 MPP
 
-x402 是最初的 HTTP-402 支付协议。[机器支付协议 (MPP)](/en/explanation/mpp) 是一个更广泛的、IETF 标准轨道的后继协议，它增加了支付意图（会话、订阅）、多轨支持（卡、Lightning）以及生产特性（正文摘要绑定、幂等性）。MPP 客户端向后兼容：它们无需更改即可调用 x402 服务器。
+x402 是最初的 HTTP-402 支付协议。[机器支付协议 (MPP)](/cn/explanation/mpp) 是一个更广泛的、IETF 标准轨道的后继协议，它增加了支付意图（会话、订阅）、多轨支持（卡、Lightning）以及生产特性（正文摘要绑定、幂等性）。MPP 客户端向后兼容：它们无需更改即可调用 x402 服务器。
 
-如今在 Stable 上，最直接的途径是通过 Semantic Pay 或 Heurist 使用 x402。要在同一 USDT0 轨道上使用 MPP 的传输格式，请参阅[在 Stable 上构建 MPP 端点](/en/how-to/build-mpp-endpoint)。
+如今在 Stable 上，最直接的途径是通过 Semantic Pay 或 Heurist 使用 x402。要在同一 USDT0 轨道上使用 MPP 的传输格式，请参阅[在 Stable 上构建 MPP 端点](/cn/how-to/build-mpp-endpoint)。
 
 ## 它解决了什么问题？
 
@@ -85,7 +85,7 @@ Stable 的共识提供亚秒级的区块最终性（约 700 毫秒），使 x402
 
 ### Gas 豁免集成
 
-[Gas 豁免](/en/how-to/integrate-gas-waiver)完全消除了交易成本。x402 促成方可以使用 Gas 豁免基础设施提交 `transferWithAuthorization` 调用，而无需向买方或卖方收取 gas 费用。这意味着 Stable 上的 x402 微支付除了付款金额本身之外不产生任何额外开销。
+[Gas 豁免](/cn/how-to/integrate-gas-waiver)完全消除了交易成本。x402 促成方可以使用 Gas 豁免基础设施提交 `transferWithAuthorization` 调用，而无需向买方或卖方收取 gas 费用。这意味着 Stable 上的 x402 微支付除了付款金额本身之外不产生任何额外开销。
 
 ## 基础设施
 
@@ -104,6 +104,6 @@ Stable 的共识提供亚秒级的区块最终性（约 700 毫秒），使 x402
 
 **另请参阅：**
 
-- [ERC-3009（带授权转账）](/en/explanation/erc-3009)：x402 使用的链上结算标准
-- [支付用例](/en/explanation/payment-use-cases-overview)：P2P、订阅、发票和 API 计费模式
-- [Gas 豁免](/en/how-to/integrate-gas-waiver)：零成本交易提交
+- [ERC-3009（带授权转账）](/cn/explanation/erc-3009)：x402 使用的链上结算标准
+- [支付用例](/cn/explanation/payment-use-cases-overview)：P2P、订阅、发票和 API 计费模式
+- [Gas 豁免](/cn/how-to/integrate-gas-waiver)：零成本交易提交

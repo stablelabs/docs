@@ -24,10 +24,10 @@ diataxis: "explanation"
 두 레이어는 서로 다른 작업을 수행하며 대안이 아니라 상호 보완적입니다:
 
 - **x402**는 *결제 표준*입니다. 서버가 `402 Payment Required`로 응답하고, 클라이언트가 인가에 서명하며, 퍼실리테이터가 이를 제출하는 HTTP 네이티브 프로토콜입니다.
-- **MPP (Machine Payments Protocol)**는 더 광범위한 인텐트와 멀티 레일 지원으로 x402를 대체하는 IETF 트랙 표준입니다. x402는 Stable이 오늘날 지원하는 하위 호환 부분 집합입니다. [MPP](/en/explanation/mpp)를 참조하세요.
+- **MPP (Machine Payments Protocol)**는 더 광범위한 인텐트와 멀티 레일 지원으로 x402를 대체하는 IETF 트랙 표준입니다. x402는 Stable이 오늘날 지원하는 하위 호환 부분 집합입니다. [MPP](/ko/explanation/mpp)를 참조하세요.
 - **Stable**은 *정산 레이어*입니다. USDT0의 온체인 전송이 실제로 일어나는 곳입니다.
 
-**퍼실리테이터**는 이 둘 사이에 위치합니다: 서명된 결제를 검증하고 온체인 호출을 제출하여 개발자가 정산 인프라를 운영하지 않아도 되도록 합니다. 오늘날 Stable을 지원하는 제공자는 [퍼실리테이터](/en/reference/agentic-facilitators)를 참조하세요.
+**퍼실리테이터**는 이 둘 사이에 위치합니다: 서명된 결제를 검증하고 온체인 호출을 제출하여 개발자가 정산 인프라를 운영하지 않아도 되도록 합니다. 오늘날 Stable을 지원하는 제공자는 [퍼실리테이터](/ko/reference/agentic-facilitators)를 참조하세요.
 
 ```text
 agent (client)  ──HTTP──▶  resource server  ──signed payment──▶  facilitator  ──tx──▶  Stable
@@ -45,13 +45,13 @@ agent (client)  ──HTTP──▶  resource server  ──signed payment──
 
 ## 여기서 시작하세요
 
-- [**호출당 지불 API 만들기**](/en/how-to/build-pay-per-call) — x402로 게이팅된 엔드포인트를 구축하고 요청 내에서 실제 USDT0 결제를 정산합니다.
-- [**Stable에서 MPP 엔드포인트 만들기**](/en/how-to/build-mpp-endpoint) — USDT0를 위한 세 가지 MPP 커스텀 메서드 훅을 작성하고 Stable에서 정산합니다.
-- [**AI로 개발하기**](/en/how-to/develop-with-ai) — Docs MCP와 Runtime MCP를 AI 에디터에 연결하고 Stable 컨텍스트 블록을 붙여넣습니다.
-- [**MCP 서버로 지불하기**](/en/how-to/pay-with-mcp) — x402 유료 API를 에이전트가 자연어 프롬프트를 통해 호출할 수 있는 MCP 도구로 노출합니다.
+- [**호출당 지불 API 만들기**](/ko/how-to/build-pay-per-call) — x402로 게이팅된 엔드포인트를 구축하고 요청 내에서 실제 USDT0 결제를 정산합니다.
+- [**Stable에서 MPP 엔드포인트 만들기**](/ko/how-to/build-mpp-endpoint) — USDT0를 위한 세 가지 MPP 커스텀 메서드 훅을 작성하고 Stable에서 정산합니다.
+- [**AI로 개발하기**](/ko/how-to/develop-with-ai) — Docs MCP와 Runtime MCP를 AI 에디터에 연결하고 Stable 컨텍스트 블록을 붙여넣습니다.
+- [**MCP 서버로 지불하기**](/ko/how-to/pay-with-mcp) — x402 유료 API를 에이전트가 자연어 프롬프트를 통해 호출할 수 있는 MCP 도구로 노출합니다.
 
 ## 다음 추천
 
-- [**x402 심층 분석**](/en/explanation/x402) — HTTP 결제 프로토콜이 Stable에서 처음부터 끝까지 어떻게 작동하는지 읽어보세요.
-- [**MPP**](/en/explanation/mpp) — x402가 속한 더 광범위한 IETF 트랙 표준입니다.
-- [**퍼실리테이터**](/en/reference/agentic-facilitators) — 어떤 퍼실리테이터가 이미 Stable에서 USDT0 결제를 정산하는지 확인하세요.
+- [**x402 심층 분석**](/ko/explanation/x402) — HTTP 결제 프로토콜이 Stable에서 처음부터 끝까지 어떻게 작동하는지 읽어보세요.
+- [**MPP**](/ko/explanation/mpp) — x402가 속한 더 광범위한 IETF 트랙 표준입니다.
+- [**퍼실리테이터**](/ko/reference/agentic-facilitators) — 어떤 퍼실리테이터가 이미 Stable에서 USDT0 결제를 정산하는지 확인하세요.

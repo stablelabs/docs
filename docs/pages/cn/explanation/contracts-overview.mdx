@@ -19,18 +19,18 @@ Stable 完全兼容 EVM。Solidity、Vyper、Hardhat、Foundry、ethers.js 和 v
 
 ## Stable 的不同之处
 
-- **USDT0 是 gas 代币。** `maxPriorityFeePerGas` 必须为 `0`。原生转账中的 `value` 字段携带的是 USDT0，而不是 ETH。参见[使用 USDT0 作为 gas](/en/how-to/work-with-usdt-gas)。
-- **USDT0 具有双重角色。** 持有原生 USDT0 的合约，其余额可能因 ERC-20 的 `transferFrom` 或 `permit` 而发生变化——切勿在 `uint256` 中镜像原生余额。参见 [Stable 上的 USDT0 行为](/en/explanation/usdt0-behavior)。
+- **USDT0 是 gas 代币。** `maxPriorityFeePerGas` 必须为 `0`。原生转账中的 `value` 字段携带的是 USDT0，而不是 ETH。参见[使用 USDT0 作为 gas](/cn/how-to/work-with-usdt-gas)。
+- **USDT0 具有双重角色。** 持有原生 USDT0 的合约，其余额可能因 ERC-20 的 `transferFrom` 或 `permit` 而发生变化——切勿在 `uint256` 中镜像原生余额。参见 [Stable 上的 USDT0 行为](/cn/explanation/usdt0-behavior)。
 - **预编译地址在测试网和主网中是固定的。** 将它们作为常量固化到你的合约中。
 
 ## 从这里开始
 
-- [**部署**](/en/tutorial/smart-contract) — 搭建 Foundry，配置 Stable，并部署 Counter。
-- [**验证**](/en/how-to/verify-contract) — 使用 forge verify-contract 将源码上传到 Stablescan。
-- [**索引**](/en/how-to/index-contract) — 使用 ethers.js 订阅事件并回填历史日志。
+- [**部署**](/cn/tutorial/smart-contract) — 搭建 Foundry，配置 Stable，并部署 Counter。
+- [**验证**](/cn/how-to/verify-contract) — 使用 forge verify-contract 将源码上传到 Stablescan。
+- [**索引**](/cn/how-to/index-contract) — 使用 ethers.js 订阅事件并回填历史日志。
 
 ## 推荐下一步
 
-- [**合约指南索引**](/en/explanation/contracts-guides) — 合约指南、预编译参考和系统模块 ABI 的完整列表。
-- [**使用系统模块**](/en/how-to/use-system-modules) — 从 Solidity 和 ethers.js 调用 Bank / Distribution / Staking。
-- [**JSON-RPC 参考**](/en/reference/json-rpc-api) — Stable 支持哪些 `eth_*` 和 `debug_*` 方法。
+- [**合约指南索引**](/cn/explanation/contracts-guides) — 合约指南、预编译参考和系统模块 ABI 的完整列表。
+- [**使用系统模块**](/cn/how-to/use-system-modules) — 从 Solidity 和 ethers.js 调用 Bank / Distribution / Staking。
+- [**JSON-RPC 参考**](/cn/reference/json-rpc-api) — Stable 支持哪些 `eth_*` 和 `debug_*` 方法。

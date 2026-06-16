@@ -8,24 +8,24 @@ diataxis: "explanation"
 
 # 用例概述
 
-Stable 支持多种支付模式，从简单的钱包到钱包转账，到代理驱动的服务支付。下面的用例涵盖了当今可投入生产的模式。对于即将推出的模式（保证结算、隐私支付、代理间商务），请参阅[即将推出的用例](/en/explanation/upcoming-use-cases)。
+Stable 支持多种支付模式，从简单的钱包到钱包转账，到代理驱动的服务支付。下面的用例涵盖了当今可投入生产的模式。对于即将推出的模式（保证结算、隐私支付、代理间商务），请参阅[即将推出的用例](/cn/explanation/upcoming-use-cases)。
 
 ## 实时用例
 
-- [**P2P 支付**](/en/reference/p2p-payments) — 钱包到钱包的 USDT0 转账。亚秒级结算，通过 Gas Waiver 实现零 gas。
-- [**订阅计费**](/en/reference/subscriptions) — 通过 EIP-7702 实现的拉取式定期计费。订阅者授权一次，提供商每个周期收款。
-- [**发票结算**](/en/reference/invoices) — 使用确定性 nonce 的 B2B 发票支付。链上结算自动关联到发票。
-- [**按调用付费 API**](/en/reference/pay-per-call) — 通过 x402 中间件实现的按请求 HTTP 支付。无需账户、无需 API 密钥、无需计费周期。
+- [**P2P 支付**](/cn/reference/p2p-payments) — 钱包到钱包的 USDT0 转账。亚秒级结算，通过 Gas Waiver 实现零 gas。
+- [**订阅计费**](/cn/reference/subscriptions) — 通过 EIP-7702 实现的拉取式定期计费。订阅者授权一次，提供商每个周期收款。
+- [**发票结算**](/cn/reference/invoices) — 使用确定性 nonce 的 B2B 发票支付。链上结算自动关联到发票。
+- [**按调用付费 API**](/cn/reference/pay-per-call) — 通过 x402 中间件实现的按请求 HTTP 支付。无需账户、无需 API 密钥、无需计费周期。
 
 ## 共享基础
 
 大多数模式都构建在相同的两个协议之上：
 
-- **[ERC-3009](/en/explanation/erc-3009)**：用于委托结算的签名授权。被发票、按调用付费和 P2P 应用发起的转账使用。
-- **[x402](/en/explanation/x402)**：基于标准请求头的 HTTP 原生支付。被按调用付费 API 和 MCP 驱动的支付流程使用。
-- **[EIP-7702](/en/explanation/eip-7702)**：用于定期授权的 EOA 委托。被订阅计费使用。
+- **[ERC-3009](/cn/explanation/erc-3009)**：用于委托结算的签名授权。被发票、按调用付费和 P2P 应用发起的转账使用。
+- **[x402](/cn/explanation/x402)**：基于标准请求头的 HTTP 原生支付。被按调用付费 API 和 MCP 驱动的支付流程使用。
+- **[EIP-7702](/cn/explanation/eip-7702)**：用于定期授权的 EOA 委托。被订阅计费使用。
 
 ## 下一步推荐
 
-- [**ERC-3009**](/en/explanation/erc-3009) — 从核心结算标准开始。
-- [**即将推出的用例**](/en/explanation/upcoming-use-cases) — 预览代理间商务、保证结算和隐私支付。
+- [**ERC-3009**](/cn/explanation/erc-3009) — 从核心结算标准开始。
+- [**即将推出的用例**](/cn/explanation/upcoming-use-cases) — 预览代理间商务、保证结算和隐私支付。

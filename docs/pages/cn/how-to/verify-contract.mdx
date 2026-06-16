@@ -12,13 +12,13 @@ diataxis: "how-to"
 
 ## 前置条件
 
-- 一个已部署在 Stable 测试网或主网上的合约。如果你尚未部署，请参阅[部署智能合约](/en/tutorial/smart-contract)。
+- 一个已部署在 Stable 测试网或主网上的合约。如果你尚未部署，请参阅[部署智能合约](/cn/tutorial/smart-contract)。
 - 已安装 Foundry（PATH 中可使用 `forge`）。
 - 来自 `forge create` 输出的已部署合约地址。
 
 ## 1. 确认已部署的地址
 
-确保你拥有之前部署时的 `Deployed to` 地址。在[部署智能合约](/en/tutorial/smart-contract)流程中，这是 `forge create` 之后打印出的值。
+确保你拥有之前部署时的 `Deployed to` 地址。在[部署智能合约](/cn/tutorial/smart-contract)流程中，这是 `forge create` 之后打印出的值。
 
 ```bash
 cast code 0xDeployedContractAddress --rpc-url https://rpc.testnet.stable.xyz | head -c 20
@@ -82,6 +82,6 @@ https://testnet.stablescan.xyz/address/0xDeployedContractAddress
 
 ## 推荐的后续步骤
 
-- [**索引合约事件**](/en/how-to/index-contract) — 使用 ethers.js 订阅链上事件并构建实时事件流。
-- [**部署智能合约**](/en/tutorial/smart-contract) — 搭建一个全新的 Foundry 项目并部署到 Stable 测试网。
-- [**JSON-RPC 参考**](/en/reference/json-rpc-api) — 查看 Stable 支持哪些 `eth_*` 方法用于链上交互。
+- [**索引合约事件**](/cn/how-to/index-contract) — 使用 ethers.js 订阅链上事件并构建实时事件流。
+- [**部署智能合约**](/cn/tutorial/smart-contract) — 搭建一个全新的 Foundry 项目并部署到 Stable 测试网。
+- [**JSON-RPC 参考**](/cn/reference/json-rpc-api) — 查看 Stable 支持哪些 `eth_*` 方法用于链上交互。

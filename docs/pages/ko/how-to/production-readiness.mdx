@@ -12,14 +12,14 @@ diataxis: "how-to"
 
 ## 출시 전 확인사항
 
-- **네트워크 대상.** 애플리케이션이 테스트넷이 아닌 메인넷 값을 읽습니다: chain ID `988`, RPC `https://rpc.stable.xyz`, 익스플로러 `https://stablescan.xyz`. 전체 구성은 [Connect](/en/reference/connect)에 있습니다.
+- **네트워크 대상.** 애플리케이션이 테스트넷이 아닌 메인넷 값을 읽습니다: chain ID `988`, RPC `https://rpc.stable.xyz`, 익스플로러 `https://stablescan.xyz`. 전체 구성은 [Connect](/ko/reference/connect)에 있습니다.
 - **컨트랙트 검증.** 배포된 컨트랙트가 [stablescan.xyz](https://stablescan.xyz)에서 검증되어 사용자와 파트너가 검사할 수 있습니다.
 - **메인넷 자금 조달 경로.** 프로덕션 지갑이 USDT0를 확보할 수 있는 문서화된 방법이 있습니다: 직접, LayerZero를 통한 브리지, 또는 커스터디언. 파우셋은 테스트넷 전용입니다.
 - **환경 격리.** 키, RPC 자격 증명, 서명 경로가 테스트넷과 메인넷 간에 분리되어 있습니다.
 
 ## 보안 점검
 
-USDT0의 이중 역할 동작은 이더리움에서 가져온 몇 가지 가정을 무너뜨립니다. 아래 각 항목을 검증해야 합니다. 전체 목록은 [마이그레이션 체크리스트](/en/explanation/usdt0-behavior)에 있습니다.
+USDT0의 이중 역할 동작은 이더리움에서 가져온 몇 가지 가정을 무너뜨립니다. 아래 각 항목을 검증해야 합니다. 전체 목록은 [마이그레이션 체크리스트](/ko/explanation/usdt0-behavior)에 있습니다.
 
 **지급 능력(solvency) 점검은 미러가 아닌 실제 네이티브 잔액을 읽습니다.**
 
@@ -55,26 +55,26 @@ payable(recipient).call{value: amount}("");
 
 ## 성능 및 신뢰성
 
-- **RPC 이중화.** 프로덕션 트래픽에는 페일오버 계획이 있습니다. 서드파티 제공업체는 [RPC 제공업체](/en/reference/rpc-providers)에 나열되어 있습니다.
-- **가스 추정.** 트랜잭션은 `maxPriorityFeePerGas`를 `0`으로 설정하고 현재 base fee로부터 `maxFeePerGas`를 계산합니다. [가스 가격 책정](/en/reference/gas-pricing-api)을 참조하세요.
+- **RPC 이중화.** 프로덕션 트래픽에는 페일오버 계획이 있습니다. 서드파티 제공업체는 [RPC 제공업체](/ko/reference/rpc-providers)에 나열되어 있습니다.
+- **가스 추정.** 트랜잭션은 `maxPriorityFeePerGas`를 `0`으로 설정하고 현재 base fee로부터 `maxFeePerGas`를 계산합니다. [가스 가격 책정](/ko/reference/gas-pricing-api)을 참조하세요.
 - **블록 시간.** 블록은 약 0.7초마다 생성되며 단일 슬롯 최종성을 가집니다. 폴링 간격과 확인 임계값을 이 주기에 맞춰 조정합니다.
 - **재시도.** 일시적인 RPC 오류는 멱등적으로 재시도됩니다. 금전적으로 민감한 플로우의 경우 다운스트림 상태 변경 전에 영수증 또는 로그를 통해 포함 여부를 검증합니다.
 
 ## 운영 소유권
 
-- **모니터링.** 자체 노드를 운영하는 경우 알림이 블록 생성, 피어 상태, RPC 지연 시간을 감시합니다. [모니터링](/en/how-to/monitor-node)을 참조하세요. 서드파티 RPC를 사용하는 경우 제공업체 SLA와 페일오버 텔레메트리를 추적하세요.
-- **업그레이드.** 노드 운영자가 업그레이드를 일정에 맞춰 진행할 수 있도록 프로토콜 릴리스를 추적합니다. [메인넷 버전 히스토리](/en/reference/mainnet-version-history)를 참조하세요.
+- **모니터링.** 자체 노드를 운영하는 경우 알림이 블록 생성, 피어 상태, RPC 지연 시간을 감시합니다. [모니터링](/ko/how-to/monitor-node)을 참조하세요. 서드파티 RPC를 사용하는 경우 제공업체 SLA와 페일오버 텔레메트리를 추적하세요.
+- **업그레이드.** 노드 운영자가 업그레이드를 일정에 맞춰 진행할 수 있도록 프로토콜 릴리스를 추적합니다. [메인넷 버전 히스토리](/ko/reference/mainnet-version-history)를 참조하세요.
 - **런북.** 컨트랙트 일시 중지, 키 교체, RPC 제공업체 전환에 대한 롤백 절차가 존재합니다.
 
 ## 지원 및 에스컬레이션
 
-- [개발자 지원](/en/reference/developer-assistance): FAQ 및 참조 자료 포인터.
+- [개발자 지원](/ko/reference/developer-assistance): FAQ 및 참조 자료 포인터.
 - [Discord](https://discord.gg/stablexyz): 커뮤니티 지원 및 프로토콜 업데이트.
 - `bizdev@stable.xyz`: 파트너십 및 통합 관련 논의.
 
 ## 다음 권장 사항
 
-- [**USDT0 동작**](/en/explanation/usdt0-behavior) — 전체 마이그레이션 체크리스트와 컨트랙트 설계 요구사항을 읽어보세요.
-- [**메인넷 정보**](/en/reference/mainnet-information) — 메인넷 체인 매개변수와 버전 히스토리를 확인하세요.
-- [**RPC 제공업체**](/en/reference/rpc-providers) — 이중화를 위한 서드파티 RPC 제공업체를 선택하세요.
-- [**모니터링**](/en/how-to/monitor-node) — 블록 생성 및 RPC 상태에 대한 메트릭과 알림을 연결하세요.
+- [**USDT0 동작**](/ko/explanation/usdt0-behavior) — 전체 마이그레이션 체크리스트와 컨트랙트 설계 요구사항을 읽어보세요.
+- [**메인넷 정보**](/ko/reference/mainnet-information) — 메인넷 체인 매개변수와 버전 히스토리를 확인하세요.
+- [**RPC 제공업체**](/ko/reference/rpc-providers) — 이중화를 위한 서드파티 RPC 제공업체를 선택하세요.
+- [**모니터링**](/ko/how-to/monitor-node) — 블록 생성 및 RPC 상태에 대한 메트릭과 알림을 연결하세요.

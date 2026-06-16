@@ -11,7 +11,7 @@ diataxis: "how-to"
 검증자 데이터는 온체인에 존재하며 표준 EVM JSON-RPC로 읽을 수 있습니다. 스테이킹, 슬래싱, 거버넌스 프리컴파일을 통해 현재 상태를 조회하고, 이들의 이벤트 로그로부터 이력을 재구성합니다. 즉, 인덱서나 분석 플랫폼은 노드의 `stabled` CLI나 Cosmos REST에 접근하지 않고도 `eth_call`과 `eth_getLogs`만으로 필요한 모든 것을 읽습니다.
 
 :::note
-**개념:** 스테이킹 모듈이 추적하는 내용과 위임이 작동하는 방식은 [스테이킹 모듈](/en/explanation/staking-module)을 참조하세요. 메서드별 입력과 출력은 [스테이킹 프리컴파일 참조](/en/reference/staking-module-api)를 참조하세요.
+**개념:** 스테이킹 모듈이 추적하는 내용과 위임이 작동하는 방식은 [스테이킹 모듈](/ko/explanation/staking-module)을 참조하세요. 메서드별 입력과 출력은 [스테이킹 프리컴파일 참조](/ko/reference/staking-module-api)를 참조하세요.
 :::
 
 ## 각 데이터 포인트의 출처
@@ -36,7 +36,7 @@ diataxis: "how-to"
 | Gov | `0x0000000000000000000000000000000000000805` | 제안, 집계, 투표 로그 |
 | Slashing | `0x0000000000000000000000000000000000000806` | 서명 정보 및 가동 시간 |
 
-`https://rpc.stable.xyz`에서 메인넷(Chain ID `988`)에 연결하세요. 엔드포인트와 제한 사항은 [메인넷 정보](/en/reference/mainnet-information)를 참조하세요.
+`https://rpc.stable.xyz`에서 메인넷(Chain ID `988`)에 연결하세요. 엔드포인트와 제한 사항은 [메인넷 정보](/ko/reference/mainnet-information)를 참조하세요.
 
 ## 검증자 이름, 스테이크, 커미션
 
@@ -70,7 +70,7 @@ StableNode-01 4500000000000000000000000 50000000000000000
 StableNode-02 3900000000000000000000000 100000000000000000
 ```
 
-`tokens`와 `commission` 값은 18자리 소수로 스케일링되어 있습니다. `commission`을 1e18로 나누면 분수 형태의 비율을 얻을 수 있습니다(예: 5%의 경우 `0.05`). 전체 `Validator` 구조체와 `BOND_STATUS_*` 값은 [스테이킹 프리컴파일 참조](/en/reference/staking-module-api#validators)를 참조하세요.
+`tokens`와 `commission` 값은 18자리 소수로 스케일링되어 있습니다. `commission`을 1e18로 나누면 분수 형태의 비율을 얻을 수 있습니다(예: 5%의 경우 `0.05`). 전체 `Validator` 구조체와 `BOND_STATUS_*` 값은 [스테이킹 프리컴파일 참조](/ko/reference/staking-module-api#validators)를 참조하세요.
 
 ## 시간에 따른 스테이크 변화
 
@@ -96,7 +96,7 @@ console.log(`${logs.length} delegations indexed`);
 1842 delegations indexed
 ```
 
-`Unbond`와 `Redelegate`는 동일한 형태를 따르며 추가로 `completionTime`을 담고 있습니다. 정확한 시그니처는 스테이킹 참조의 [이벤트 섹션](/en/reference/staking-module-api#events)을 참조하세요.
+`Unbond`와 `Redelegate`는 동일한 형태를 따르며 추가로 `completionTime`을 담고 있습니다. 정확한 시그니처는 스테이킹 참조의 [이벤트 섹션](/ko/reference/staking-module-api#events)을 참조하세요.
 
 ## 참여일
 
@@ -139,7 +139,7 @@ uptime = (signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow
 `signedBlocksWindow`가 `10000`이고 `missedBlocksCounter`가 `25`인 검증자는 윈도우 동안 99.75%의 가동 시간을 갖습니다. 이는 누적 가동 시간이 아니라 롤링 수치입니다. 가동 시간 이력을 추적하려면 고정된 간격으로 카운터를 스냅샷하고 각 측정값을 저장하세요.
 
 :::note
-슬래싱 프리컴파일은 Cosmos EVM `x/slashing` 인터페이스를 따릅니다. 해당 주소는 [시스템 모듈 프리컴파일 표](/en/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 정확한 메서드 ABI는 체인의 프리컴파일 인터페이스에서 생성하세요.
+슬래싱 프리컴파일은 Cosmos EVM `x/slashing` 인터페이스를 따릅니다. 해당 주소는 [시스템 모듈 프리컴파일 표](/ko/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 정확한 메서드 ABI는 체인의 프리컴파일 인터페이스에서 생성하세요.
 :::
 
 ## 투표 이력
@@ -171,12 +171,12 @@ console.log(`${logs.length} votes indexed across all proposals`);
 지금까지의 모든 제안(제안 #1부터 #7까지)에 대해 라이브 투표 로그가 확인되었습니다. 제안별 최종 집계만 필요할 때는 `getTallyResult()`를 사용하고, 검증자별 레코드가 필요할 때는 이벤트 로그를 사용하세요.
 
 :::note
-거버넌스 프리컴파일은 Cosmos EVM `x/gov` 인터페이스를 따릅니다. 해당 주소는 [시스템 모듈 프리컴파일 표](/en/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 정확한 메서드 ABI와 `VoteOption` 열거형은 체인의 프리컴파일 인터페이스에서 생성하세요.
+거버넌스 프리컴파일은 Cosmos EVM `x/gov` 인터페이스를 따릅니다. 해당 주소는 [시스템 모듈 프리컴파일 표](/ko/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 정확한 메서드 ABI와 `VoteOption` 열거형은 체인의 프리컴파일 인터페이스에서 생성하세요.
 :::
 
 ## 다음 추천
 
-- [**스테이킹 프리컴파일 참조**](/en/reference/staking-module-api) — 전체 validators(), 위임 메서드, 이벤트 시그니처를 찾아보세요.
-- [**검증자 생성**](/en/how-to/run-validator) — 동기화된 노드를 검증자로 등록하여 위 데이터에 나타나게 하세요.
-- [**인덱서 및 분석**](/en/reference/indexers) — 이미 정규화된 Stable 데이터를 제공하는 인덱싱 제공자를 둘러보세요.
-- [**메인넷 정보**](/en/reference/mainnet-information) — 인덱싱을 시작하기 전에 Chain ID, RPC 엔드포인트, 속도 제한을 확인하세요.
+- [**스테이킹 프리컴파일 참조**](/ko/reference/staking-module-api) — 전체 validators(), 위임 메서드, 이벤트 시그니처를 찾아보세요.
+- [**검증자 생성**](/ko/how-to/run-validator) — 동기화된 노드를 검증자로 등록하여 위 데이터에 나타나게 하세요.
+- [**인덱서 및 분석**](/ko/reference/indexers) — 이미 정규화된 Stable 데이터를 제공하는 인덱싱 제공자를 둘러보세요.
+- [**메인넷 정보**](/ko/reference/mainnet-information) — 인덱싱을 시작하기 전에 Chain ID, RPC 엔드포인트, 속도 제한을 확인하세요.

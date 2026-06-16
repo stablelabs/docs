@@ -12,14 +12,14 @@ diataxis: "how-to"
 
 ## 启动前准备
 
-- **网络目标。** 你的应用读取的是主网值，而非测试网：chain ID `988`、RPC `https://rpc.stable.xyz`、浏览器 `https://stablescan.xyz`。完整配置见 [连接](/en/reference/connect)。
+- **网络目标。** 你的应用读取的是主网值，而非测试网：chain ID `988`、RPC `https://rpc.stable.xyz`、浏览器 `https://stablescan.xyz`。完整配置见 [连接](/cn/reference/connect)。
 - **合约已验证。** 已部署的合约在 [stablescan.xyz](https://stablescan.xyz) 上完成验证，以便用户和合作伙伴可以检查它们。
 - **主网资金路径。** 你有一套书面记录的方式，让生产钱包获取 USDT0：直接获取、通过 LayerZero 跨链或托管方。水龙头仅限测试网。
 - **环境隔离。** 密钥、RPC 凭据和签名路径在测试网和主网之间相互隔离。
 
 ## 安全检查
 
-USDT0 的双重角色行为打破了一些从以太坊沿用而来的假设。下面每一项都应当验证。完整列表见 [迁移检查清单](/en/explanation/usdt0-behavior)。
+USDT0 的双重角色行为打破了一些从以太坊沿用而来的假设。下面每一项都应当验证。完整列表见 [迁移检查清单](/cn/explanation/usdt0-behavior)。
 
 **偿付能力检查读取真实的原生余额，而非镜像值。**
 
@@ -55,26 +55,26 @@ payable(recipient).call{value: amount}("");
 
 ## 性能与可靠性
 
-- **RPC 冗余。** 生产流量有故障切换方案。第三方提供商列于 [RPC 提供商](/en/reference/rpc-providers)。
-- **Gas 估算。** 交易将 `maxPriorityFeePerGas` 设为 `0`，并根据当前的基础费用计算 `maxFeePerGas`。参见 [Gas 定价](/en/reference/gas-pricing-api)。
+- **RPC 冗余。** 生产流量有故障切换方案。第三方提供商列于 [RPC 提供商](/cn/reference/rpc-providers)。
+- **Gas 估算。** 交易将 `maxPriorityFeePerGas` 设为 `0`，并根据当前的基础费用计算 `maxFeePerGas`。参见 [Gas 定价](/cn/reference/gas-pricing-api)。
 - **出块时间。** 区块大约每 0.7 秒产生一个，并具有单槽最终性。轮询间隔和确认阈值应根据这一节奏进行调整。
 - **重试。** 瞬时 RPC 错误应以幂等方式重试。对于涉及资金的敏感流程，应在下游状态变更之前通过收据或日志验证交易已被打包。
 
 ## 运维归属
 
-- **监控。** 如果你运行自己的节点，告警会监视出块、对等节点健康状况和 RPC 延迟；参见 [监控](/en/how-to/monitor-node)。如果你使用第三方 RPC，请跟踪提供商的 SLA 和故障切换遥测数据。
-- **升级。** 协议版本发布会被跟踪，以便节点运营者能够安排升级；参见 [主网版本历史](/en/reference/mainnet-version-history)。
+- **监控。** 如果你运行自己的节点，告警会监视出块、对等节点健康状况和 RPC 延迟；参见 [监控](/cn/how-to/monitor-node)。如果你使用第三方 RPC，请跟踪提供商的 SLA 和故障切换遥测数据。
+- **升级。** 协议版本发布会被跟踪，以便节点运营者能够安排升级；参见 [主网版本历史](/cn/reference/mainnet-version-history)。
 - **运行手册。** 针对合约暂停、密钥轮换和 RPC 提供商切换都有回滚流程。
 
 ## 支持与升级
 
-- [开发者协助](/en/reference/developer-assistance)：常见问题和参考指引。
+- [开发者协助](/cn/reference/developer-assistance)：常见问题和参考指引。
 - [Discord](https://discord.gg/stablexyz)：社区支持和协议更新。
 - `bizdev@stable.xyz`：合作与集成洽谈。
 
 ## 推荐后续阅读
 
-- [**USDT0 行为**](/en/explanation/usdt0-behavior) — 阅读完整的迁移检查清单和合约设计要求。
-- [**主网信息**](/en/reference/mainnet-information) — 查看主网链参数和版本历史。
-- [**RPC 提供商**](/en/reference/rpc-providers) — 选择第三方 RPC 提供商以实现冗余。
-- [**监控**](/en/how-to/monitor-node) — 为出块和 RPC 健康状况接入指标和告警。
+- [**USDT0 行为**](/cn/explanation/usdt0-behavior) — 阅读完整的迁移检查清单和合约设计要求。
+- [**主网信息**](/cn/reference/mainnet-information) — 查看主网链参数和版本历史。
+- [**RPC 提供商**](/cn/reference/rpc-providers) — 选择第三方 RPC 提供商以实现冗余。
+- [**监控**](/cn/how-to/monitor-node) — 为出块和 RPC 健康状况接入指标和告警。

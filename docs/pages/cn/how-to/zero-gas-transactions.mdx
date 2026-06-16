@@ -11,7 +11,7 @@ diataxis: "how-to"
 Gas Waiver 让应用程序可以代表用户承担 gas 费用。用户使用 `gasPrice = 0` 签署一笔交易，由治理注册的 waiver 将其包装，验证者以零成本为用户执行该调用。本指南将带你完成一笔符合条件的转账，展示如何验证 gas 已被豁免，并解释 waiver 涵盖与不涵盖的范围。
 
 :::note
-**概念**：关于包装交易机制、授权模型和安全保证，请参阅 [Gas waiver](/en/explanation/gas-waiver) 和 [Gas waiver 协议参考](/en/reference/gas-waiver-api)。
+**概念**：关于包装交易机制、授权模型和安全保证，请参阅 [Gas waiver](/cn/explanation/gas-waiver) 和 [Gas waiver 协议参考](/cn/reference/gas-waiver-api)。
 :::
 
 ## 你将构建的内容
@@ -200,10 +200,10 @@ Gas fee paid:        0 USDT0 (wei-equivalent)
 - **用户提交的包装交易**：如果用户直接提交到 `0x...f333`，将会失败。只有已注册的 waiver 地址才能进行包装。
 - **费用提取**：验证者不接受内部交易或包装交易上任何非零的 `gasPrice`。
 
-关于完整的策略模型和按 waiver 的范围规则，请参阅 [Gas waiver 协议](/en/reference/gas-waiver-api)。
+关于完整的策略模型和按 waiver 的范围规则，请参阅 [Gas waiver 协议](/cn/reference/gas-waiver-api)。
 
 ## 推荐的后续步骤
 
-- [**集成 Waiver Server**](/en/how-to/integrate-gas-waiver) — 完整的 API 参考、批量提交、错误码和 NDJSON 流式传输。
-- [**自托管 Gas Waiver**](/en/how-to/self-hosted-gas-waiver) — 注册你自己的 waiver 地址，无需托管 API 即可广播包装交易。
-- [**Gas waiver 协议**](/en/reference/gas-waiver-api) — 阅读完整规范：标记路由、包装格式、治理控制。
+- [**集成 Waiver Server**](/cn/how-to/integrate-gas-waiver) — 完整的 API 参考、批量提交、错误码和 NDJSON 流式传输。
+- [**自托管 Gas Waiver**](/cn/how-to/self-hosted-gas-waiver) — 注册你自己的 waiver 地址，无需托管 API 即可广播包装交易。
+- [**Gas waiver 协议**](/cn/reference/gas-waiver-api) — 阅读完整规范：标记路由、包装格式、治理控制。

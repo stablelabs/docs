@@ -19,18 +19,18 @@ Stable은 완전히 EVM 호환됩니다. Solidity, Vyper, Hardhat, Foundry, ethe
 
 ## Stable이 다른 점
 
-- **USDT0가 가스 토큰입니다.** `maxPriorityFeePerGas`는 `0`이어야 합니다. 네이티브 전송의 `value` 필드는 ETH가 아닌 USDT0를 전달합니다. [USDT0를 가스로 사용하기](/en/how-to/work-with-usdt-gas)를 참고하세요.
-- **USDT0는 이중 역할을 합니다.** 네이티브 USDT0를 보유한 컨트랙트는 ERC-20 `transferFrom`이나 `permit`에 의해 잔액이 변경될 수 있으므로 — 절대 네이티브 잔액을 `uint256`에 미러링하지 마세요. [Stable에서의 USDT0 동작](/en/explanation/usdt0-behavior)을 참고하세요.
+- **USDT0가 가스 토큰입니다.** `maxPriorityFeePerGas`는 `0`이어야 합니다. 네이티브 전송의 `value` 필드는 ETH가 아닌 USDT0를 전달합니다. [USDT0를 가스로 사용하기](/ko/how-to/work-with-usdt-gas)를 참고하세요.
+- **USDT0는 이중 역할을 합니다.** 네이티브 USDT0를 보유한 컨트랙트는 ERC-20 `transferFrom`이나 `permit`에 의해 잔액이 변경될 수 있으므로 — 절대 네이티브 잔액을 `uint256`에 미러링하지 마세요. [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참고하세요.
 - **프리컴파일 주소는 테스트넷과 메인넷에서 동일하게 고정되어 있습니다.** 컨트랙트에 상수로 박아 넣으세요.
 
 ## 여기서 시작하세요
 
-- [**배포**](/en/tutorial/smart-contract) — Foundry를 스캐폴딩하고, Stable을 구성하고, Counter를 배포합니다.
-- [**검증**](/en/how-to/verify-contract) — forge verify-contract로 Stablescan에 소스를 업로드합니다.
-- [**인덱싱**](/en/how-to/index-contract) — ethers.js로 이벤트를 구독하고 과거 로그를 백필합니다.
+- [**배포**](/ko/tutorial/smart-contract) — Foundry를 스캐폴딩하고, Stable을 구성하고, Counter를 배포합니다.
+- [**검증**](/ko/how-to/verify-contract) — forge verify-contract로 Stablescan에 소스를 업로드합니다.
+- [**인덱싱**](/ko/how-to/index-contract) — ethers.js로 이벤트를 구독하고 과거 로그를 백필합니다.
 
 ## 다음 권장 사항
 
-- [**컨트랙트 가이드 색인**](/en/explanation/contracts-guides) — 컨트랙트 가이드, 프리컴파일 참조, 시스템 모듈 ABI의 전체 목록.
-- [**시스템 모듈 사용하기**](/en/how-to/use-system-modules) — Solidity와 ethers.js에서 Bank / Distribution / Staking을 호출합니다.
-- [**JSON-RPC 참조**](/en/reference/json-rpc-api) — Stable이 지원하는 `eth_*` 및 `debug_*` 메서드.
+- [**컨트랙트 가이드 색인**](/ko/explanation/contracts-guides) — 컨트랙트 가이드, 프리컴파일 참조, 시스템 모듈 ABI의 전체 목록.
+- [**시스템 모듈 사용하기**](/ko/how-to/use-system-modules) — Solidity와 ethers.js에서 Bank / Distribution / Staking을 호출합니다.
+- [**JSON-RPC 참조**](/ko/reference/json-rpc-api) — Stable이 지원하는 `eth_*` 및 `debug_*` 메서드.
