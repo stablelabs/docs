@@ -105,6 +105,9 @@ const files = walk(enRoot).sort()
 let blocking = 0
 let warnings = 0
 const issues = []
+// Applyable fixes for rules with a safe mechanical correction. CI turns these
+// into inline GitHub "suggested changes" on lines that are part of the PR diff.
+const suggestions = []
 
 for (const file of files) {
   const rel = relative(enRoot, file)
@@ -151,6 +154,15 @@ for (const file of files) {
   if (prose.includes('—')) {
     const n = (prose.match(/—/g) || []).length
     err(`${n} em dash${n > 1 ? 'es' : ''} in prose (use a colon, comma, or two sentences)`, proseLine(/—/))
+    // Offer a colon replacement per offending line. The colon is the
+    // styleguide's first-listed fix; the author can edit before committing.
+    for (const l of proseLines) {
+      if (!l.text.includes('—')) continue
+      const fixed = l.text.replace(/\s*—\s*/g, ': ')
+      if (fixed !== l.text) {
+        suggestions.push({ rel, line: l.line, fixed, reason: 'Replace the em dash with a colon (or edit to a comma / two sentences).' })
+      }
+    }
   }
 
   // Marketing adjectives (advisory).
@@ -174,6 +186,11 @@ console.log(`\n${summary}`)
 // changes the exit code — blocking issues still fail the job.
 if (process.env.STYLE_REPORT) {
   writeFileSync(process.env.STYLE_REPORT, renderReport())
+}
+
+// Optional JSON of applyable fixes for CI to post as inline suggestions.
+if (process.env.STYLE_SUGGESTIONS) {
+  writeFileSync(process.env.STYLE_SUGGESTIONS, JSON.stringify(suggestions, null, 2))
 }
 
 function renderReport() {
