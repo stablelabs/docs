@@ -10,7 +10,7 @@ import { AddToMetaMask } from '../../../components/AddToMetaMask'
 
 # 连接
 
-本页汇总了连接 Stable 所需的网络详情。
+本页汇总了连接 Stable 所需的网络详细信息。
 
 ## 主网
 
@@ -34,25 +34,25 @@ import { AddToMetaMask } from '../../../components/AddToMetaMask'
 | WebSocket | `wss://rpc.testnet.stable.xyz` |
 | 区块浏览器 | [https://testnet.stablescan.xyz](https://testnet.stablescan.xyz) |
 
-如需第三方 RPC 提供商，请参阅 [RPC 提供商](/cn/reference/rpc-providers)。如需为你接入这些端点的类型化客户端，请参阅 [Stable SDK](/cn/explanation/sdk-overview)。
+有关第三方 RPC 提供商，请参阅 [RPC 提供商](/cn/reference/rpc-providers)。如需一个为你预先接入这些端点的类型化客户端，请参阅 [Stable SDK](/cn/explanation/sdk-overview)。
 
 ## 速率限制
 
-公共 RPC 端点（`https://rpc.stable.xyz` 和 `https://rpc.testnet.stable.xyz`）的速率限制为**每个 IP 每 10 秒 1,000 次请求**。超过限制的请求将返回 `HTTP 429`。
+公共 RPC 端点（`https://rpc.stable.xyz` 和 `https://rpc.testnet.stable.xyz`）的速率限制为**每个 IP 每 10 秒 1,000 个请求**。超过限制的请求会返回 `HTTP 429`。
 
-如需更高吞吐量，请使用[第三方 RPC 提供商](/cn/reference/rpc-providers)。
+如需更高的吞吐量，请使用[第三方 RPC 提供商](/cn/reference/rpc-providers)。
 
 :::note
-USDT0 作为原生 gas 代币使用 **18 位小数**（由 `address(x).balance` 返回），作为 ERC-20 代币使用 **6 位小数**（由 `USDT0.balanceOf(x)` 返回）。这两个接口操作的是同一个底层余额。viem 和 ethers.js 等库报告 18 位小数，因为它们读取的是原生 gas 代币。有关如何调和精度差异的详细信息，请参阅 [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
+USDT0 作为原生 gas 代币使用 **18 位小数**（由 `address(x).balance` 返回），作为 ERC-20 代币使用 **6 位小数**（由 `USDT0.balanceOf(x)` 返回）。这两个接口操作的是同一个底层余额。viem 和 ethers.js 等库报告 18 位小数，因为它们读取的是原生 gas 代币。有关精度差异如何调和的详情，请参阅 [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
 :::
 
 ## 将 Stable 添加到你的钱包
 
-如果你使用 MetaMask（或其他注入式 EVM 钱包），只需点击一下即可添加 Stable。该按钮会调用 `wallet_addEthereumChain`，因此你的钱包会提示你确认下面的网络详情。由于 USDT0 是原生 gas 代币，添加网络后你的余额会自动显示，无需单独导入代币。
+如果你使用 MetaMask（或其他注入式 EVM 钱包），只需一键即可添加 Stable。该按钮调用 `wallet_addEthereumChain`，因此你的钱包会提示你确认下面的网络详细信息。由于 USDT0 是原生 gas 代币，添加网络后你的余额会自动显示，无需单独导入代币。
 
 <AddToMetaMask />
 
-如需手动添加 Stable，请打开你的钱包网络设置，输入上表中的值。必填字段为：
+如果想改为手动添加 Stable，请打开钱包的网络设置并输入上方表格中的值。必填字段为：
 
 - **网络名称**
 - **RPC URL**（EVM JSON-RPC 端点）
@@ -85,8 +85,8 @@ cast chain-id --rpc-url https://rpc.testnet.stable.xyz
 2201
 ```
 
-## 下一步推荐
+## 推荐的下一步
 
-- [**快速开始**](/cn/tutorial/quick-start)：五分钟内发送你的第一笔测试网交易。
-- [**获取测试网 USDT0**](/cn/how-to/use-faucet)：从水龙头充值钱包或从 Sepolia 跨链。
-- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior)：在针对余额编写代码之前，理解 18/6 位小数的双重角色。
+- [**快速开始**](/cn/tutorial/quick-start)：在五分钟内发送你的第一笔测试网交易。
+- [**获取测试网 USDT0**](/cn/how-to/use-faucet)：从水龙头为钱包充值，或从 Sepolia 跨链桥接。
+- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior)：在针对余额编写代码之前，先理解 18/6 位小数的双重角色。

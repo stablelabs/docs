@@ -2,7 +2,7 @@
 source_path: reference/connect.mdx
 source_sha: 060ec94cc0c0a0d7da55d200afbb8f7b69fdb8cd
 title: "연결"
-description: "Stable의 메인넷 및 테스트넷 체인 ID, RPC 엔드포인트, 블록 탐색기, 포셋."
+description: "Stable의 메인넷 및 테스트넷 체인 ID, RPC 엔드포인트, 블록 익스플로러, 포셋."
 diataxis: "reference"
 ---
 
@@ -10,58 +10,58 @@ import { AddToMetaMask } from '../../../components/AddToMetaMask'
 
 # 연결
 
-이 페이지는 Stable에 연결하는 데 필요한 네트워크 세부 정보를 통합해 제공합니다.
+이 페이지는 Stable에 연결하는 데 필요한 네트워크 세부 정보를 정리합니다.
 
 ## 메인넷
 
 | **필드** | **값** |
 | :--- | :--- |
-| 네트워크 이름 | Stable Mainnet |
+| Network Name | Stable Mainnet |
 | Chain ID | `988` |
-| 통화 기호 | USDT0 |
+| Currency Symbol | USDT0 |
 | EVM JSON-RPC | `https://rpc.stable.xyz` |
 | WebSocket | `wss://rpc.stable.xyz` |
-| 블록 탐색기 | [https://stablescan.xyz](https://stablescan.xyz) |
+| Block Explorer | [https://stablescan.xyz](https://stablescan.xyz) |
 
 ## 테스트넷
 
 | **필드** | **값** |
 | :--- | :--- |
-| 네트워크 이름 | Stable Testnet |
+| Network Name | Stable Testnet |
 | Chain ID | `2201` |
-| 통화 기호 | USDT0 |
+| Currency Symbol | USDT0 |
 | EVM JSON-RPC | `https://rpc.testnet.stable.xyz` |
 | WebSocket | `wss://rpc.testnet.stable.xyz` |
-| 블록 탐색기 | [https://testnet.stablescan.xyz](https://testnet.stablescan.xyz) |
+| Block Explorer | [https://testnet.stablescan.xyz](https://testnet.stablescan.xyz) |
 
-서드파티 RPC 제공자에 대해서는 [RPC 제공자](/ko/reference/rpc-providers)를 참고하세요. 이 엔드포인트들을 미리 연결해 주는 타입 지정 클라이언트가 필요하다면 [Stable SDK](/ko/explanation/sdk-overview)를 참고하세요.
+서드파티 RPC 제공자에 대해서는 [RPC 제공자](/ko/reference/rpc-providers)를 참조하세요. 이러한 엔드포인트를 자동으로 연결해 주는 타입 지정 클라이언트는 [Stable SDK](/ko/explanation/sdk-overview)를 참조하세요.
 
 ## 속도 제한
 
-공용 RPC 엔드포인트(`https://rpc.stable.xyz` 및 `https://rpc.testnet.stable.xyz`)는 **IP당 10초에 1,000개 요청**으로 속도가 제한됩니다. 제한을 초과하는 요청은 `HTTP 429`를 반환합니다.
+공개 RPC 엔드포인트(`https://rpc.stable.xyz` 및 `https://rpc.testnet.stable.xyz`)는 **IP당 10초에 1,000 요청**으로 속도가 제한됩니다. 제한을 초과한 요청은 `HTTP 429`를 반환합니다.
 
-더 높은 처리량이 필요하다면 [서드파티 RPC 제공자](/ko/reference/rpc-providers)를 사용하세요.
+더 높은 처리량을 위해서는 [서드파티 RPC 제공자](/ko/reference/rpc-providers)를 사용하세요.
 
 :::note
-USDT0는 네이티브 가스 토큰으로서 **18 소수점**을 사용하며(`address(x).balance`로 반환됨), ERC-20 토큰으로서 **6 소수점**을 사용합니다(`USDT0.balanceOf(x)`로 반환됨). 두 인터페이스 모두 동일한 기본 잔액에 대해 동작합니다. viem이나 ethers.js 같은 라이브러리는 네이티브 가스 토큰을 읽기 때문에 18 소수점을 보고합니다. 정밀도 차이가 어떻게 조정되는지에 대한 자세한 내용은 [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참고하세요.
+USDT0는 네이티브 가스 토큰으로 사용될 때 **18 소수 자릿수**(`address(x).balance`로 반환됨)를, ERC-20 토큰으로 사용될 때 **6 소수 자릿수**(`USDT0.balanceOf(x)`로 반환됨)를 사용합니다. 두 인터페이스는 동일한 기초 잔액에서 작동합니다. viem과 ethers.js 같은 라이브러리는 네이티브 가스 토큰을 읽기 때문에 18 소수 자릿수를 보고합니다. 정밀도 차이가 어떻게 조정되는지에 대한 자세한 내용은 [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참조하세요.
 :::
 
 ## 지갑에 Stable 추가하기
 
-MetaMask(또는 다른 주입형 EVM 지갑)를 사용한다면, 한 번의 클릭으로 Stable을 추가할 수 있습니다. 이 버튼은 `wallet_addEthereumChain`을 호출하므로, 지갑이 아래 네트워크 세부 정보를 확인하도록 안내합니다. USDT0가 네이티브 가스 토큰이기 때문에, 네트워크가 추가되면 별도의 토큰 가져오기 없이 잔액이 자동으로 표시됩니다.
+MetaMask(또는 다른 주입형 EVM 지갑)를 사용하는 경우, 한 번의 클릭으로 Stable을 추가하세요. 이 버튼은 `wallet_addEthereumChain`을 호출하므로, 지갑이 아래의 네트워크 세부 정보를 확인하도록 요청합니다. USDT0가 네이티브 가스 토큰이기 때문에, 네트워크가 추가되면 별도의 토큰 가져오기 없이 잔액이 자동으로 표시됩니다.
 
 <AddToMetaMask />
 
-대신 Stable을 수동으로 추가하려면, 지갑의 네트워크 설정을 열고 위 표의 값을 입력하세요. 필수 필드는 다음과 같습니다:
+대신 Stable을 수동으로 추가하려면, 지갑의 네트워크 설정을 열고 위 표의 값을 입력하세요. 필요한 필드는 다음과 같습니다.
 
-- **네트워크 이름**
+- **Network Name**
 - **RPC URL** (EVM JSON-RPC 엔드포인트)
 - **Chain ID**
-- **통화 기호**: `USDT0`
+- **Currency Symbol**: `USDT0`
 
 ## 연결 확인
 
-체인 ID를 조회하여 RPC 엔드포인트에 접근 가능한지 확인하세요:
+체인 ID를 조회하여 RPC 엔드포인트에 접근 가능한지 확인하세요.
 
 ```bash
 cast chain-id --rpc-url https://rpc.stable.xyz
@@ -85,8 +85,8 @@ cast chain-id --rpc-url https://rpc.testnet.stable.xyz
 2201
 ```
 
-## 다음 권장 사항
+## 다음 추천
 
-- [**빠른 시작**](/ko/tutorial/quick-start): 5분 안에 첫 테스트넷 트랜잭션을 보내보세요.
+- [**빠른 시작**](/ko/tutorial/quick-start): 5분 안에 첫 번째 테스트넷 트랜잭션을 보내세요.
 - [**테스트넷 USDT0 받기**](/ko/how-to/use-faucet): 포셋에서 지갑에 자금을 충전하거나 Sepolia에서 브리지하세요.
-- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior): 잔액을 다루는 코드를 작성하기 전에 18/6 소수점 이중 역할을 이해하세요.
+- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior): 잔액을 다루는 코드를 작성하기 전에 18/6 소수 자릿수의 이중 역할을 이해하세요.
