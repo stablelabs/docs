@@ -4,6 +4,8 @@ description: "Mainnet and testnet chain IDs, RPC endpoints, block explorers, and
 diataxis: "reference"
 ---
 
+import { AddToMetaMask } from '../../../components/AddToMetaMask'
+
 # Connect
 
 This page consolidates the network details you need to connect to Stable.
@@ -44,7 +46,11 @@ USDT0 uses **18 decimals** as the native gas token (returned by `address(x).bala
 
 ## Add Stable to your wallet
 
-To add Stable manually, open your browser wallet's network settings and enter the values from the tables above. The required fields are:
+If you use MetaMask (or another injected EVM wallet), add Stable in one click. The button calls `wallet_addEthereumChain`, so your wallet prompts you to confirm the network details below. Because USDT0 is the native gas token, your balance shows up automatically once the network is added, with no separate token import needed.
+
+<AddToMetaMask />
+
+To add Stable manually instead, open your wallet's network settings and enter the values from the tables above. The required fields are:
 
 - **Network Name**
 - **RPC URL** (the EVM JSON-RPC endpoint)
@@ -79,6 +85,6 @@ Expected output:
 
 ## Next recommended
 
-- [**Quick start**](/en/tutorial/quick-start) — Send your first testnet transaction in five minutes.
-- [**Get testnet USDT0**](/en/how-to/use-faucet) — Fund a wallet from the faucet or bridge from Sepolia.
-- [**USDT0 behavior on Stable**](/en/explanation/usdt0-behavior) — Understand the 18/6-decimal dual role before you code against balances.
+- [**Quick start**](/en/tutorial/quick-start): Send your first testnet transaction in five minutes.
+- [**Get testnet USDT0**](/en/how-to/use-faucet): Fund a wallet from the faucet or bridge from Sepolia.
+- [**USDT0 behavior on Stable**](/en/explanation/usdt0-behavior): Understand the 18/6-decimal dual role before you code against balances.

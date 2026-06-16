@@ -1,0 +1,60 @@
+/* Styling for the one-click "Add to MetaMask" buttons.
+   Uses only Vocs theme variables so it tracks the light/dark toggle and the
+   sharp-corner design language (borderRadius zeroed in vocs.config.ts). */
+
+.a2mm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.a2mm__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.a2mm__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--vocs-color_background);
+  background: var(--vocs-color_accent);
+  border: 1px solid var(--vocs-color_accent);
+  border-radius: var(--vocs-borderRadius_4);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.a2mm__btn:hover {
+  opacity: 0.85;
+}
+
+.a2mm__btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.a2mm__status {
+  font-size: 0.8125rem;
+  color: var(--vocs-color_text3);
+}
+
+.a2mm__status--success {
+  color: var(--vocs-color_accent);
+}
+
+.a2mm__status--error,
+.a2mm__status--no-wallet {
+  color: var(--vocs-color_danger, #d23);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a2mm__btn {
+    transition: none;
+  }
+}
