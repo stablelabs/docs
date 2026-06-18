@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Guidance for AI agents working in this repo. Also read [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 and, before architectural changes, search [`ADRs/`](./ADRs).
