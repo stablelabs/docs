@@ -1,5 +1,12 @@
 # DR006: PostHog Analytics Integration
 
+> **Amended by [DR007](./DR007_Analytics_Consent.md):** the `posthog.init` config
+> and the "`Layout` slot unused" / "not via `Layout`" framing below predate the
+> consent gate. PostHog now initialises opted-out and cookieless until the visitor
+> consents, and the `Layout`/`footer.tsx` slots carry the consent UI. The `head`
+> snippet mechanism for the PostHog **loader** (the decision recorded here) is
+> unchanged.
+
 ## Context
 
 The previous Mintlify docs site reported into PostHog via Mintlify's built-in

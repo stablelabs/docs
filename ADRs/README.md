@@ -33,3 +33,4 @@ Each ADR should follow this general structure:
 - [DR004: Translation LLM provider](./DR004_Translation_LLM_Provider.md) — swappable OpenAI-compatible seam (`llm.mjs`) defaulting to OpenRouter + a cheap model, optional review pass, structural + link guards; supersedes DR002 §5–6 internals.
 - [DR005: Styleguide enforcement](./DR005_Styleguide_Enforcement.md) — mechanical rules in a single `RULES` source enforced by `verify-style.mjs`, surfaced on PRs as a sticky comment + inline applyable suggestions; judgment rules stay prose.
 - [DR006: PostHog Analytics Integration](./DR006_PostHog_Analytics.md) — restore Mintlify-era PostHog via the Vocs `head` option (snippet, not posthog-js); SPA pageviews via `capture_pageview: 'history_change'`
+- [DR007: Analytics Consent Gate](./DR007_Analytics_Consent.md) — opt-in consent for the DR006 PostHog integration (GDPR/ePrivacy); inits opted-out + cookieless, site-wide banner via the `Layout` slot, withdraw via a footer link
