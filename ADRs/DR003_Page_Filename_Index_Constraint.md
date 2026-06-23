@@ -90,7 +90,7 @@ end in `index` (e.g. `-guides`, `-overview`). Do not reach for `-index` as a
 - **Node ≥ 22 is required to build.** Vocs uses `globSync` from `node:fs`, which
   does not exist on Node 20 (`docs:build` throws
   `does not provide an export named 'globSync'`). Pinned in `.nvmrc` (`22`) and
-  noted in `CLAUDE.md`; run `nvm use` before `docs:dev` / `docs:build`.
+  noted in `AGENTS.md`; run `nvm use` before `docs:dev` / `docs:build`.
 - Renames must stay path-parallel across `en`/`cn`/`ko` per
   [DR002](./DR002_i18n_Sync_Pipeline.md) — hence all 12 files moved together and
   the cn/ko `source_path` frontmatter was updated alongside the en rename.
