@@ -1,32 +1,32 @@
 ---
 source_path: explanation/contracts-guides.mdx
-source_sha: d11a9b3683251378d49f56b7994d0f90de10bd7b
+source_sha: 9399f7ec9f6cb709da5f547e311c8bbaa678d941
 title: "合约指南"
-description: "所有合约指南、概念和参考：部署流程、系统模块、JSON-RPC 兼容性以及与 Ethereum 的差异。"
+description: "所有合约指南、概念和参考：部署流程、系统模块、JSON-RPC 兼容性以及与以太坊的区别。"
 diataxis: "explanation"
 ---
 
 # 合约指南
 
-合约选项卡下的每个指南、概念和参考，按你想要完成的目标分组。
+“合约”选项卡下的所有指南、概念和参考，按您要完成的任务分组。
 
-## 构建并发布合约
+## 构建和发布合约
 
-- [**部署**](/cn/tutorial/smart-contract) — 搭建 Foundry 项目并将 Counter 部署到 Stable 测试网。
-- [**验证**](/cn/how-to/verify-contract) — 将源代码上传到 Stablescan，让用户能够阅读和调用你的合约。
-- [**索引事件**](/cn/how-to/index-contract) — 使用 ethers.js 构建实时事件流，并进行历史数据回填。
+- [**部署**](/cn/tutorial/smart-contract)：搭建 Foundry 项目并部署 Counter 到 Stable 测试网。
+- [**验证**](/cn/how-to/verify-contract)：将源代码上传到 Stablescan，以便用户可以阅读和调用您的合约。
+- [**索引事件**](/cn/how-to/index-contract)：使用 ethers.js 构建实时事件流，并支持历史数据回填。
 
 ## 调用系统模块
 
-- [**使用系统模块**](/cn/how-to/use-system-modules) — 从 Solidity 或 ethers.js 调用 Bank、Distribution 和 Staking 预编译合约。
-- [**追踪解绑完成**](/cn/how-to/track-unbonding) — 订阅通过 StableSystem 预编译合约发出的 UnbondingCompleted 事件。
+- [**使用系统模块**](/cn/how-to/use-system-modules)：从 Solidity 或 ethers.js 调用 Bank、Distribution 和 Staking 预编译。
+- [**追踪解除绑定完成情况**](/cn/how-to/track-unbonding)：订阅通过 StableSystem 预编译发出的 UnbondingCompleted 事件。
 
 ## 参考
 
-- [**系统模块参考**](/cn/reference/system-modules-api-overview) — 预编译合约地址以及各模块的 ABI 指针。
-- [**JSON-RPC API**](/cn/reference/json-rpc-api) — 支持的 `eth_*`、`net_*`、`web3_*` 和 `debug_*` 方法。
+- [**系统模块参考**](/cn/reference/system-modules-api-overview)：预编译地址和每个模块的 ABI 指针。
+- [**JSON-RPC API**](/cn/reference/json-rpc-api)：支持的 `eth_*`、`net_*`、`web3_*` 和 `debug_*` 方法。
 
 ## 基础概念
 
-- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior) — 双重角色余额、对账事件以及合约设计规则。
-- [**与 Ethereum 的差异**](/cn/explanation/ethereum-comparison) — Gas 代币、最终性、优先级小费以及 EVM 兼容性。
+- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior)：双重角色余额、对账事件和合约设计规则。
+- [**与以太坊的区别**](/cn/explanation/ethereum-comparison)：Gas token、最终性、优先小费和 EVM 兼容性。

@@ -1,34 +1,34 @@
 ---
 source_path: explanation/integrate-overview.mdx
-source_sha: d27d65208399664dc2a63d2133789c860d4bd32f
+source_sha: 9dd60bd0150dd9582e3cfb0bba0a72469b34a1bc
 title: "概览"
-description: "在以 USDT 为原生代币的 Layer 1 上连接 Stable、发送 USDT0 并构建支付流程所需的一切。"
+description: "连接到 Stable、发送 USDT0 并在 USDT 原生 Layer 1 上构建支付流所需的一切。"
 diataxis: "explanation"
 ---
 
 # 概览
 
-Stable 是一条兼容 EVM 的 Layer 1 区块链，其中 USDT0 是原生 gas 代币。大多数以太坊工具、库和合约模式无需修改即可使用。你只需将 RPC 指向 Stable 并切换 chain ID 即可连接。
+Stable 是一个与 EVM 兼容的 Layer 1，其中 USDT0 是原生的 gas 代币。大多数以太坊工具、库和合约模式无需修改即可工作。您只需将 RPC 指向 Stable 并切换链 ID 即可连接。
 
-## 连接与充值
+## 连接和充值
 
-- [**连接**](/cn/reference/connect) — 主网和测试网 chain ID、RPC 端点、区块浏览器。
-- [**为你的测试网钱包充值**](/cn/how-to/use-faucet) — 通过水龙头获取测试网 USDT0，或从 Sepolia 跨链桥接。
-- [**Stable SDK**](/cn/explanation/sdk-overview) — 使用类型化的 TypeScript 客户端进行转账、桥接和兑换。
+- [**连接**](/cn/reference/connect)：主网和测试网链 ID、RPC 端点、区块浏览器。
+- [**为您的测试网钱包充值**](/cn/how-to/use-faucet)：通过水龙头或从 Sepolia 桥接获取测试网 USDT0。
+- [**Stable SDK**](/cn/explanation/sdk-overview)：使用类型化的 TypeScript 客户端进行转账、桥接和兑换。
 
-## 使用 USDT0 构建
+## 使用 USDT0 进行构建
 
-- [**发送你的第一笔 USDT0**](/cn/tutorial/send-usdt0) — 原生和 ERC-20 转账的 TypeScript 示例。
-- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior) — 双角色余额对账、合约设计要求、迁移清单。
-- [**与以太坊的差异**](/cn/explanation/ethereum-comparison) — 单槽最终性、USDT0 gas、无优先费小费。
-- [**零 gas 交易**](/cn/how-to/integrate-gas-waiver) — 通过 Waiver Server API 集成 Gas Waiver。
+- [**发送您的第一笔 USDT0**](/cn/tutorial/send-usdt0)：使用 TypeScript 示例进行原生和 ERC-20 转账。
+- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior)：双重角色余额核对、合约设计要求、迁移清单。
+- [**与以太坊的区别**](/cn/explanation/ethereum-comparison)：单槽最终性、USDT0 gas、无优先小费。
+- [**零 Gas 交易**](/cn/how-to/integrate-gas-waiver)：通过 Waiver Server API 集成 Gas Waiver。
 
 ## 支付
 
-- [**ERC-3009**](/cn/explanation/erc-3009) — 带授权的转账：链上结算原语。
-- [**x402**](/cn/explanation/x402) — HTTP 原生支付，无需账户或 API 密钥。
-- [**P2P 支付**](/cn/reference/p2p-payments) — 原生和 ERC-3009 委托转账。
+- [**ERC-3009**](/cn/explanation/erc-3009)：带授权的转账：链上结算原语。
+- [**x402**](/cn/explanation/x402)：无需账户或 API 密钥的 HTTP 原生支付。
+- [**P2P 支付**](/cn/reference/p2p-payments)：原生和 ERC-3009 委托转账。
 
 ## 生态系统
 
-各类提供商和基础设施已在 Stable 上运行：跨链桥、[官方 Uniswap v3 部署](/cn/reference/dexes)、预言机、RPC、钱包、托管等等。浏览[生态系统](/cn/reference/bridges)章节查看完整列表。
+已在 Stable 上运行的提供商和基础设施：桥、[规范的 Uniswap v3 部署](/cn/reference/dexes)、预言机、RPC、钱包、托管等等。浏览[生态系统](/cn/reference/bridges)部分获取完整列表。

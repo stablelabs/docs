@@ -1,35 +1,35 @@
 ---
 source_path: explanation/payments-guides.mdx
-source_sha: 11c29bc514f62bd2d382c961ee76bd928b60daf7
+source_sha: 0454891901e0f1fe522a9dd1a91c5d73fd7519d7
 title: "결제 가이드"
-description: "모든 결제 가이드, 개념, 참조: USDT0 전송, P2P, 구독, 인보이스, 호출당 결제, 브리징, 제로 가스."
+description: "모든 결제 가이드, 개념 및 참조 자료: USDT0 전송, P2P, 구독, 송장, 종량제, 브리징 및 제로 가스."
 diataxis: "explanation"
 ---
 
 # 결제 가이드
 
-결제 탭의 모든 가이드, 개념, 참조를 하려는 작업별로 그룹화했습니다.
+결제 탭 아래의 모든 가이드, 개념 및 참조 자료를 시도하려는 작업별로 그룹화했습니다.
 
-## 보내기 및 전송
+## 전송 및 이전
 
-- [**첫 USDT0 전송하기**](/ko/tutorial/send-usdt0) — 동일한 잔액에서의 네이티브 및 ERC-20 전송.
-- [**제로 가스 트랜잭션**](/ko/how-to/zero-gas-transactions) — Gas Waiver로 수수료가 충당되는 USDT0 전송.
-- [**USDT0를 가스로 사용하기**](/ko/how-to/work-with-usdt-gas) — 트랜잭션을 올바르게 구성하기: priority tip 0, USDT0의 `value`.
-- [**USDT0를 Stable로 브리징하기**](/ko/tutorial/bridge-usdt0) — LayerZero OFT를 사용하여 Ethereum Sepolia에서 브리징.
+- [**첫 USDT0 전송하기**](/ko/tutorial/send-usdt0): 동일한 잔액에서 네이티브 및 ERC-20 전송.
+- [**제로 가스 트랜잭션**](/ko/how-to/zero-gas-transactions): 가스 면제(Gas Waiver)를 통해 수수료가 처리되는 USDT0 전송.
+- [**USDT0를 가스로 사용하기**](/ko/how-to/work-with-usdt-gas): 트랜잭션 올바르게 구성하기: 우선순위 팁 0, USDT0로 `value`.
+- [**USDT0를 Stable로 브릿징하기**](/ko/tutorial/bridge-usdt0): LayerZero OFT를 사용하여 이더리움 세폴리아에서 브릿징.
 
 ## 결제 흐름 구축
 
-- [**P2P 결제 알아보기**](/ko/how-to/build-p2p-payments) — 하나의 앱에서 지갑 + 보내기 + 받기 + 내역.
-- [**구독 및 수금**](/ko/how-to/subscribe-and-collect) — EIP-7702를 통한 풀 기반 정기 청구.
-- [**인보이스로 결제하기**](/ko/how-to/pay-with-invoice) — 인보이스 정산을 위한 결정적 nonce가 포함된 ERC-3009.
-- [**호출당 결제 API 구축하기**](/ko/how-to/build-pay-per-call) — x402 미들웨어로 HTTP 엔드포인트 수익화.
+- [**P2P 결제 알아보기**](/ko/how-to/build-p2p-payments): 하나의 앱에서 지갑 + 전송 + 수신 + 내역.
+- [**구독 및 수금**](/ko/how-to/subscribe-and-collect): EIP-7702를 통한 풀 기반 반복 청구.
+- [**송장으로 결제하기**](/ko/how-to/pay-with-invoice): 송장 결제를 위한 결정론적 논스(nonces)가 있는 ERC-3009.
+- [**종량제(pay-per-call) API 구축하기**](/ko/how-to/build-pay-per-call): x402 미들웨어를 사용하여 HTTP 엔드포인트 수익화.
 
-## 프로토콜 및 참조
+## 프로토콜 및 참조 자료
 
-- [**ERC-3009**](/ko/explanation/erc-3009) — Transfer With Authorization: 서명 기반 정산 프리미티브.
-- [**x402 (HTTP 네이티브 결제)**](/ko/explanation/x402) — 서버가 402로 응답하고, 클라이언트가 서명하며, 퍼실리테이터가 온체인에서 정산.
-- [**P2P 결제 참조**](/ko/reference/p2p-payments) — 모델 개요 및 전통적인 결제망과의 비교.
-- [**구독 참조**](/ko/reference/subscriptions) — 풀 기반 청구 모델 및 트레이드오프.
-- [**인보이스 참조**](/ko/reference/invoices) — 결정적 nonce 정산 모델.
-- [**호출당 결제 참조**](/ko/reference/pay-per-call) — x402 가격 책정 및 엔드포인트 디스커버리 모델.
-- [**예정된 사용 사례**](/ko/explanation/upcoming-use-cases) — 보장된 정산, 기밀 결제, 에이전트 간 결제.
+- [**ERC-3009**](/ko/explanation/erc-3009): 승인된 전송: 서명된 결제 기본 요소.
+- [**x402 (HTTP-네이티브 결제)**](/ko/explanation/x402): 서버가 402를 응답하고, 클라이언트가 서명하면, 조력자가 온체인에서 결제.
+- [**P2P 결제 참조 자료**](/ko/reference/p2p-payments): 모델 개요 및 기존 방식과의 비교.
+- [**구독 참조 자료**](/ko/reference/subscriptions): 풀 기반 청구 모델 및 장단점.
+- [**송장 참조 자료**](/ko/reference/invoices): 결정론적 논스(deterministic-nonce) 결제 모델.
+- [**종량제 참조 자료**](/ko/reference/pay-per-call): x402 가격 책정 및 엔드포인트 발견 모델.
+- [**예정된 사용 사례**](/ko/explanation/upcoming-use-cases): 보장된 결제, 기밀 결제, 에이전트 간 결제.

@@ -1,16 +1,16 @@
 ---
 source_path: how-to/troubleshoot-node.mdx
-source_sha: f4b7701fdfef056c1aa8bd46ae494c7f6d73d775
+source_sha: 138c5c2eb1a61666718ce625d0553a298a454c03
 title: 문제 해결 가이드
-description: "일반적인 Stable 노드 연결, 동기화, 성능 문제에 대한 진단 스크립트와 해결책."
+description: "Stable 노드 연결, 동기화 및 성능 문제에 대한 진단 스크립트 및 해결책입니다."
 diataxis: "how-to"
 ---
 
-이 종합 가이드는 Stable 노드의 일반적인 문제를 진단하고 해결하는 데 도움을 줍니다.
+이 종합 가이드는 Stable 노드에서 발생하는 일반적인 문제를 진단하고 해결하는 데 도움을 줍니다.
 
 ## 빠른 진단
 
-### 노드 상태 점검 스크립트
+### 노드 상태 확인 스크립트
 
 ```bash
 #!/bin/bash
@@ -52,14 +52,14 @@ ss -tulpn | grep ${SERVICE_NAME} || echo "No ${SERVICE_NAME} ports found"
 echo -e "\n=== Diagnostics Complete ==="
 ```
 
-## 일반적인 문제와 해결책
+## 일반적인 문제 및 해결책
 
 ### 노드가 시작되지 않음
 
 #### 문제: 바이너리를 찾을 수 없음
 
 **오류 메시지:**
-```
+```text
 stabled: command not found
 ```
 
@@ -78,7 +78,7 @@ sudo chmod +x /usr/bin/stabled
 #### 문제: 권한 거부됨
 
 **오류 메시지:**
-```
+```text
 Error: open /home/user/.stabled/config/config.toml: permission denied
 ```
 
@@ -93,10 +93,10 @@ chmod 600 ~/.stabled/config/*.json
 chmod 644 ~/.stabled/config/*.toml
 ```
 
-#### 문제: 주소가 이미 사용 중
+#### 문제: 주소가 이미 사용 중임
 
 **오류 메시지:**
-```
+```text
 Error: listen tcp 0.0.0.0:26657: bind: address already in use
 ```
 
@@ -118,7 +118,7 @@ sed -i 's/laddr = "tcp:\/\/0.0.0.0:26657"/laddr = "tcp:\/\/0.0.0.0:26658"/' ~/.s
 
 **증상:**
 - 블록 높이가 증가하지 않음
-- 1분 이상 새 블록이 없음
+- 1분 이상 새로운 블록이 없음
 
 **해결책:**
 ```bash
@@ -139,7 +139,7 @@ sudo systemctl start ${SERVICE_NAME}
 #### 문제: "wrong Block.Header.AppHash" 오류
 
 **오류 메시지:**
-```
+```text
 panic: Wrong Block.Header.AppHash. Expected XXXX, got YYYY
 ```
 
@@ -172,7 +172,7 @@ sudo systemctl start ${SERVICE_NAME}
 #### 문제: 느린 동기화 속도
 
 **증상:**
-- 분당 100블록 미만
+- 분당 100 블록 미만
 - 높은 CPU/디스크 사용량
 
 **해결책:**
@@ -201,10 +201,10 @@ sudo systemctl restart ${SERVICE_NAME}
 
 ### 피어 연결 문제
 
-#### 문제: 연결되는 피어가 없음
+#### 문제: 연결하는 피어가 없음
 
 **증상:**
-```
+```text
 "n_peers": 0
 ```
 
@@ -233,10 +233,10 @@ sudo systemctl restart ${SERVICE_NAME}
 
 ### 합의 문제
 
-#### 문제: 업그레이드 후 "AppHash mismatch"
+#### 문제: 업그레이드 후 "AppHash 불일치"
 
 **오류 메시지:**
-```
+```text
 panic: AppHash mismatch
 ```
 
@@ -261,10 +261,10 @@ sudo systemctl start ${SERVICE_NAME}
 
 ### 데이터베이스 문제
 
-#### 문제: "database corruption"
+#### 문제: "데이터베이스 손상"
 
 **오류 메시지:**
-```
+```text
 Error initializing database: resource temporarily unavailable
 ```
 
@@ -288,10 +288,10 @@ rm -rf ~/.stabled/data
 sudo systemctl start ${SERVICE_NAME}
 ```
 
-#### 문제: "too many open files"
+#### 문제: "너무 많은 열린 파일"
 
 **오류 메시지:**
-```
+```text
 accept: too many open files
 ```
 
@@ -314,10 +314,10 @@ sudo systemctl restart ${SERVICE_NAME}
 
 ### 메모리 문제
 
-#### 문제: 메모리 부족(OOM) 종료
+#### 문제: 메모리 부족(OOM)으로 인한 강제 종료
 
 **증상:**
-```
+```text
 stabled.service: Main process exited, code=killed, status=9/KILL
 ```
 
@@ -353,7 +353,7 @@ sudo systemctl edit stabled
 #### 문제: 장치에 남은 공간 없음
 
 **오류 메시지:**
-```
+```text
 Error: write ~/.stabled/data/blockstore.db/001234.log: no space left on device
 ```
 
@@ -407,16 +407,16 @@ go tool pprof http://localhost:6060/debug/pprof/heap
 curl http://localhost:6060/debug/pprof/goroutine?debug=1
 ```
 
-## 오류 메시지 참고
+## 오류 메시지 참조
 
 | 오류 | 원인 | 해결책 |
 |-------|-------|----------|
-| `wrong Block.Header.AppHash` | 상태 손상 | 스냅샷에서 재동기화 |
+| `wrong Block.Header.AppHash` | 상태 손상 | 스냅샷에서 다시 동기화 |
 | `validator set is nil` | 제네시스 불일치 | 올바른 제네시스 다운로드 |
-| `connection refused` | 서비스가 실행 중이 아님 | 서비스 시작 |
-| `timeout waiting for tx to be included` | 네트워크 혼잡 | 가스 가격 인상 |
-| `account sequence mismatch` | 논스 오류 | 현재 논스 조회 |
-| `insufficient fees` | 가스 가격이 너무 낮음 | 가스 가격 인상 |
+| `connection refused` | 서비스가 실행되고 있지 않음 | 서비스 시작 |
+| `timeout waiting for tx to be included` | 네트워크 정체 | 가스 가격 증가 |
+| `account sequence mismatch` | Nonce 오류 | 현재 Nonce 쿼리 |
+| `insufficient fees` | 가스 가격이 너무 낮음 | 가스 가격 증가 |
 | `signature verification failed` | 키 불일치 | 키 구성 확인 |
 | `module account has not been set` | 초기화 오류 | 노드 재초기화 |
 
@@ -463,5 +463,5 @@ echo "Share this file when requesting support"
 
 ## 다음 단계
 
-- 문제를 예방하려면 [모니터링 설정](/ko/how-to/monitor-node)을 검토하세요
-- 버전별 문제는 [업그레이드 가이드](/ko/how-to/upgrade-node)를 확인하세요
+- 문제 방지를 위해 [모니터링 설정](/ko/how-to/monitor-node) 검토
+- 버전별 문제를 위해 [업그레이드 가이드](/ko/how-to/upgrade-node) 확인

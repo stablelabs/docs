@@ -1,14 +1,14 @@
 ---
 source_path: reference/sdk.mdx
-source_sha: 77de6350f7056346c43e1b5ca5da572df7f4b7ae
+source_sha: 64d437cfd1ea8f5c39da592e6dfad6bb6ab8b3bf
 title: "SDK 레퍼런스"
-description: "@stablechain/sdk에 대한 완전한 레퍼런스: createStable, StableClient 메서드, 열거형, 체인 설정, 오류 클래스."
+description: "@stablechain/sdk에 대한 완전한 레퍼런스: createStable, StableClient 메서드, 열거형, 체인 구성, 오류 클래스."
 diataxis: "reference"
 ---
 
 # SDK 레퍼런스
 
-`@stablechain/sdk`의 전체 표면. 단계별 안내는 [SDK 빠른 시작](/ko/tutorial/sdk-quickstart)을 참조하세요.
+`@stablechain/sdk`의 전체 표면. 자세한 내용은 [SDK 퀵스타트](/ko/tutorial/sdk-quickstart)를 참조하십시오.
 
 ## 설치
 
@@ -20,11 +20,11 @@ npm install @stablechain/sdk viem
 added 2 packages, audited 3 packages in 2s
 ```
 
-`viem >= 2.0.0`은 피어 의존성입니다.
+`viem >= 2.0.0`은 피어 종속성입니다.
 
 ## `createStable(config)`
 
-`StableClient`를 생성합니다. [`StableClient`](#stableclient)에 나열된 메서드를 가진 객체를 반환합니다.
+`StableClient`를 구성합니다. [`StableClient`](#stableclient) 아래에 나열된 메서드를 포함하는 객체를 반환합니다.
 
 ```ts
 import { createStable, Network } from "@stablechain/sdk";
@@ -38,21 +38,21 @@ StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
 
 ### `StableConfig`
 
-| **필드** | **타입** | **기본값** | **설명** |
+| **필드** | **유형** | **기본값** | **설명** |
 | :--- | :--- | :--- | :--- |
 | `network` | `Network` | `Network.Mainnet` | 대상 네트워크. |
 | `rpc` | `string` | `network`의 공개 RPC | RPC 재정의. |
-| `account` | `viem.Account` |  | 서버 측 서명자 (예: `privateKeyToAccount`). |
-| `transport` | `viem.Transport` |  | 브라우저 지갑 트랜스포트 (예: `custom(window.ethereum)`). |
-| `walletClient` | `viem.WalletClient` |  | 사전 구축된 지갑 클라이언트. `account` 및 `transport`보다 우선합니다. |
+| `account` | `viem.Account` | | 서버 측 서명자(예: `privateKeyToAccount`). |
+| `transport` | `viem.Transport` | | 브라우저-지갑 전송(예: `custom(window.ethereum)`). |
+| `walletClient` | `viem.WalletClient` | | 미리 빌드된 지갑 클라이언트. `account` 및 `transport`보다 우선합니다. |
 
-`account`, `transport`, `walletClient` 중 하나를 제공하세요.
+`account`, `transport` 또는 `walletClient` 중 하나를 제공하십시오.
 
 ## `StableClient`
 
 ### `transfer(params)`
 
-Stable에서 네이티브 USDT0 또는 임의의 ERC-20을 전송합니다. 지갑을 Stable 체인으로 전환하고, 누락된 경우 온체인에서 토큰 소수 자릿수를 가져오며, 영수증을 기다립니다.
+기본 USDT0 또는 Stable의 ERC-20을 보냅니다. 지갑을 Stable 체인으로 전환하고, 누락된 경우 온체인에서 토큰 소수 자릿수를 가져오고, 영수증을 기다립니다.
 
 ```ts
 const { txHash } = await stable.transfer({
@@ -66,19 +66,19 @@ const { txHash } = await stable.transfer({
 { txHash: "0x8f3a...2d41" }
 ```
 
-| **파라미터** | **타입** | **설명** |
+| **매개변수** | **유형** | **설명** |
 | :--- | :--- | :--- |
 | `from` | `string` | 발신자 주소. |
 | `to` | `string` | 수신자 주소. |
-| `amount` | `number` | 사람이 읽을 수 있는 금액. |
-| `token` | `string?` | ERC-20 컨트랙트 주소. 네이티브 USDT0의 경우 생략. |
+| `amount` | `number` | 읽기 쉬운 양. |
+| `token` | `string?` | ERC-20 컨트랙트 주소. 기본 USDT0의 경우 생략합니다. |
 | `tokenDecimals` | `number?` | 소수 자릿수. 생략 시 온체인에서 가져옵니다. |
 
 `OperationResult` (`{ txHash, toAmount? }`)를 반환합니다.
 
 ### `quoteBridge(params)`
 
-브리지를 미리 봅니다. 읽기 전용 — 서명도, 가스도 없습니다.
+브릿지를 미리 봅니다. 읽기 전용. 서명, 가스 없음.
 
 ```ts
 const quote = await stable.quoteBridge({
@@ -98,7 +98,7 @@ const quote = await stable.quoteBridge({
 
 ### `bridge(params)`
 
-토큰을 크로스체인으로 브리지합니다. SDK가 경로를 선택합니다: USDT0 → USDT0에는 LayerZero, 그 외 모든 경우에는 LI.FI를 사용합니다. 내부 견적 호출을 건너뛰려면 사전에 가져온 `quote`를 전달하세요.
+토큰을 크로스체인으로 브릿지합니다. SDK는 경로를 선택합니다: USDT0 → USDT0의 경우 LayerZero, 나머지 모든 것의 경우 LI.FI. 내부 인용 호출을 건너뛰려면 미리 가져온 `quote`를 전달하십시오.
 
 ```ts
 const { txHash } = await stable.bridge({ ...bridgeParams, quote });
@@ -108,20 +108,20 @@ const { txHash } = await stable.bridge({ ...bridgeParams, quote });
 { txHash: "0xabcd...7890" }
 ```
 
-| **파라미터** | **타입** | **설명** |
+| **매개변수** | **유형** | **설명** |
 | :--- | :--- | :--- |
 | `fromChain` | `Chain` | 소스 체인. |
 | `toChain` | `Chain` | 대상 체인. |
 | `fromToken` | `string` | 소스 토큰 컨트랙트 주소. |
 | `toToken` | `string` | 대상 토큰 컨트랙트 주소. |
-| `amount` | `number` | 사람이 읽을 수 있는 금액. |
-| `fromDecimals` | `number?` | 소스 토큰 소수 자릿수. 기본값은 `6`. |
-| `recipient` | `string?` | 대상 주소. 기본값은 서명자. |
-| `quote` | `BridgeQuote?` | 사전에 가져온 견적. 내부 견적 호출을 건너뜁니다. |
+| `amount` | `number` | 읽기 쉬운 양. |
+| `fromDecimals` | `number?` | 소스 토큰 소수 자릿수. 기본값은 `6`입니다. |
+| `recipient` | `string?` | 대상 주소. 기본값은 서명자입니다. |
+| `quote` | `BridgeQuote?` | 미리 가져온 인용. 내부 인용 호출을 건너뜁니다. |
 
 ### `quoteSwap(params)`
 
-Stable에서 LI.FI 스왑 견적을 가져옵니다. 사전 구축된 트랜잭션 요청과 승인 주소를 반환합니다.
+Stable에서 LI.FI 스왑 인용을 가져옵니다. 미리 빌드된 트랜잭션 요청 및 승인 주소를 반환합니다.
 
 ```ts
 const quote = await stable.quoteSwap({
@@ -138,7 +138,7 @@ const quote = await stable.quoteSwap({
 
 ### `swap(params)`
 
-LI.FI를 통해 Stable에서 토큰을 스왑합니다. ERC-20 승인을 자동으로 처리하고 필요한 경우 지갑의 체인을 전환합니다.
+LI.FI를 통해 Stable에서 토큰을 스왑합니다. 필요한 경우 ERC-20 승인을 자동으로 처리하고 지갑의 체인을 전환합니다.
 
 ```ts
 const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
@@ -148,14 +148,14 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 { txHash: "0xabcd...", toAmount: 99.81 }
 ```
 
-| **파라미터** | **타입** | **기본값** | **설명** |
+| **매개변수** | **유형** | **기본값** | **설명** |
 | :--- | :--- | :--- | :--- |
-| `fromToken` | `string` |  | 소스 토큰 주소. |
-| `toToken` | `string` |  | 대상 토큰 주소. |
-| `amount` | `number` |  | 사람이 읽을 수 있는 금액. |
+| `fromToken` | `string` | | 소스 토큰 주소. |
+| `toToken` | `string` | | 대상 토큰 주소. |
+| `amount` | `number` | | 읽기 쉬운 양. |
 | `fromDecimals` | `number?` | `6` | 소스 토큰 소수 자릿수. |
-| `toAddress` | `string?` | 서명자 | 수신자 주소. |
-| `quote` | `SwapQuote?` |  | 사전에 가져온 견적. LI.FI 호출을 건너뜁니다. |
+| `toAddress` | `string?` | signer | 수신자 주소. |
+| `quote` | `SwapQuote?` | | 미리 가져온 인용. LI.FI 호출을 건너뜁니다. |
 
 ## 열거형
 
@@ -168,7 +168,7 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 ### `Chain`
 
-`quoteBridge`와 `bridge`에서 사용됩니다. 각 항목에는 해당하는 `CHAIN_CONFIGS` 항목이 있습니다.
+`quoteBridge` 및 `bridge`에서 사용됩니다. 각 항목에는 해당 `CHAIN_CONFIGS` 항목이 있습니다.
 
 | **열거형** | **네트워크** | **체인 ID** |
 | :--- | :--- | :--- |
@@ -186,7 +186,7 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 ## `CHAIN_CONFIGS`
 
-`Chain` 열거형을 키로 하는 `Partial<Record<Chain, ChainConfig>>`입니다. 각 항목은 `id`, `rpc`, `usdt`, `decimals`를 노출합니다. 지원되는 체인의 정식 USDT 주소를 하드코딩하지 않고 필요할 때 사용하세요.
+`Chain` 열거형으로 키가 지정된 `Partial<Record<Chain, ChainConfig>>`. 각 항목은 `id`, `rpc`, `usdt` 및 `decimals`를 노출합니다. 하드코딩하지 않고 지원되는 체인에서 표준 USDT 주소가 필요할 때 사용하십시오.
 
 ```ts
 import { CHAIN_CONFIGS, Chain } from "@stablechain/sdk";
@@ -200,14 +200,14 @@ console.log(CHAIN_CONFIGS[Chain.Stable]);
 
 ## 오류
 
-모든 SDK 오류는 viem의 `BaseError`를 확장하는 `StableError`를 확장합니다. 오류는 구조화된 메타데이터를 포함하므로 `error.name` 또는 `instanceof`로 분기할 수 있습니다.
+모든 SDK 오류는 viem의 `BaseError`를 확장하는 `StableError`를 확장합니다. 오류는 구조화된 메타데이터를 전달하므로 `error.name` 또는 `instanceof`를 기준으로 분기할 수 있습니다.
 
 | **클래스** | **발생 시점** | **유용한 필드** |
 | :--- | :--- | :--- |
-| `StableValidationError` | 파라미터가 검증에 실패할 때 (잘못된 주소, 유한하지 않은 금액, 지원되지 않는 체인). | `field`, `value` |
-| `StableQuoteError` | LI.FI에 대한 견적 요청이 실패할 때. | `provider`, `httpStatus`, `providerCode`, `body` |
-| `StableTransactionError` | 온체인 단계가 실패할 때: 체인 전환, 승인, 전송 또는 되돌리기. | `phase`, `txHash`, `chainId`, `revertReason` |
-| `StableNetworkError` | 기본 HTTP/RPC 호출이 실패할 때. | `url` |
+| `StableValidationError` | 매개변수가 유효성 검사에 실패함(잘못된 주소, 유한하지 않은 금액, 지원되지 않는 체인). | `field`, `value` |
+| `StableQuoteError` | LI.FI에 대한 견적 요청이 실패함. | `provider`, `httpStatus`, `providerCode`, `body` |
+| `StableTransactionError` | 온체인 단계가 실패함: 체인 전환, 승인, 전송 또는 되돌리기. | `phase`, `txHash`, `chainId`, `revertReason` |
+| `StableNetworkError` | 기본 HTTP/RPC 호출이 실패함. | `url` |
 
 ```ts
 import { StableTransactionError } from "@stablechain/sdk";
@@ -216,7 +216,7 @@ try {
   await stable.transfer({ from, to, amount: 1 });
 } catch (err) {
   if (err instanceof StableTransactionError && err.phase === "switch_chain") {
-    // user rejected the chain switch
+    // 사용자가 체인 전환을 거부했습니다.
   }
   throw err;
 }
@@ -228,8 +228,8 @@ StableTransactionError: transfer: wallet rejected or failed to switch to chain 9
   Chain ID: 988
 ```
 
-## 다음 추천 항목
+## 다음 권장 사항
 
-- [**SDK 빠른 시작**](/ko/tutorial/sdk-quickstart) — SDK를 설치하고 테스트넷에서 첫 전송을 실행합니다.
-- [**viem과 함께 사용하기**](/ko/how-to/sdk-with-viem) — 개인 키, 브라우저 지갑, 사전 구축된 서명자 간 전환.
-- [**wagmi와 함께 사용하기**](/ko/how-to/sdk-with-wagmi) — 훅을 사용하여 React 앱에 SDK를 연결합니다.
+- [**SDK 퀵스타트**](/ko/tutorial/sdk-quickstart): SDK를 설치하고 테스트넷에서 첫 번째 전송을 실행합니다.
+- [**viem과 함께 사용**](/ko/how-to/sdk-with-viem): 개인 키, 브라우저 지갑 및 미리 빌드된 서명자 간에 전환합니다.
+- [**wagmi와 함께 사용**](/ko/how-to/sdk-with-wagmi): 훅을 사용하여 SDK를 React 앱에 연결합니다.

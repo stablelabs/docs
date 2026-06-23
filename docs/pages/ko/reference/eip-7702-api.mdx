@@ -1,22 +1,22 @@
 ---
 source_path: reference/eip-7702-api.mdx
-source_sha: ed9c7f3d8305826eb401d45116a49d3adf2cd3f6
+source_sha: e14a186b9b5e856dc39965a4b8358d407e18dcbd
 title: "EIP-7702"
-description: "Stable의 EIP-7702 지원. EOA는 자신의 계정 코드를 기존 스마트 컨트랙트로 설정하여 일괄 결제, 지출 한도, 세션 키 등을 사용할 수 있습니다."
+description: "Stable에서 EIP-7702를 지원합니다. EOA는 자신의 계정 코드를 기존 스마트 계약으로 설정하여 일괄 결제, 지출 한도 및 세션 키를 사용할 수 있습니다."
 diataxis: "reference"
 ---
 
 # EIP-7702
 
-Stable은 **EIP-7702**를 지원하며, 이를 통해 EOA가 자신의 계정 코드를 기존 스마트 컨트랙트로 설정할 수 있습니다. EOA는 원래의 주소와 프라이빗 키를 유지하면서 위임 대상의 로직을 실행합니다.
+Stable은 EOA가 계정 코드를 기존 스마트 계약으로 설정할 수 있도록 하는 **EIP-7702**를 지원합니다. EOA는 위임자의 로직을 실행하는 동안 원래 주소와 개인 키를 유지합니다.
 
 :::note
-**개념:** EIP-7702가 Stable에서 가능하게 하는 것, 위임 모델, 보안 고려사항에 대해서는 [EIP-7702](/ko/explanation/eip-7702)를 참조하세요. 전체 명세는 [EIP-7702 spec](https://eips.ethereum.org/EIPS/eip-7702)을 참조하세요.
+**개념:** EIP-7702가 Stable에서 지원하는 기능, 위임 모델 및 보안 고려 사항에 대해서는 [EIP-7702](/ko/explanation/eip-7702)를 참조하십시오. 전체 사양은 [EIP-7702 사양](https://eips.ethereum.org/EIPS/eip-7702)을 참조하십시오.
 :::
 
 ## 트랜잭션 형식
 
-EIP-7702는 `authorizationList` 필드를 포함하는 트랜잭션 타입 `0x04`를 사용합니다. 각 authorization은 해당 트랜잭션에서 EOA가 실행할 코드를 가진 위임 컨트랙트를 지정합니다.
+EIP-7702는 `authorizationList` 필드가 있는 트랜잭션 유형 `0x04`를 사용합니다. 각 권한 부여는 해당 트랜잭션에 대해 EOA가 코드를 실행하는 위임 계약을 지정합니다.
 
 ```typescript
 {
@@ -29,21 +29,21 @@ EIP-7702는 `authorizationList` 필드를 포함하는 트랜잭션 타입 `0x04
 }
 ```
 
-authorization이 담는 정보:
+권한 부여는 다음을 포함합니다.
 
 - `chainId`: 대상 체인과 일치해야 합니다.
-- `address`: 위임 컨트랙트 주소입니다.
-- `nonce`: authorization nonce(트랜잭션 nonce와 별개)입니다.
+- `address`: 위임 계약 주소.
+- `nonce`: 권한 부여 논스(트랜잭션 논스와는 별개).
 
-EIP-7702를 지원하는 지갑과 라이브러리는 authorization 형식을 자동으로 처리합니다.
+EIP-7702를 지원하는 지갑 및 라이브러리는 권한 부여 형식을 자동으로 처리합니다.
 
-## 도구
+## 툴링
 
-- **ethers.js**: `wallet.signAuthorization({ chainId, address, nonce })`는 `authorizationList`에 포함할 서명된 authorization을 생성합니다.
-- **viem**: walletClient와 함께 `signAuthorization`을 사용한 다음, 그 결과를 `sendTransaction`에 전달합니다.
-- **Hardhat / Foundry**: 도구 체인 버전이 Pectra 하드포크를 지원하면 표준 EIP-7702 트랜잭션 형식이 동작합니다.
+- **ethers.js**: `wallet.signAuthorization({ chainId, address, nonce })`는 `authorizationList`에 포함될 서명된 권한 부여를 생성합니다.
+- **viem**: `signAuthorization`을 walletClient와 함께 사용한 다음, 결과를 `sendTransaction`에 전달합니다.
+- **Hardhat / Foundry**: 도구 체인 버전이 Pectra 하드포크를 지원하는 경우 표준 EIP-7702 트랜잭션 형식이 작동합니다.
 
 ## 다음 권장 사항
 
-- [**EIP-7702 개념**](/ko/explanation/eip-7702) — 위임 모델과 사용 시점을 이해하세요.
-- [**계정 추상화 (EIP-7702)**](/ko/reference/eip-7702-api) — 일괄 결제, 지출 한도, 세션 키를 단계별로 구현하세요.
+- [**EIP-7702 개념**](/ko/explanation/eip-7702): 위임 모델과 사용 시기를 이해합니다.
+- [**계정 추상화 (EIP-7702)**](/ko/reference/eip-7702-api): 일괄 결제, 지출 한도 및 세션 키를 단계별로 구현합니다.

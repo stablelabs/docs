@@ -57,7 +57,7 @@ echo -e "\n=== Diagnostics Complete ==="
 #### Issue: binary not found
 
 **Error message:**
-```
+```text
 stabled: command not found
 ```
 
@@ -76,7 +76,7 @@ sudo chmod +x /usr/bin/stabled
 #### Issue: permission denied
 
 **Error message:**
-```
+```text
 Error: open /home/user/.stabled/config/config.toml: permission denied
 ```
 
@@ -94,7 +94,7 @@ chmod 644 ~/.stabled/config/*.toml
 #### Issue: address already in use
 
 **Error message:**
-```
+```text
 Error: listen tcp 0.0.0.0:26657: bind: address already in use
 ```
 
@@ -137,7 +137,7 @@ sudo systemctl start ${SERVICE_NAME}
 #### Issue: "wrong Block.Header.AppHash" error
 
 **Error message:**
-```
+```text
 panic: Wrong Block.Header.AppHash. Expected XXXX, got YYYY
 ```
 
@@ -202,7 +202,7 @@ sudo systemctl restart ${SERVICE_NAME}
 #### Issue: no peers connecting
 
 **Symptoms:**
-```
+```text
 "n_peers": 0
 ```
 
@@ -234,7 +234,7 @@ sudo systemctl restart ${SERVICE_NAME}
 #### Issue: "AppHash mismatch" after upgrade
 
 **Error message:**
-```
+```text
 panic: AppHash mismatch
 ```
 
@@ -262,7 +262,7 @@ sudo systemctl start ${SERVICE_NAME}
 #### Issue: "database corruption"
 
 **Error message:**
-```
+```text
 Error initializing database: resource temporarily unavailable
 ```
 
@@ -289,7 +289,7 @@ sudo systemctl start ${SERVICE_NAME}
 #### Issue: "too many open files"
 
 **Error message:**
-```
+```text
 accept: too many open files
 ```
 
@@ -315,7 +315,7 @@ sudo systemctl restart ${SERVICE_NAME}
 #### Issue: out of memory (OOM) kills
 
 **Symptoms:**
-```
+```text
 stabled.service: Main process exited, code=killed, status=9/KILL
 ```
 
@@ -351,7 +351,7 @@ sudo systemctl edit stabled
 #### Issue: no space left on device
 
 **Error message:**
-```
+```text
 Error: write ~/.stabled/data/blockstore.db/001234.log: no space left on device
 ```
 

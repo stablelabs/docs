@@ -1,26 +1,26 @@
 ---
 source_path: how-to/build-p2p-payments.mdx
-source_sha: cb21475c28be41c86374be5066e7b1c5c5261c56
+source_sha: 57dc356587b68955bf9eac544e7b2bcf1b337bee
 title: "学习 P2P 支付"
-description: "在 Stable 上构建 P2P 支付应用。创建钱包、查询余额、收发 USDT0,并查询交易历史。"
+description: "在 Stable 上构建 P2P 支付应用。创建钱包、查询余额、发送和接收 USDT0，以及查询交易历史。"
 diataxis: "how-to"
 ---
 
 # 学习 P2P 支付
 
-本指南将带你在 Stable 上构建一个 P2P 支付应用。该应用处理完整的支付生命周期:发送方直接转账 USDT0,接收方实时检测到入账支付,双方都可以查询各自的交易历史。无论是移动应用、网页结账,还是后端服务,任何钱包或支付界面的架构都与此相同。
+本指南将带领您在 Stable 上构建一个 P2P 支付应用程序。该应用程序处理完整的支付生命周期：发送方直接转移 USDT0，接收方实时检测到入账，双方都可以查询交易历史。与任何钱包或支付界面（无论是移动应用、网页结账还是后端服务）的架构相同。
 
-无需中间件,无需中介。如需了解概念性概述,请参阅 [P2P 支付](/cn/reference/p2p-payments)。如果想跳过 ABI 相关工作、用几行代码实现可用的 `transfer`,请使用 [Stable SDK](/cn/explanation/sdk-overview)。
+没有中间件，没有中介。有关概念性概述，请参见 [P2P 支付](/cn/reference/p2p-payments)。要跳过 ABI 工作并快速实现可用的 `transfer`，请使用 [Stable SDK](/cn/explanation/sdk-overview)。
 
-## 你将构建的内容
+## 您将构建什么
 
-构成一个最小支付应用的五个脚本:
+构成最小支付应用程序的五个脚本：
 
-- `wallet.ts` — 创建或恢复钱包。
-- `getBalance.ts` — 查询当前 USDT0 余额。
-- `send.ts` — 向另一个地址发送 USDT0。
-- `receive.ts` — 实时监听入账支付。
-- `history.ts` — 查询某个地址过去的 Transfer 事件。
+- `wallet.ts`: 创建或恢复钱包。
+- `getBalance.ts`: 查询当前的 USDT0 余额。
+- `send.ts`: 将 USDT0 发送到另一个地址。
+- `receive.ts`: 实时监听入账。
+- `history.ts`: 查询某个地址过去的 Transfer 事件。
 
 ### 演示
 
@@ -39,10 +39,10 @@ step 4. Bob receives payment (real-time event)
         tx:     0x8f3a...2d41
 ```
 
-## 前置条件
+## 前提条件
 
 - Node.js 20 或更高版本。
-- 一个拥有测试网 USDT0 的私钥(参见[快速开始](/cn/tutorial/quick-start)为钱包注资)。
+- 具有测试网 USDT0 的私钥（请参阅 [快速入门](/cn/tutorial/quick-start) 以资助钱包）。
 
 ## 项目设置
 
@@ -55,7 +55,7 @@ npm init -y && npm install ethers dotenv
 added 2 packages, audited 3 packages in 1s
 ```
 
-创建一个被所有脚本共享的 `config.ts`:
+创建所有脚本共享的 `config.ts`：
 
 ```typescript
 // config.ts
@@ -71,24 +71,24 @@ export const provider = new ethers.JsonRpcProvider(STABLE_RPC);
 
 ## 1. 创建或恢复钱包
 
-钱包是从助记词派生出来的密钥对。为新用户生成一个钱包,并返回助记词以便他们备份。回访用户可以用相同的助记词恢复钱包。
+钱包是由助记词派生出的密钥对。为新用户生成一个，并返回助记词，以便他们可以备份。回访用户可以通过相同的助记词恢复他们的钱包。
 
 ```typescript
 // wallet.ts
 import { ethers } from "ethers";
 import { provider } from "./config";
 
-/** Create a new wallet for a new user. */
+/** 为新用户创建新钱包。 */
 export function createWallet() {
   const wallet = ethers.Wallet.createRandom(provider);
   return {
     wallet,
     address: wallet.address,
-    seedPhrase: wallet.mnemonic!.phrase, // display to user for backup
+    seedPhrase: wallet.mnemonic!.phrase, // 显示给用户备份
   };
 }
 
-/** Restore a wallet from a seed phrase (returning user). */
+/** 从助记词恢复钱包（回访用户）。 */
 export function restoreWallet(seedPhrase: string) {
   const wallet = ethers.Wallet.fromPhrase(seedPhrase, provider);
   return { wallet, address: wallet.address };
@@ -110,9 +110,9 @@ Address:     0xAlice...1234
 Seed phrase: liberty shoot ... (12 words)
 ```
 
-## 2. 查询余额
+## 2. 检查余额
 
-USDT0 是 Stable 上的原生资产,因此余额查询与以太坊上的 ETH 完全相同。原生余额为 18 位小数,使用 `formatEther` 进行显示。
+USDT0 是 Stable 上的原生资产，因此余额查询的工作方式与以太坊上的 ETH 完全相同。原生余额为 18 位小数，使用 `formatEther` 进行显示。
 
 ```typescript
 // getBalance.ts
@@ -121,7 +121,7 @@ import { provider } from "./config";
 
 export async function getBalance(address: string) {
   const balance = await provider.getBalance(address);
-  return ethers.formatEther(balance); // 18 decimals
+  return ethers.formatEther(balance); // 18 位小数
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -139,9 +139,9 @@ npx tsx getBalance.ts 0xAlice...1234
 Balance: 0.01 USDT0
 ```
 
-## 3. 发送支付
+## 3. 发送付款
 
-发送方直接签名并提交转账。在 Stable 上,USDT0 是原生资产,因此简单的价值转账是最便宜的方式(21,000 gas)。这与任何支付应用中的"发送"功能采用相同的代码路径。
+发送方直接签名并提交转账。在 Stable 上，USDT0 是原生资产，因此简单的价值转账是最便宜的路径（21,000 gas）。这与任何支付应用程序中“发送”的代码路径相同。
 
 ```typescript
 // send.ts
@@ -151,7 +151,7 @@ import { provider } from "./config";
 export async function sendPayment(
   senderKey: string,
   recipient: string,
-  amount: string // e.g. "0.001" for 0.001 USDT0
+  amount: string // 例如，0.001 USDT0 的“0.001”
 ) {
   const wallet = new ethers.Wallet(senderKey, provider);
   const block = await provider.getBlock("latest");
@@ -161,7 +161,7 @@ export async function sendPayment(
     to: recipient,
     value: ethers.parseEther(amount),
     maxFeePerGas: baseFee * 2n,
-    maxPriorityFeePerGas: 0n, // always 0 on Stable
+    maxPriorityFeePerGas: 0n, // 在 Stable 上始终为 0
   });
 
   console.log("Payment sent:", tx.hash);
@@ -186,9 +186,9 @@ Payment sent: 0x8f3a...2d41
 Payment settled
 ```
 
-## 4. 实时接收支付
+## 4. 实时接收付款
 
-接收方监听入账的 `Transfer` 事件。这相当于传统支付应用中的推送通知。在 Stable 上,单槽最终性意味着接收方几乎可以即时看到支付。
+接收方监听入账 `Transfer` 事件。这相当于传统支付应用程序中的推送通知。在 Stable 上，单槽终结性意味着接收方几乎可以立即看到付款。
 
 ```typescript
 // receive.ts
@@ -233,12 +233,12 @@ Payment received:
 ```
 
 :::note
-原生转账(价值转账)同样会在 USDT0 ERC-20 合约上触发一个 `Transfer` 事件,因为在 Stable 上 USDT0 既是原生资产,也是一个 ERC-20 代币。单个事件监听器即可覆盖这两种转账方式。
+原生转账（价值转账）也会在 USDT0 ERC-20 合约上发出 `Transfer` 事件，因为 USDT0 在 Stable 上既是原生资产，又是 ERC-20 代币。一个事件监听器涵盖了两种转账方法。
 :::
 
 ## 5. 查询交易历史
 
-查询过去的 `Transfer` 事件以构建交易历史视图,就像任何支付应用中的银行对账单或交易列表一样。
+查询过去的 `Transfer` 事件以构建交易历史视图，就像任何支付应用程序中的银行对账单或交易列表一样。
 
 ```typescript
 // history.ts
@@ -298,11 +298,11 @@ received  0.01  USDT0  0xFaucet...     0x22b1...3f09
 ```
 
 :::warning
-扫描大范围的区块(数百万个区块)可能会超时并超过 RPC 速率限制。在生产环境中,请使用 [Stablescan 的 Etherscan 兼容 API](https://stablescan.xyz) 进行分页历史查询——每一笔交易都已被索引。
+扫描大范围块（数百万个块）可能会超时，并超出 RPC 速率限制。对于生产环境，请使用 [Stablescan Etherscan 兼容 API](https://stablescan.xyz) 进行分页历史查询。所有交易都已编入索引。
 :::
 
-## 推荐后续阅读
+## 接下来推荐
 
-- [**订阅与收款**](/cn/how-to/subscribe-and-collect) — 基于拉取的周期性订阅,使用 EIP-7702 委托。
-- [**使用发票付款**](/cn/how-to/pay-with-invoice) — 使用 ERC-3009 和确定性 nonce 结算发票。
-- [**发送你的第一笔 USDT0**](/cn/tutorial/send-usdt0) — 参考基本的原生转账与 ERC-20 转账流程。
+- [**订阅和收集**](/cn/how-to/subscribe-and-collect)：基于拉取的定期订阅与 EIP-7702 委托。
+- [**使用发票支付**](/cn/how-to/pay-with-invoice)：使用 ERC-3009 和确定性随机数结算发票。
+- [**发送您的第一个 USDT0**](/cn/tutorial/send-usdt0)：参考基本的原生与 ERC-20 转账流程。

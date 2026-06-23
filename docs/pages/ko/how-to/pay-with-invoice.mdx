@@ -1,72 +1,72 @@
 ---
 source_path: how-to/pay-with-invoice.mdx
-source_sha: 7c09e8018dbc151950875e9df186903fe8674032
-title: "인보이스로 결제하기"
-description: "인보이스 메타데이터에서 파생된 결정적 nonce를 사용하여 ERC-3009로 Stable에서 인보이스를 정산하세요. 온체인 이벤트를 통해 대사 처리합니다."
+source_sha: b7c9e4ad00713067eaea4c312ff14a82656e23bb
+title: "송장으로 결제하기"
+description: "송장 메타데이터에서 파생된 결정론적 논스를 사용하여 ERC-3009로 Stable에서 송장을 결제합니다. 온체인 이벤트를 통해 조정합니다."
 diataxis: "how-to"
 ---
 
-# 인보이스로 결제하기
+# 송장으로 결제하기
 
-이 가이드는 인보이스 메타데이터에서 파생된 결정적 nonce를 사용하여 [ERC-3009](/ko/explanation/erc-3009)로 온체인에서 인보이스를 정산하는 과정을 안내합니다. nonce는 각 결제를 해당 인보이스에 연결하고 이중 결제를 방지합니다.
+이 가이드는 송장 메타데이터에서 파생된 결정론적 논스를 사용하여 [ERC-3009](/ko/explanation/erc-3009)로 온체인에서 송장을 결제하는 방법을 안내합니다. 논스는 각 결제를 송장과 연결하고 이중 결제를 방지합니다.
 
 :::note
-**개념:** 인보이스 정산 모델과 전통적인 B2B 인보이스 발행과의 비교는 [인보이스 정산](/ko/reference/invoices)을 참조하세요.
+**개념:** 송장 결제 모델 및 기존 B2B 송장과의 비교에 대해서는 [송장 결제](/ko/reference/invoices)를 참조하세요.
 :::
 
-## 무엇을 만들게 되나요
+## 구현할 기능
 
-전체 인보이스 라이프사이클: 구매자가 오프체인에서 ERC-3009 인가에 서명하고, 공급업체가 이를 온체인에 제출하며, 대사 처리는 결과로 생성된 `AuthorizationUsed` 이벤트를 결정적 nonce로 인보이스에 다시 매칭합니다.
+전체 송장 수명 주기: 구매자는 오프체인에서 ERC-3009 승인을 서명하고, 판매자는 온체인에 제출하며, 조정은 결정론적 논스를 통해 결과 `AuthorizationUsed` 이벤트를 송장에 다시 일치시킵니다.
 
 ### 데모
 
 ```text
-step 1. Invoice issued
-        number:  INV-2026-001234
-        amount:  5000 USDT0
-        dueDate: 2026-04-30
+단계 1. 송장 발행
+        번호: INV-2026-001234
+        금액: 5000 USDT0
+        기한: 2026-04-30
 
-step 2. Buyer signs authorization (off-chain, no gas)
-        nonce:     0xa1b2...c3d4 (from invoice metadata)
-        signature: 0xf0e9...1234
+단계 2. 구매자가 승인 서명 (오프체인, 가스 없음)
+        논스: 0xa1b2...c3d4 (송장 메타데이터에서)
+        서명: 0xf0e9...1234
 
-step 3. Vendor submits transferWithAuthorization
-        tx:     0x8f3a...2d41
-        amount: 5000 USDT0 transferred to vendor
+단계 3. 판매자가 transferWithAuthorization 제출
+        거래: 0x8f3a...2d41
+        금액: 5000 USDT0이 판매자에게 전송됨
 
-step 4. Reconciliation
-        AuthorizationUsed(nonce=0xa1b2...) → invoice INV-2026-001234
-        Transfer event verified for correct amount and parties
-        ERP: marked PAID at block 1284371
+단계 4. 조정
+        AuthorizationUsed(nonce=0xa1b2...) → 송장 INV-2026-001234
+        올바른 금액 및 당사자에 대해 검증된 전송 이벤트
+        ERP: 블록 1284371에 PAID로 표시됨
 ```
 
 ## 개요
 
 **구매자:**
 
-```
-─── Buyer ───────────────────────────────────────────
+```text
+─── 구매자 ───────────────────────────────────────────
 nonce = getInvoiceNonce(invoice)
 authorization = { from: buyer, to: vendor, value: amount, nonce, ... }
 signature = signTypedData(authorization)
 
-// Option A: Buyer submits the transaction directly.
+// 옵션 A: 구매자가 거래를 직접 제출합니다.
 usdt0.transferWithAuthorization(authorization, signature)
 
-// Option B: Buyer sends {authorization, signature} to the vendor.
-//           The vendor (or a facilitator) submits on the buyer's behalf.
+// 옵션 B: 구매자가 {authorization, signature}를 판매자에게 보냅니다.
+//           판매자(또는 촉진자)가 구매자를 대신하여 제출합니다.
 ```
 
-**공급업체:**
+**판매자:**
 
-```
-─── Vendor ──────────────────────────────────────────
-// If Option B: submit transferWithAuthorization using the buyer's signature
+```text
+─── 판매자 ──────────────────────────────────────────
+// 옵션 B인 경우: 구매자의 서명을 사용하여 transferWithAuthorization 제출
 
-// Reconcile via AuthorizationUsed event
+// AuthorizationUsed 이벤트를 통해 조정
 on AuthorizationUsed(authorizer, nonce):
     invoice = nonceToInvoice.get(nonce)
-    transferLog = receipt.logs.find(Transfer matching invoice.buyer, invoice.vendor, invoice.amount)
+    transferLog = receipt.logs.find(송장.구매자, 송장.판매자, 송장.금액과 일치하는 전송)
     if transferLog:
         erpSystem.markPaid(invoice.id, txHash, settledAt)
 ```
@@ -102,17 +102,17 @@ export const TRANSFER_WITH_AUTHORIZATION_TYPE = {
 };
 
 export interface Invoice {
-  number: string;   // e.g. "INV-2026-001234"
-  vendor: string;   // vendor wallet address
-  buyer: string;    // buyer wallet address
-  amount: bigint;   // amount in USDT0 atomic units (6 decimals)
-  dueDate: number;  // Unix timestamp
+  number: string;   // 예: "INV-2026-001234"
+  vendor: string;   // 판매자 지갑 주소
+  buyer: string;    // 구매자 지갑 주소
+  amount: bigint;   // USDT0 원자 단위 (6진수) 금액
+  dueDate: number;  // Unix 타임스탬프
 }
 ```
 
-## 1단계: 결정적 nonce 생성
+## 1단계: 결정론적 논스 생성
 
-구매자와 공급업체 모두 인보이스 메타데이터로부터 동일한 nonce를 독립적으로 계산할 수 있습니다. 외부 레지스트리가 필요하지 않습니다.
+구매자와 판매자 모두 송장 메타데이터에서 동일한 논스를 독립적으로 계산할 수 있습니다. 외부 레지스트리는 필요하지 않습니다.
 
 ```typescript
 // nonce.ts
@@ -132,7 +132,7 @@ export function getInvoiceNonce(invoice: Invoice): string {
   );
 }
 
-// Example
+// 예시
 const invoice: Invoice = {
   number: "INV-2026-001234",
   vendor: "0xVendorAddress",
@@ -142,13 +142,13 @@ const invoice: Invoice = {
 };
 
 const nonce = getInvoiceNonce(invoice);
-// Same input always produces the same nonce.
-// This nonce is consumed on-chain upon payment, preventing double payment.
+// 동일한 입력은 항상 동일한 논스를 생성합니다.
+// 이 논스는 결제 시 온체인에서 사용되며 이중 결제를 방지합니다.
 ```
 
-## 2단계: 인가에 서명 (구매자)
+## 2단계: 승인 서명 (구매자)
 
-구매자는 1단계의 결정적 nonce를 사용하여 ERC-3009 `transferWithAuthorization`에 서명합니다.
+구매자는 1단계에서 얻은 결정론적 논스를 사용하여 ERC-3009 `transferWithAuthorization`에 서명합니다.
 
 ```typescript
 // sign-invoice.ts
@@ -165,7 +165,7 @@ const buyerWallet = new ethers.Wallet(process.env.BUYER_KEY!, provider);
 
 async function signInvoiceAuthorization(invoice: Invoice) {
   const nonce = getInvoiceNonce(invoice);
-  const gracePeriod = 30 * 24 * 60 * 60; // 30 days after due date
+  const gracePeriod = 30 * 24 * 60 * 60; // 기한 후 30일
 
   const authorization = {
     from: invoice.buyer,
@@ -188,11 +188,11 @@ async function signInvoiceAuthorization(invoice: Invoice) {
 
 ## 3단계: 트랜잭션 제출
 
-제출하는 주체에 따라 두 가지 옵션이 있습니다.
+누가 제출하는지에 따라 두 가지 옵션이 있습니다.
 
 ### 옵션 A: 구매자가 제출
 
-구매자가 `transferWithAuthorization` 트랜잭션을 직접 제출하고 가스를 지불합니다. 구매자가 결제 실행 시점과 방법을 제어할 때 사용합니다. 예를 들어 구매자의 회계 시스템이 내부 승인 흐름에 연결된 tx 해시를 필요로 하는 경우입니다.
+구매자가 `transferWithAuthorization` 트랜잭션을 직접 제출하고 가스를 지불합니다. 구매자의 회계 시스템이 내부 승인 흐름과 연결된 트랜잭션 해시를 필요로 하는 경우와 같이 구매자가 결제가 실행되는 시기와 방법을 제어할 때 사용합니다.
 
 ```typescript
 // pay.ts
@@ -227,14 +227,14 @@ async function payInvoice(
 
   const receipt = await tx.wait(1);
   console.log("Invoice paid, tx:", receipt.hash);
-  // The nonce is now consumed; the same invoice cannot be paid twice.
+  // 논스는 이제 사용되었으므로 동일한 송장을 두 번 결제할 수 없습니다.
   return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
 }
 ```
 
-### 옵션 B: 공급업체가 제출
+### 옵션 B: 판매자가 제출
 
-구매자는 API, 이메일 또는 어떤 채널을 통해서든 `{authorization, signature}`를 공급업체에 보냅니다. 공급업체(또는 퍼실리테이터)가 구매자를 대신하여 트랜잭션을 제출하므로 구매자는 가스를 관리할 필요가 없습니다. 공급업체가 동일한 요청 흐름 내에서 동기 확인을 필요로 할 때 사용합니다.
+구매자는 API, 이메일 또는 기타 채널을 통해 `{authorization, signature}`를 판매자에게 보냅니다. 판매자(또는 촉진자)는 구매자를 대신하여 트랜잭션을 제출하므로 구매자는 가스를 관리할 필요가 없습니다. 동일한 요청 흐름 내에서 판매자가 동기식 확인을 필요로 하는 경우에 사용합니다.
 
 ```typescript
 // settle.ts
@@ -273,12 +273,12 @@ async function settleInvoice(
 }
 ```
 
-## 4단계: 온체인 이벤트를 통한 대사 처리 (공급업체)
+## 4단계: 온체인 이벤트를 통해 조정 (판매자)
 
-누가 트랜잭션을 제출했든 관계없이, 모든 인보이스 결제는 결정적 nonce를 담은 `AuthorizationUsed` 이벤트를 발생시킵니다. 공급업체는 이 이벤트를 수신하고 nonce로 대기 중인 인보이스에 매칭합니다. nonce가 인보이스 메타데이터에서 파생되므로 매칭은 정확합니다.
+누가 트랜잭션을 제출했는지에 관계없이 모든 송장 결제는 결정론적 논스를 포함하는 `AuthorizationUsed` 이벤트를 발생시킵니다. 판매자는 이 이벤트를 수신하고 논스를 통해 보류 중인 송장과 일치시킵니다. 논스는 송장 메타데이터에서 파생되므로 정확한 일치가 가능합니다.
 
 :::note
-nonce로 매칭하면 어떤 인보이스가 결제되었는지 식별할 수 있지만, 공급업체는 동일한 트랜잭션 내의 `Transfer` 이벤트도 검증하여 올바른 금액이 올바른 수취인에게 전송되었는지 확인해야 합니다. 아래 코드는 이 검증을 포함합니다.
+논스로 일치시키면 어떤 송장이 결제되었는지 식별할 수 있지만, 판매자는 올바른 금액이 올바른 수신자에게 전송되었는지 확인하기 위해 동일한 트랜잭션에서 `Transfer` 이벤트를 확인해야 합니다. 아래 코드는 이 확인을 포함합니다.
 :::
 
 ```typescript
@@ -296,8 +296,8 @@ const usdt0 = new ethers.Contract(
   provider,
 );
 
-// Build a lookup map: nonce -> invoice.
-// In production, this comes from your invoice database.
+// 조회 맵 구축: 논스 -> 송장
+// 실제 환경에서는 송장 데이터베이스에서 가져옵니다.
 const invoices: Invoice[] = [
   {
     number: "INV-2026-001234",
@@ -315,7 +315,7 @@ for (const inv of invoices) {
 
 usdt0.on("AuthorizationUsed", async (authorizer: string, nonce: string, event: any) => {
   const invoice = nonceToInvoice.get(nonce);
-  if (!invoice) return; // not one of our invoices
+  if (!invoice) return; // 우리의 송장이 아닌 경우
 
   const receipt = await event.getTransactionReceipt();
 
@@ -332,20 +332,20 @@ usdt0.on("AuthorizationUsed", async (authorizer: string, nonce: string, event: a
     );
 
   if (!transferLog) {
-    console.error("No matching Transfer event for invoice:", invoice.number);
+    console.error("송장과 일치하는 전송 이벤트 없음:", invoice.number);
     return;
   }
 
-  // All checks passed
-  console.log(`Invoice ${invoice.number} PAID`);
-  console.log("  tx:", receipt.hash);
-  console.log("  settled at block:", receipt.blockNumber);
+  // 모든 확인 통과
+  console.log(`송장 ${invoice.number} 결제 완료`);
+  console.log("  거래:", receipt.hash);
+  console.log("  블록에서 결제 완료:", receipt.blockNumber);
 
-  // In production: update your ERP/accounting system here
+  // 실제 환경: 여기에서 ERP/회계 시스템 업데이트
   // erpSystem.markPaid(invoice.number, receipt.hash, receipt.blockNumber);
 });
 
-console.log("Listening for invoice settlements...");
+console.log("송장 결제를 기다리는 중...");
 ```
 
 ```bash
@@ -353,25 +353,25 @@ npx tsx reconcile.ts
 ```
 
 ```text
-Listening for invoice settlements...
-Invoice INV-2026-001234 PAID
-  tx: 0x8f3a...2d41
-  settled at block: 1284371
+송장 결제를 기다리는 중...
+송장 INV-2026-001234 결제 완료
+  거래: 0x8f3a...2d41
+  블록에서 결제 완료: 1284371
 ```
 
 ## 실패한 결제 처리
 
-제출된 `transferWithAuthorization`은 여러 가지 이유로 되돌려질(revert) 수 있습니다. 각각을 감지하여 공급업체나 구매자에게 표시함으로써 인보이스를 재시도하거나 마감할 수 있도록 합니다.
+제출된 `transferWithAuthorization`은 여러 가지 이유로 되돌려질 수 있습니다. 송장이 재시도되거나 닫힐 수 있도록 각 원인을 공급업체 또는 구매자에게 감지하고 알립니다.
 
-| **Revert 사유** | **원인** | **복구 방법** |
+| **되돌리기 사유** | **원인** | **복구** |
 | :--- | :--- | :--- |
-| `FiatTokenV2: invalid signature` | 서명이 인가 필드와 일치하지 않습니다. | 인보이스 데이터를 변경하지 않은 상태로 구매자에게 재서명을 요청하세요. |
-| `FiatTokenV2: authorization is used or canceled` | nonce가 이미 소비되었거나(이중 제출) 구매자가 취소했습니다. | 인보이스를 이미 결제됨으로 표시하고, nonce로 원래 tx를 조회하세요. |
-| `FiatTokenV2: authorization is not yet valid` | `validAfter` 이전에 제출되었습니다. | `validAfter`까지 기다리거나 새 인가를 발급하세요. |
-| `FiatTokenV2: authorization is expired` | `validBefore` 이후에 제출되었습니다. | 확장된 기간으로 새 인가를 발급하세요. |
-| `FiatTokenV2: transfer amount exceeds balance` | 구매자의 USDT0 잔액이 부족합니다. | 구매자에게 지갑에 자금을 채우도록 알린 후 동일한 서명으로 재시도하세요. |
+| `FiatTokenV2: invalid signature` | 서명이 승인 필드와 일치하지 않습니다. | 구매자에게 변경되지 않은 송장 데이터로 다시 서명하도록 요청합니다. |
+| `FiatTokenV2: authorization is used or canceled` | 논스가 이미 사용되었거나(이중 제출) 구매자가 취소했습니다. | 송장을 이미 결제된 것으로 표시하고 논스로 원본 거래를 조회합니다. |
+| `FiatTokenV2: authorization is not yet valid` | `validAfter` 이전에 제출되었습니다. | `validAfter`까지 기다리거나 새 승인을 발급합니다. |
+| `FiatTokenV2: authorization is expired` | `validBefore` 이후에 제출되었습니다. | 기간이 연장된 새 승인을 발급합니다. |
+| `FiatTokenV2: transfer amount exceeds balance` | 구매자의 USDT0 잔액이 부족합니다. | 구매자에게 지갑에 자금을 지원하도록 알린 다음 동일한 서명을 재시도합니다. |
 
-revert를 포착하고 재시도하기 전에 분류하세요.
+오류를 분류한 후 재시도를 위해 되돌리기를 catch합니다.
 
 ```typescript
 // retry.ts
@@ -388,7 +388,7 @@ async function submitWithRetry(
     const reason = err?.info?.error?.message || err?.reason || err?.message || "";
 
     if (reason.includes("authorization is used or canceled")) {
-      // Lookup the original tx by AuthorizationUsed event; mark invoice paid.
+      // AuthorizationUsed 이벤트를 통해 원본 거래를 조회하고 송장을 결제된 것으로 표시합니다.
       throw new Error("ALREADY_PAID");
     }
     if (reason.includes("authorization is expired")) {
@@ -406,11 +406,11 @@ async function submitWithRetry(
 ```
 
 :::warning
-오류를 분류하지 않고 실패한 제출을 절대 재시도하지 마세요. 되돌려진 transferWithAuthorization에 대한 무분별한 재시도는 구매자가 잔액을 충전한 후 검증을 통과할 수 있으며, 이는 구매자의 최신 의도와 일치하지 않을 수 있습니다.
+오류를 분류하지 않고 실패한 제출을 재시도하지 마십시오. 되돌려진 transferWithAuthorization에 대한 맹목적인 재시도는 구매자가 잔액을 충전한 후 유효성 검사를 통과할 수 있으며, 이는 구매자의 최신 의도와 일치하지 않을 수 있습니다.
 :::
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**인보이스 정산 개념**](/ko/reference/invoices) — 결정적 nonce 대사 처리 모델을 이해하세요.
-- [**ERC-3009**](/ko/explanation/erc-3009) — 이 흐름의 기반이 되는 서명된 인가 표준을 검토하세요.
-- [**가스 없는 트랜잭션 활성화**](/ko/how-to/integrate-gas-waiver) — Gas Waiver와 결합하여 정산 경로에서 가스를 제거하세요.
+- [**송장 결제 개념**](/ko/reference/invoices): 결정론적-논스 조정 모델을 이해합니다.
+- [**ERC-3009**](/ko/explanation/erc-3009): 이 흐름의 기반이 되는 서명된 승인 표준을 검토합니다.
+- [**가스 없는 트랜잭션 활성화**](/ko/how-to/integrate-gas-waiver): 가스 면제와 결합하여 결제 경로에서 가스를 제거합니다.

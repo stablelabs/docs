@@ -1,46 +1,46 @@
 ---
 source_path: how-to/index-validator-data.mdx
-source_sha: c61d0583cb63d1cacdebaa8d836bd6c30e3a66eb
-title: "검증자 데이터 인덱싱"
-description: "stabled를 실행하지 않고도 Stable 프리컴파일과 이벤트 로그에서 직접 검증자 신원, 참여일, 스테이크, 커미션, 가동 시간, 투표 이력을 읽어옵니다."
+source_sha: 87a9f18c6cafd38834304736db22ff3c0297f2ce
+title: "검증인 데이터 인덱싱"
+description: "stabled를 실행하지 않고도 Stable 프리컴파일러 및 이벤트 로그에서 직접 검증인 ID, 가입 날짜, 스테이크, 수수료, 가동 시간 및 투표 기록을 읽습니다."
 diataxis: "how-to"
 ---
 
-# 검증자 데이터 인덱싱
+# 검증인 데이터 인덱싱
 
-검증자 데이터는 온체인에 존재하며 표준 EVM JSON-RPC로 읽을 수 있습니다. 스테이킹, 슬래싱, 거버넌스 프리컴파일을 통해 현재 상태를 조회하고, 이들의 이벤트 로그로부터 이력을 재구성합니다. 즉, 인덱서나 분석 플랫폼은 노드의 `stabled` CLI나 Cosmos REST에 접근하지 않고도 `eth_call`과 `eth_getLogs`만으로 필요한 모든 것을 읽습니다.
+검증인 데이터는 온체인에 있으며 표준 EVM JSON-RPC를 통해 읽을 수 있습니다. 스테이킹, 슬래싱 및 거버넌스 프리컴파일러를 통해 현재 상태를 쿼리하고, 해당 이벤트 로그로부터 기록을 재구성합니다. 이는 인덱서 또는 분석 플랫폼이 노드의 `stabled` CLI 또는 Cosmos REST에 액세스하지 않고 `eth_call` 및 `eth_getLogs`를 통해 필요한 모든 것을 읽는다는 의미입니다.
 
 :::note
-**개념:** 스테이킹 모듈이 추적하는 내용과 위임이 작동하는 방식은 [스테이킹 모듈](/ko/explanation/staking-module)을 참조하세요. 메서드별 입력과 출력은 [스테이킹 프리컴파일 참조](/ko/reference/staking-module-api)를 참조하세요.
+**개념:** 스테이킹 모듈이 추적하는 내용과 위임이 작동하는 방식은 [스테이킹 모듈](/ko/explanation/staking-module)을 참조하세요. 메서드별 입력 및 출력은 [스테이킹 프리컴파일러 참조](/ko/reference/staking-module-api)를 참조하세요.
 :::
 
 ## 각 데이터 포인트의 출처
 
 | **데이터 포인트** | **출처** | **읽는 방법** |
 | :--- | :--- | :--- |
-| 검증자 이름, 신원, 웹사이트 | 스테이킹 프리컴파일 `validators()` | `description.moniker` 및 관련 필드 |
-| 스테이크(본딩된 토큰) | 스테이킹 프리컴파일 `validators()` | `tokens` 필드 |
-| 커미션 | 스테이킹 프리컴파일 `validators()` | `commission` 필드 |
-| 시간에 따른 스테이크 변화 | 스테이킹 프리컴파일 이벤트 | `Delegate`, `Unbond`, `Redelegate` 로그 |
-| 참여일 | 스테이킹 프리컴파일 이벤트 | `CreateValidator` 로그 → 블록 타임스탬프 |
-| 가동 시간 | 슬래싱 프리컴파일 `getSigningInfos()` | `(signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow` |
-| 투표 이력(집계) | 거버넌스 프리컴파일 `getTallyResult()` | 제안별 집계 |
-| 투표 이력(검증자별) | 거버넌스 프리컴파일 이벤트 | `Vote`, `VoteWeighted` 로그, voter = operator 주소 |
+| 검증인 이름, ID, 웹사이트 | 스테이킹 프리컴파일러 `validators()` | `description.moniker` 및 관련 필드 |
+| 스테이크 (본딩된 토큰) | 스테이킹 프리컴파일러 `validators()` | `tokens` 필드 |
+| 수수료 | 스테이킹 프리컴파일러 `validators()` | `commission` 필드 |
+| 시간 경과에 따른 스테이크 변경 | 스테이킹 프리컴파일러 이벤트 | `Delegate`, `Unbond`, `Redelegate` 로그 |
+| 가입 날짜 | 스테이킹 프리컴파일러 이벤트 | `CreateValidator` 로그 → 블록 타임스탬프 |
+| 가동 시간 | 슬래싱 프리컴파일러 `getSigningInfos()` | `(signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow` |
+| 투표 기록(집계) | 거버넌스 프리컴파일러 `getTallyResult()` | 제안별 집계 |
+| 투표 기록(검증인별) | 거버넌스 프리컴파일러 이벤트 | `Vote`, `VoteWeighted` 로그, 투표자 = 운영자 주소 |
 
-## 프리컴파일 주소
+## 프리컴파일러 주소
 
 | **모듈** | **주소** | **용도** |
 | :--- | :--- | :--- |
-| Staking | `0x0000000000000000000000000000000000000800` | 검증자 집합, 스테이크, 커미션, 위임 이벤트 |
-| Distribution | `0x0000000000000000000000000000000000000801` | 보상 및 커미션 인출 |
-| Gov | `0x0000000000000000000000000000000000000805` | 제안, 집계, 투표 로그 |
-| Slashing | `0x0000000000000000000000000000000000000806` | 서명 정보 및 가동 시간 |
+| 스테이킹 | `0x0000000000000000000000000000000000000800` | 검증인 세트, 스테이크, 수수료, 위임 이벤트 |
+| 분배 | `0x0000000000000000000000000000000000000801` | 보상 및 수수료 인출 |
+| 거버넌스 | `0x0000000000000000000000000000000000000805` | 제안, 집계 및 투표 로그 |
+| 슬래싱 | `0x0000000000000000000000000000000000000806` | 서명 정보 및 가동 시간 |
 
-`https://rpc.stable.xyz`에서 메인넷(Chain ID `988`)에 연결하세요. 엔드포인트와 제한 사항은 [메인넷 정보](/ko/reference/mainnet-information)를 참조하세요.
+[`https://rpc.stable.xyz`](https://rpc.stable.xyz)에서 메인넷(체인 ID `988`)에 연결하세요. 엔드포인트 및 제한 사항은 [메인넷 정보](/ko/reference/mainnet-information)를 참조하세요.
 
-## 검증자 이름, 스테이크, 커미션
+## 검증인 이름, 스테이크 및 수수료
 
-스테이킹 프리컴파일에서 `validators()`를 호출하여 현재 검증자 집합을 읽습니다. 본딩 상태를 전달하여 필터링하세요(예: `BOND_STATUS_BONDED`). 각 항목은 검증자의 `description`(`moniker` 포함), `tokens`(본딩된 스테이크), `commission`을 노출합니다.
+스테이킹 프리컴파일러에서 `validators()`를 호출하여 현재 검증인 세트를 읽습니다. 필터링할 본드 상태를 전달합니다(예: `BOND_STATUS_BONDED`). 각 항목은 검증인의 `description`(`moniker` 포함), `tokens`(본딩된 스테이크) 및 `commission`을 노출합니다.
 
 ```typescript
 // validators.ts
@@ -52,7 +52,7 @@ const client = createPublicClient({
   transport: http("https://rpc.stable.xyz"),
 });
 
-// See the staking precompile reference for the full validators() ABI and structs.
+// `validators()` ABI 및 structs에 대한 자세한 내용은 스테이킹 프리컴파일러 참조를 확인하세요.
 const validators = await client.readContract({
   address: STAKING_PRECOMPILE,
   abi: stakingAbi,
@@ -70,11 +70,11 @@ StableNode-01 4500000000000000000000000 50000000000000000
 StableNode-02 3900000000000000000000000 100000000000000000
 ```
 
-`tokens`와 `commission` 값은 18자리 소수로 스케일링되어 있습니다. `commission`을 1e18로 나누면 분수 형태의 비율을 얻을 수 있습니다(예: 5%의 경우 `0.05`). 전체 `Validator` 구조체와 `BOND_STATUS_*` 값은 [스테이킹 프리컴파일 참조](/ko/reference/staking-module-api#validators)를 참조하세요.
+`tokens` 및 `commission` 값은 18자리까지 스케일링됩니다. `commission`을 1e18로 나누어 비율을 분수(예: 5%의 경우 `0.05`)로 얻습니다. 완전한 `Validator` 구조체 및 `BOND_STATUS_*` 값에 대해서는 [스테이킹 프리컴파일러 참조](/ko/reference/staking-module-api#validators)를 참조하세요.
 
-## 시간에 따른 스테이크 변화
+## 시간 경과에 따른 스테이크 변경
 
-`validators()`는 스냅샷을 반환합니다. 스테이크가 어떻게 이동했는지 추적하려면 스테이킹 프리컴파일의 위임 이벤트를 인덱싱하세요. `Delegate`, `Unbond`, `Redelegate`는 인덱싱된 `validatorAddr`과 `amount`를 담고 있으므로, 모든 스테이크 변화를 검증자와 블록에 귀속시킬 수 있습니다.
+`validators()`는 스냅샷을 반환합니다. 스테이크가 어떻게 이동했는지 추적하려면 스테이킹 프리컴파일러의 위임 이벤트를 인덱싱합니다. `Delegate`, `Unbond`, `Redelegate`는 인덱싱된 `validatorAddr`과 `amount`를 포함하므로 모든 스테이크 변경을 검증인 및 블록에 귀속시킬 수 있습니다.
 
 ```typescript
 // stakeChanges.ts
@@ -96,11 +96,11 @@ console.log(`${logs.length} delegations indexed`);
 1842 delegations indexed
 ```
 
-`Unbond`와 `Redelegate`는 동일한 형태를 따르며 추가로 `completionTime`을 담고 있습니다. 정확한 시그니처는 스테이킹 참조의 [이벤트 섹션](/ko/reference/staking-module-api#events)을 참조하세요.
+`Unbond` 및 `Redelegate`도 동일한 형태를 따르며 추가로 `completionTime`을 포함합니다. 정확한 서명은 스테이킹 참조의 [이벤트 섹션](/ko/reference/staking-module-api#events)을 참조하세요.
 
-## 참여일
+## 가입 날짜
 
-검증자의 참여일은 해당 검증자의 `CreateValidator` 이벤트의 블록 타임스탬프입니다. 이 이벤트는 검증자 주소로 인덱싱되어 있으므로, 단일 검증자를 필터링하거나 전체 집합을 훑은 다음, `eth_getBlockByNumber`로 각 로그의 `blockNumber`를 타임스탬프로 변환할 수 있습니다.
+검증인의 가입 날짜는 `CreateValidator` 이벤트의 블록 타임스탬프입니다. 이벤트는 검증인 주소로 인덱싱되므로 단일 검증인을 필터링하거나 전체 세트를 스캔한 다음 각 로그의 `blockNumber`를 `eth_getBlockByNumber`를 사용하여 타임스탬프로 변환합니다.
 
 ```typescript
 // joinDate.ts
@@ -125,26 +125,26 @@ for (const log of logs) {
 ```
 
 :::warning
-제네시스 검증자에는 `CreateValidator` 이벤트가 없습니다. 이들은 트랜잭션이 아니라 제네시스 블록에서 생성되었으므로 로그가 존재하지 않습니다. 이들의 참여일은 체인 제네시스인 **2025-10-29**로 취급하세요. 제네시스 이후에 참여한 모든 검증자에 대해 `CreateValidator`를 인덱싱하고, 제네시스 집합은 제네시스 검증자 목록에서 백필하세요.
+제네시스 검증인은 `CreateValidator` 이벤트가 없습니다. 이들은 제네시스 블록에서 생성되었으므로 트랜잭션이 아니므로 로그가 존재하지 않습니다. 이들의 가입 날짜는 체인의 제네시스: **2025-10-29**로 취급합니다. 제네시스 이후에 가입한 모든 사람에 대해 `CreateValidator`를 인덱싱하고 제네시스 검증인 목록에서 제네시스 세트를 백필합니다.
 :::
 
 ## 가동 시간
 
-슬래싱 프리컴파일(`0x...806`)에서 `getSigningInfos()`를 사용하여 서명 정보를 읽습니다. 각 레코드는 `signedBlocksWindow`(슬라이딩 윈도우의 크기)와 `missedBlocksCounter`(윈도우 내에서 놓친 블록 수)를 보고합니다. 가동 시간을 다음과 같이 계산하세요:
+슬래싱 프리컴파일러(`0x...806`)에서 `getSigningInfos()`를 사용하여 서명 정보를 읽습니다. 각 레코드는 `signedBlocksWindow`(슬라이딩 윈도우 크기) 및 `missedBlocksCounter`(그 안에 누락된 블록)를 보고합니다. 가동 시간은 다음과 같이 계산합니다.
 
 ```text
-uptime = (signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow
+가동 시간 = (signedBlocksWindow - missedBlocksCounter) / signedBlocksWindow
 ```
 
-`signedBlocksWindow`가 `10000`이고 `missedBlocksCounter`가 `25`인 검증자는 윈도우 동안 99.75%의 가동 시간을 갖습니다. 이는 누적 가동 시간이 아니라 롤링 수치입니다. 가동 시간 이력을 추적하려면 고정된 간격으로 카운터를 스냅샷하고 각 측정값을 저장하세요.
+`signedBlocksWindow`가 `10000`이고 `missedBlocksCounter`가 `25`인 검증기는 윈도우 기간 동안 99.75%의 가동 시간을 갖습니다. 이는 평생 가동 시간이 아니라 롤링 수치입니다. 가동 시간 기록을 추적하려면 고정된 간격으로 카운터를 스냅샷하고 각 읽기를 저장합니다.
 
 :::note
-슬래싱 프리컴파일은 Cosmos EVM `x/slashing` 인터페이스를 따릅니다. 해당 주소는 [시스템 모듈 프리컴파일 표](/ko/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 정확한 메서드 ABI는 체인의 프리컴파일 인터페이스에서 생성하세요.
+슬래싱 프리컴파일러는 Cosmos EVM `x/slashing` 인터페이스를 따릅니다. 주소는 [시스템 모듈 프리컴파일러 테이블](/ko/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 체인의 프리컴파일러 인터페이스에서 정확한 메서드 ABI를 생성합니다.
 :::
 
-## 투표 이력
+## 투표 기록
 
-거버넌스 데이터에는 두 가지 계층이 있습니다. 제안의 집계 결과는 거버넌스 프리컴파일(`0x...805`)에서 `getTallyResult()`를 호출하세요. 누가 무엇에 투표했는지는 `Vote`와 `VoteWeighted` 이벤트 로그를 인덱싱하세요. 이 로그의 voter 주소는 검증자의 operator 주소이므로, 투표를 검증자에 직접 조인할 수 있습니다.
+거버넌스 데이터는 두 가지 계층으로 구성됩니다. 제안의 총 결과를 얻으려면 거버넌스 프리컴파일러(`0x...805`)에서 `getTallyResult()`를 호출합니다. 누가 무엇에 투표했는지 확인하려면 `Vote` 및 `VoteWeighted` 이벤트 로그를 인덱싱합니다. 이 로그의 투표자 주소는 검증인의 운영자 주소이므로 투표를 검증인에게 직접 연결할 수 있습니다.
 
 ```typescript
 // votes.ts
@@ -168,15 +168,15 @@ console.log(`${logs.length} votes indexed across all proposals`);
 38 votes indexed across all proposals
 ```
 
-지금까지의 모든 제안(제안 #1부터 #7까지)에 대해 라이브 투표 로그가 확인되었습니다. 제안별 최종 집계만 필요할 때는 `getTallyResult()`를 사용하고, 검증자별 레코드가 필요할 때는 이벤트 로그를 사용하세요.
+라이브 투표 로그는 현재까지의 모든 제안(제안 #1 ~ #7)에 대해 확인되었습니다. 제안별 최종 개수만 필요할 때는 `getTallyResult()`를 사용하고, 검증인별 기록이 필요할 때는 이벤트 로그를 사용하세요.
 
 :::note
-거버넌스 프리컴파일은 Cosmos EVM `x/gov` 인터페이스를 따릅니다. 해당 주소는 [시스템 모듈 프리컴파일 표](/ko/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 정확한 메서드 ABI와 `VoteOption` 열거형은 체인의 프리컴파일 인터페이스에서 생성하세요.
+거버넌스 프리컴파일러는 Cosmos EVM `x/gov` 인터페이스를 따릅니다. 주소는 [시스템 모듈 프리컴파일러 테이블](/ko/how-to/use-system-modules#whats-exposed)에 나열되어 있습니다. 체인의 프리컴파일러 인터페이스에서 정확한 메서드 ABI 및 `VoteOption` enum을 생성합니다.
 :::
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**스테이킹 프리컴파일 참조**](/ko/reference/staking-module-api) — 전체 validators(), 위임 메서드, 이벤트 시그니처를 찾아보세요.
-- [**검증자 생성**](/ko/how-to/run-validator) — 동기화된 노드를 검증자로 등록하여 위 데이터에 나타나게 하세요.
-- [**인덱서 및 분석**](/ko/reference/indexers) — 이미 정규화된 Stable 데이터를 제공하는 인덱싱 제공자를 둘러보세요.
-- [**메인넷 정보**](/ko/reference/mainnet-information) — 인덱싱을 시작하기 전에 Chain ID, RPC 엔드포인트, 속도 제한을 확인하세요.
+- [**스테이킹 프리컴파일러 참조**](/ko/reference/staking-module-api): 전체 `validators()`, 위임 메서드 및 이벤트 서명을 찾아봅니다.
+- [**검증인 생성**](/ko/how-to/run-validator): 동기화된 노드를 검증인으로 등록하여 위 데이터에 나타나도록 합니다.
+- [**인덱서 및 분석**](/ko/reference/indexers): 이미 정규화된 Stable 데이터를 제공하는 인덱싱 제공업체를 찾아봅니다.
+- [**메인넷 정보**](/ko/reference/mainnet-information): 인덱싱을 시작하기 전에 체인 ID, RPC 엔드포인트 및 속도 제한을 확인합니다.

@@ -1,27 +1,27 @@
 ---
 source_path: tutorial/quick-start.mdx
-source_sha: ac60005c171579369156d04b03a48434c2e6bbba
+source_sha: f3a60f028fff5319841801dd9508ebb86d37069f
 title: "빠른 시작"
-description: "Stable 테스트넷에 연결하고, 포셋에서 지갑에 자금을 충전하고, 첫 USDT0 트랜잭션을 전송하세요"
+description: "Stable 테스트넷에 연결하고, faucet에서 지갑에 자금을 지원한 다음 첫 번째 USDT0 트랜잭션을 보냅니다."
 diataxis: "tutorial"
 ---
 
 # 빠른 시작
 
-필요한 도구는 Node.js, 포셋에서 받은 USDT0, 그리고 개인 키뿐입니다. Stable은 USDT0를 가스 토큰으로 사용하므로, 트랜잭션을 처리하는 데 USDT0만 있으면 됩니다. 별도로 충전해야 할 가스 자산은 없습니다.
+필요한 도구는 Node.js, faucet의 USDT0 일부, 비공개 키뿐입니다. Stable은 USDT0를 가스 토큰으로 사용하므로 트랜잭션을 위해서는 USDT0만 있으면 됩니다. 별도의 가스 자산에 자금을 지원할 필요가 없습니다.
 
 :::note
-타입이 지정된 클라이언트를 선호하시나요? [Stable SDK](/ko/explanation/sdk-overview)는 `transfer`, `bridge`, `swap` 메서드로 viem을 감싸므로 수동 ABI 및 소수점 작업을 건너뛸 수 있습니다.
+타입이 지정된 클라이언트를 선호하시나요? [Stable SDK](/ko/explanation/sdk-overview)는 `transfer`, `bridge`, `swap` 메서드를 사용하여 viem을 래핑하므로 수동 ABI 및 소수점 작업을 건너뛸 수 있습니다.
 :::
 
-## 사전 준비
+## 전제 조건
 
 - Node.js 20 이상
-- 직접 관리하는 개인 키 (새로운 테스트 키도 괜찮습니다)
+- 본인이 관리하는 비공개 키 (새 테스트 키도 괜찮습니다)
 
 ## 1. 설치 및 구성
 
-프로젝트를 생성하고, `ethers`를 설치한 후, 테스트넷 구성을 저장하세요.
+프로젝트를 만들고, `ethers`를 설치하고, 테스트넷 구성을 저장합니다.
 
 ```bash
 mkdir stable-quickstart && cd stable-quickstart
@@ -32,13 +32,13 @@ npm init -y && npm install ethers
 added 1 package, audited 2 packages in 1s
 ```
 
-개인 키를 `.env`에 저장하세요:
+비공개 키를 `.env`에 저장합니다.
 
 ```bash
 echo "PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE" > .env
 ```
 
-`config.ts`를 생성하세요:
+`config.ts`를 생성합니다.
 
 ```typescript
 // config.ts
@@ -52,9 +52,9 @@ export const provider = new ethers.JsonRpcProvider(STABLE_TESTNET_RPC);
 export const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 ```
 
-## 2. 지갑에 자금 충전
+## 2. 지갑에 자금 지원
 
-주소를 출력한 다음, 포셋에서 테스트넷 USDT0를 요청하세요.
+주소를 출력한 다음 faucet에서 테스트넷 USDT0를 요청합니다.
 
 ```typescript
 // address.ts
@@ -71,11 +71,11 @@ npx tsx address.ts
 Wallet address: 0x1234...abcd
 ```
 
-[https://faucet.stable.xyz](https://faucet.stable.xyz)로 이동하여 주소를 붙여넣고, 버튼을 선택하여 테스트넷 USDT0를 받으세요. 포셋은 1 USDT0를 전송하며, 이는 수천 건의 네이티브 전송에 충분합니다.
+[https://faucet.stable.xyz](https://faucet.stable.xyz)로 이동하여 주소를 붙여넣고 버튼을 선택하여 테스트넷 USDT0를 받습니다. faucet은 1 USDT0를 보내며, 이는 수천 개의 기본 전송에 충분합니다.
 
-## 3. 첫 트랜잭션 전송
+## 3. 첫 번째 트랜잭션 보내기
 
-0.001 USDT0를 네이티브로 전송하세요. Stable에서 USDT0는 네이티브 자산이므로, 간단한 값 전송이 가장 저렴한 경로입니다(21,000 가스).
+0.001 USDT0를 기본적으로 보냅니다. Stable에서는 USDT0가 기본 자산이므로 간단한 값 전송이 가장 저렴한 경로입니다 (21,000 가스).
 
 ```typescript
 // send.ts
@@ -109,14 +109,14 @@ Tx: 0x8f3a...2d41
 Explorer: https://testnet.stablescan.xyz/tx/0x8f3a...2d41
 ```
 
-익스플로러 링크를 열어 트랜잭션을 확인하세요. 블록 생성 시간은 약 0.7초이므로, 이미 최종 확정되었을 것입니다.
+탐색기 링크를 열어 트랜잭션을 확인하십시오. 블록 시간은 약 0.7초이므로 이미 최종적이어야 합니다.
 
 :::warning
-`maxPriorityFeePerGas`는 Stable에서 무시되며 반드시 `0`으로 설정해야 합니다. base-fee-only 모델이 트랜잭션 구성을 어떻게 변경하는지는 [가스 가격 책정](/ko/reference/gas-pricing-api)을 참조하세요.
+`maxPriorityFeePerGas`는 Stable에서 무시되며 `0`으로 설정해야 합니다. 기본 요금 전용 모델이 트랜잭션 구성을 변경하는 방법에 대해서는 [가스 가격 책정](/ko/reference/gas-pricing-api)을 참조하십시오.
 :::
 
 ## 다음 단계
 
-- [**스마트 컨트랙트 배포**](/ko/tutorial/smart-contract) — Foundry 프로젝트를 스캐폴딩하고 Stable 테스트넷에 배포하세요.
-- [**결제 앱 구축**](/ko/how-to/build-p2p-payments) — 지갑 생성, 전송, 수신, 결제 내역 조회를 만들어보세요.
-- [**AI로 개발하기**](/ko/how-to/develop-with-ai) — MCP 서버와 에이전트 스킬을 AI 에디터에 연결하세요.
+- [**스마트 계약 배포**](/ko/tutorial/smart-contract): Foundry 프로젝트를 스캐폴드하고 Stable 테스트넷에 배포합니다.
+- [**결제 앱 구축**](/ko/how-to/build-p2p-payments): 지갑을 생성하고, 결제 내역을 보내고, 받고, 쿼리합니다.
+- [**AI로 개발**](/ko/how-to/develop-with-ai): MCP 서버와 에이전트 기술을 AI 편집기에 연결합니다.

@@ -1,34 +1,34 @@
 ---
 source_path: explanation/integrate-overview.mdx
-source_sha: d27d65208399664dc2a63d2133789c860d4bd32f
+source_sha: 9dd60bd0150dd9582e3cfb0bba0a72469b34a1bc
 title: "개요"
-description: "Stable에 연결하고, USDT0를 전송하고, USDT 네이티브 Layer 1에서 결제 흐름을 구축하는 데 필요한 모든 것."
+description: "Stable에 연결하고, USDT0를 보내고, USDT 기반 레이어 1에서 결제 흐름을 구축하는 데 필요한 모든 것."
 diataxis: "explanation"
 ---
 
 # 개요
 
-Stable은 USDT0가 네이티브 가스 토큰인 EVM 호환 Layer 1입니다. 대부분의 이더리움 도구, 라이브러리, 컨트랙트 패턴은 수정 없이 작동합니다. RPC를 Stable로 지정하고 체인 ID를 전환하여 연결할 수 있습니다.
+Stable은 USDT0가 기본 가스 토큰인 EVM 호환 레이어 1입니다. 대부분의 이더리움 툴, 라이브러리 및 컨트랙트 패턴은 수정 없이 작동합니다. RPC를 Stable로 연결하고 체인 ID를 전환하여 연결합니다.
 
-## 연결 및 자금 충전
+## 연결 및 자금 조달
 
-- [**연결**](/ko/reference/connect) — 메인넷 및 테스트넷 체인 ID, RPC 엔드포인트, 블록 익스플로러.
-- [**테스트넷 지갑에 자금 충전**](/ko/how-to/use-faucet) — 포셋을 통해 테스트넷 USDT0를 받거나 Sepolia에서 브리지하세요.
-- [**Stable SDK**](/ko/explanation/sdk-overview) — 전송, 브리지, 스왑을 위한 타입이 지정된 TypeScript 클라이언트를 사용하세요.
+- [**연결**](/ko/reference/connect): 메인넷 및 테스트넷 체인 ID, RPC 엔드포인트, 블록 탐색기.
+- [**테스트넷 지갑에 자금 조달**](/ko/how-to/use-faucet): faucet 또는 Sepolia에서 브리지를 통해 테스트넷 USDT0를 받으세요.
+- [**Stable SDK**](/ko/explanation/sdk-overview): 전송, 브리지 및 스왑을 위해 타입스크립트 클라이언트를 사용하세요.
 
 ## USDT0로 구축하기
 
-- [**첫 USDT0 전송하기**](/ko/tutorial/send-usdt0) — TypeScript 예제와 함께하는 네이티브 및 ERC-20 전송.
-- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior) — 이중 역할 잔액 조정, 컨트랙트 설계 요구사항, 마이그레이션 체크리스트.
-- [**이더리움과의 차이점**](/ko/explanation/ethereum-comparison) — 단일 슬롯 완결성, USDT0 가스, 우선순위 팁 없음.
-- [**제로 가스 트랜잭션**](/ko/how-to/integrate-gas-waiver) — Waiver Server API를 통한 Gas Waiver 통합.
+- [**첫 USDT0 전송하기**](/ko/tutorial/send-usdt0): 타입스크립트 예시를 통한 네이티브 및 ERC-20 전송.
+- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior): 이중 역할 잔액 조정, 컨트랙트 설계 요구사항, 마이그레이션 체크리스트.
+- [**이더리움과의 차이점**](/ko/explanation/ethereum-comparison): 단일 슬롯 완결성, USDT0 가스, 우선순위 팁 없음.
+- [**가스 없는 트랜잭션**](/ko/how-to/integrate-gas-waiver): Waiver Server API를 통한 가스 면제 통합.
 
 ## 결제
 
-- [**ERC-3009**](/ko/explanation/erc-3009) — Transfer With Authorization: 온체인 정산 프리미티브.
-- [**x402**](/ko/explanation/x402) — 계정이나 API 키가 필요 없는 HTTP 네이티브 결제.
-- [**P2P 결제**](/ko/reference/p2p-payments) — 네이티브 및 ERC-3009 위임 전송.
+- [**ERC-3009**](/ko/explanation/erc-3009): 승인 전송: 온체인 정산 기본 요소.
+- [**x402**](/ko/explanation/x402): 계정이나 API 키 없이 HTTP 네이티브 결제.
+- [**P2P 결제**](/ko/reference/p2p-payments): 네이티브 및 ERC-3009 위임 전송.
 
-## 에코시스템
+## 생태계
 
-공급자와 인프라가 이미 Stable에서 운영되고 있습니다: 브리지, [표준 Uniswap v3 배포](/ko/reference/dexes), 오라클, RPC, 지갑, 커스터디 등. 전체 목록은 [에코시스템](/ko/reference/bridges) 섹션을 둘러보세요.
+Stable에 이미 활성화된 공급자 및 인프라: 브리지, [정식 Uniswap v3 배포](/ko/reference/dexes), 오라클, RPC, 지갑, 커스터디 등. 전체 목록은 [생태계](/ko/reference/bridges) 섹션을 참조하세요.

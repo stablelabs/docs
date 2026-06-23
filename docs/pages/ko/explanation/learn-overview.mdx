@@ -1,37 +1,37 @@
 ---
 source_path: explanation/learn-overview.mdx
-source_sha: 67ee178c4a5e4a4fbf9902ff3c40a022a75818eb
-title: "학습하기"
-description: "Stable의 개념, 아키텍처, 사용 사례 내러티브. Stable이 무엇인지, 이더리움과 어떻게 다른지, 그리고 가스로서의 USDT0에 담긴 사고 모델을 다룹니다."
+source_sha: a3bae707c2afb7477e50291b1b1311296a75a208
+title: "배우기"
+description: "Stable에 대한 개념, 아키텍처, 사용 사례 내러티브. Stable이 무엇인지, 이더리움과 어떻게 다른지, 그리고 USDT0를 가스로 사용하는 배경에 대한 정신적 모델."
 diataxis: "explanation"
 ---
 
-# 학습하기
+# 배우기
 
 ## 기초
 
-- [**개요**](/ko/explanation/overview) — Stable이 무엇이며 이 문서를 어떻게 읽어야 하는지 설명합니다.
-- [**주요 기능**](/ko/explanation/key-features) — 핵심 사양: 단일 슬롯 완결성, 가스로서의 USDT0, 완전한 EVM 호환성.
-- [**이더리움과의 차이점**](/ko/explanation/ethereum-comparison) — 이더리움에서 포팅할 때 유지되는 것과 바뀌는 것.
-- [**핵심 개념**](/ko/explanation/core-concepts) — USDT0의 이중 역할, 보장된 블록 공간, 전송 애그리게이터, 완결성.
+- [**개요**](/ko/explanation/overview): Stable이 무엇이며 이 문서를 읽는 방법.
+- [**주요 기능**](/ko/explanation/key-features): 주요 사양: 단일 슬롯 완결성, 가스로서의 USDT0, 완전한 EVM 호환성.
+- [**이더리움과의 차이점**](/ko/explanation/ethereum-comparison): 이더리움에서 포팅할 때 유지되는 것과 변경되는 것.
+- [**핵심 개념**](/ko/explanation/core-concepts): USDT0의 이중 역할, 보장된 블록 공간, 전송 통합자, 완결성.
 
-## USDT0 동작
+<h2>USDT0 동작</h2>
 
-- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior) — 이중 역할 잔액, 조정 이벤트, 컨트랙트 설계 규칙.
-- [**가스로서의 USDT**](/ko/explanation/usdt-as-gas-token) — Stable이 가스 지불에 USDT0를 사용하는 이유와 그것이 수수료에 미치는 의미.
-- [**자금 흐름**](/ko/explanation/flow-of-funds) — USDT가 Stable 전반에서 처음부터 끝까지 어떻게 이동하는지.
-- [**USDT0 기능**](/ko/explanation/usdt-features-overview) — 모든 USDT0 전용 기능과 각각으로 연결되는 링크.
+- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior): 이중 역할 잔액, 조정 이벤트, 계약 설계 규칙.
+- [**가스로서의 USDT**](/ko/explanation/usdt-as-gas-token): Stable이 가스 비용 지불에 USDT0를 사용하는 이유와 이것이 수수료에 미치는 영향.
+- [**자금 흐름**](/ko/explanation/flow-of-funds): Stable에서 USDT가 엔드투엔드로 이동하는 방법.
+- [**USDT0 기능**](/ko/explanation/usdt-features-overview): 각 링크가 있는 모든 USDT0 특정 기능.
 
 ## 아키텍처
 
-- [**기술 개요**](/ko/explanation/tech-overview) — 합의, 실행, 데이터베이스, RPC 계층을 한 페이지에 담았습니다.
-- [**핵심 최적화**](/ko/explanation/core-optimization-overview) — 1초 미만의 완결성을 뒷받침하는 성능 작업.
-- [**완결성**](/ko/explanation/finality) — 단일 슬롯 완결성, 리오그 동작, 그리고 "확정됨"이 의미하는 것.
-- [**가스 가격 책정**](/ko/explanation/gas-pricing) — USDT0로 가격이 책정되는 기본 수수료 전용 모델.
+- [**기술 개요**](/ko/explanation/tech-overview): 합의, 실행, 데이터베이스 및 RPC 계층을 한 페이지에.
+- [**핵심 최적화**](/ko/explanation/core-optimization-overview): 1초 미만 완결성 뒤에 숨겨진 성능 작업.
+- [**완결성**](/ko/explanation/finality): 단일 슬롯 완결성, 재구성 동작, "확인됨"의 의미.
+- [**가스 가격 책정**](/ko/explanation/gas-pricing): USDT0로 가격이 책정된 기본 수수료 전용 모델.
 
 ## 사용 사례 내러티브
 
-- [**결제**](/ko/explanation/use-case-payments) — Stable이 P2P, 구독, 청구서, 호출당 지불에 적합한 이유.
-- [**급여 지급**](/ko/explanation/use-case-payroll) — Stable에서 일괄 처리 및 예약된 급여 지급 실행.
-- [**스폰서드 트랜잭션**](/ko/explanation/use-case-sponsored) — 애플리케이션이 사용자를 위해 가스를 대신 부담하도록 하기.
-- [**프라이빗 전송**](/ko/explanation/use-case-private) — 곧 출시될 기밀 결제 흐름.
+- [**결제**](/ko/explanation/use-case-payments): Stable이 P2P, 구독, 송장, 종량제에 적합한 이유.
+- [**급여**](/ko/explanation/use-case-payroll): Stable에서 일괄 및 예약된 급여 실행.
+- [**스폰서 트랜잭션**](/ko/explanation/use-case-sponsored): 애플리케이션이 사용자 가스 비용을 부담하게 하는 기능.
+- [**개인 전송**](/ko/explanation/use-case-private): 향후 기밀 결제 흐름.

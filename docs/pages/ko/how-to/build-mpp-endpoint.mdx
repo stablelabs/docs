@@ -1,50 +1,50 @@
 ---
 source_path: how-to/build-mpp-endpoint.mdx
-source_sha: 6aff0597391159c025c805e5a95e17a1e9373acc
+source_sha: d7b857d878cd4ce2044c0cb7796cfe8e2a7aae29
 title: "Stable에서 MPP 엔드포인트 구축하기"
-description: "viem을 기반으로 세 가지 커스텀 메서드 훅을 작성하여 MPP의 HTTP 402 흐름을 통해 Stable에서 USDT0 결제를 수락합니다."
+description: "viem에 대해 세 가지 사용자 정의 메서드 훅을 작성하여 MPP의 HTTP 402 흐름을 통해 Stable에서 USDT0 결제를 수락합니다."
 diataxis: "how-to"
 ---
 
 # Stable에서 MPP 엔드포인트 구축하기
 
-이 가이드는 Stable에서 USDT0를 위한 커스텀 [MPP](/ko/explanation/mpp) 결제 메서드를 작성하고 MPP로 보호되는 엔드포인트를 제공하는 과정을 설명합니다. 구매자는 [ERC-3009](/ko/explanation/erc-3009) `transferWithAuthorization`에 서명하고, 서버는 `mppx`의 `verify()` 훅을 통해 이를 검증하며, 정산은 여러분이 제어하는 별도의 단계에서 이루어집니다.
+이 가이드는 Stable에서 USDT0에 대한 사용자 정의 [MPP](/ko/explanation/mpp) 결제 메서드를 작성하고 MPP 게이트 엔드포인트를 제공하는 과정을 안내합니다. 구매자는 [ERC-3009](/ko/explanation/erc-3009) `transferWithAuthorization`에 서명하고, 서버는 `mppx`의 `verify()` 훅을 통해 이를 검증하며, 결제는 사용자가 제어하는 별도의 단계에서 이루어집니다.
 
 :::note
-**개념:** MPP가 무엇이며 x402와 어떤 관련이 있는지는 [Machine Payments Protocol (MPP)](/ko/explanation/mpp)를 참고하세요. x402에 해당하는 내용은 [호출당 과금 API 구축하기](/ko/how-to/build-pay-per-call)를 참고하세요.
+**개념:** MPP가 무엇이며 x402와 어떤 관련이 있는지 알아보려면 [기계 결제 프로토콜 (MPP)](/ko/explanation/mpp)을 참조하세요. x402에 해당하는 내용은 [호출당 지불 API 구축하기](/ko/how-to/build-pay-per-call)를 참조하세요.
 :::
 
 :::note
-이 예제는 Stable 메인넷을 사용합니다. 테스트할 때는 소액을 사용하세요.
+이 예시는 Stable 메인넷을 사용합니다. 테스트 시 적은 금액을 사용하세요.
 :::
 
-## 무엇을 만들 것인가
+## 구축할 내용
 
-`402 Payment Required`와 MPP `WWW-Authenticate` 챌린지를 반환하고, `Authorization` 헤더에 담긴 서명된 자격 증명을 수락하여 이를 검증하고, USDT0에서 `transferWithAuthorization`을 정산한 후, `Payment-Receipt` 헤더와 함께 응답을 반환하는 HTTP 엔드포인트입니다.
+MPP `WWW-Authenticate` 챌린지와 함께 `402 Payment Required`를 반환하고, `Authorization` 헤더에 서명된 자격 증명을 수락하고, 이를 검증하고, USDT0에서 `transferWithAuthorization`을 결제하고, `Payment-Receipt` 헤더와 함께 응답을 반환하는 HTTP 엔드포인트입니다.
 
 ```text
-step 1. Client: GET /weather (no Authorization header)
-        Server: 402 Payment Required
+step 1. 클라이언트: GET /weather (Authorization 헤더 없음)
+        서버: 402 Payment Required
                 WWW-Authenticate: Payment realm="...", challenges="[...usdt0-stable charge for $0.001...]"
 
-step 2. Client signs an ERC-3009 authorization with their viem account
+step 2. 클라이언트는 viem 계정으로 ERC-3009 승인에 서명합니다.
 
-step 3. Client: GET /weather + Authorization header containing the serialized credential
-        Server: verify() validates the EIP-712 signature
-        Server: settle() submits transferWithAuthorization on Stable
-                (~700ms block confirmation)
-        Server: 200 OK { weather: "sunny" }
+step 3. 클라이언트: GET /weather + 직렬화된 자격 증명이 포함된 Authorization 헤더
+        서버: verify()는 EIP-712 서명을 검증합니다.
+        서버: settle()은 Stable에서 transferWithAuthorization을 제출합니다.
+                (~700ms 블록 확인)
+        서버: 200 OK { weather: "sunny" }
                 Payment-Receipt: reference="0x8f3a...", status="success"
 
-step 4. Verify settlement on Stablescan
+step 4. Stablescan에서 결제 확인
         https://stablescan.xyz/tx/0x8f3a...
 ```
 
-## 사전 준비
+## 전제 조건
 
-- Stable에 자금이 있는 USDT0 지갑. [Faucet 사용하기](/ko/how-to/use-faucet) 또는 [USDT0 옮기기](/ko/tutorial/send-usdt0)를 참고하세요.
-- `mppx`, `viem`, `zod`가 설치된 Node 20+.
-- Stable의 판매자 계정(EOA). 기본 정산 경로에서는 판매자가 USDT0로 가스를 지불합니다. [Gas Waiver](#alternative-settle-through-the-gas-waiver) 섹션에서는 가스가 없는 변형을 보여줍니다.
+- Stable에 자금을 지원받은 USDT0 지갑. [Faucet 사용하기](/ko/how-to/use-faucet) 또는 [USDT0 이동하기](/ko/tutorial/send-usdt0)를 참조하세요.
+- `mppx`, `viem`, `zod`가 설치된 Node 20 이상.
+- Stable의 판매자 계정 (EOA). 기본 결제 경로의 경우 판매자는 USDT0으로 가스비를 지불합니다. [대안: Gas Waiver를 통한 결제](#alternative-settle-through-the-gas-waiver) 섹션은 가스비 없는 버전을 보여줍니다.
 
 ```bash
 npm install mppx viem zod express
@@ -52,7 +52,7 @@ npm install mppx viem zod express
 
 ## 1. 공유 스키마 정의
 
-`Method.from()`은 의도(intent)와 요청(Challenge) 및 자격 증명 페이로드에 대한 스키마를 선언합니다. 클라이언트와 서버 모두 이 정의를 임포트합니다.
+`Method.from()`은 의도와 요청(Challenge) 및 자격 증명 페이로드에 대한 스키마를 선언합니다. 클라이언트와 서버 모두 이 정의를 가져옵니다.
 
 ```typescript
 // src/method.ts
@@ -63,12 +63,12 @@ import { parseUnits } from "viem";
 export const USDT0_STABLE = "0x779Ded0c9e1022225f8E0630b35a9b54bE713736";
 export const CHAIN_ID = 988;
 
-// Request: the Challenge payload the server sends to the client.
+// Request: 서버가 클라이언트에 보내는 Challenge 페이로드.
 const zRequest = z.pipe(
   z.object({
     chainId: z.literal(CHAIN_ID),
     asset: z.literal(USDT0_STABLE),
-    amount: z.string(),             // human-readable, e.g. "0.001"
+    amount: z.string(),             // 사람이 읽을 수 있는 형식, 예: "0.001"
     decimals: z.literal(6),
     payTo: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
     validAfter: z.number().int().nonnegative(),
@@ -77,14 +77,14 @@ const zRequest = z.pipe(
   }),
   z.transform(({ amount, decimals, ...rest }) => ({
     ...rest,
-    amount: parseUnits(amount, decimals).toString(),  // atomic units
+    amount: parseUnits(amount, decimals).toString(),  // 원자 단위
   })),
 );
 
-// Credential payload: what the client returns after signing.
+// Credential 페이로드: 서명 후 클라이언트가 반환하는 내용.
 const zPayload = z.object({
   from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-  signature: z.string().regex(/^0x[a-fA-F0-9]{130}$/), // 65-byte hex
+  signature: z.string().regex(/^0x[a-fA-F0-9]{130}$/), // 65-바이트 16진수
 });
 
 export const usdt0Stable = Method.from({
@@ -93,7 +93,7 @@ export const usdt0Stable = Method.from({
   schema: { request: zRequest, credential: { payload: zPayload } },
 });
 
-// EIP-712 domain + type, used by both client and server.
+// 클라이언트와 서버 모두에서 사용되는 EIP-712 도메인 + 유형.
 export const EIP712_DOMAIN = {
   name: "USDT0",
   version: "1",
@@ -118,9 +118,9 @@ usdt0Stable.name === "usdt0-stable"
 usdt0Stable.intent === "charge"
 ```
 
-## 2. 서버: 자격 증명 검증
+## 2. 서버: 자격 증명 확인
 
-`Method.toServer`는 `verify()`를 `mppx`에 연결합니다. 이 함수는 역직렬화된 자격 증명(챌린지 + 페이로드)을 받아서 유효하지 않은 증명에 대해 throw하거나 `Receipt`를 반환해야 합니다.
+`Method.toServer`는 `verify()`를 `mppx`에 연결합니다. 함수는 역직렬화된 자격 증명 (챌린지 + 페이로드)을 수신하며, 유효하지 않은 증명이 있으면 예외를 발생시키거나 `Receipt`를 반환해야 합니다.
 
 ```typescript
 // src/server-method.ts
@@ -153,9 +153,9 @@ export const usdt0StableServer = Method.toServer(usdt0Stable, {
       signature: signature as `0x${string}`,
     });
 
-    if (!valid) throw new Error("Invalid ERC-3009 signature");
+    if (!valid) throw new Error("유효하지 않은 ERC-3009 서명");
 
-    // The Receipt's reference is filled in with the tx hash after settle().
+    // Receipt의 참조는 settle() 후 tx 해시로 채워집니다.
     return Receipt.from({
       method: usdt0Stable.name,
       reference: "pending",
@@ -176,16 +176,16 @@ export const usdt0StableServer = Method.toServer(usdt0Stable, {
 ```
 
 :::warning
-`verify()`는 서명을 확인하지만 nonce의 고유성이나 권한이 이미 사용되었는지 여부는 확인하지 않습니다. 체인은 제출 시점에 두 가지를 모두 강제합니다. `transferWithAuthorization`은 이미 사용된 nonce에 대해 revert됩니다. 정산 단계는 이러한 revert를 서버가 클라이언트에 노출할 수 있는 오류로 변환합니다.
+`verify()`는 서명을 확인하지만, nonce의 고유성이나 권한이 이미 사용되었는지 여부는 확인하지 않습니다. 체인은 제출 시 두 가지를 모두 강제합니다: `transferWithAuthorization`는 사용된 nonce에 대해 되돌립니다. settlement 단계는 이러한 되돌림을 서버가 클라이언트에 전달할 수 있는 오류로 변환합니다.
 :::
 
-## 3. 정산: `transferWithAuthorization` 제출
+## 3. 결제: `transferWithAuthorization` 제출
 
-정산은 의도적으로 `verify()`와 분리되어 있습니다. `verify()`가 반환된 후, 여러분의 운영 모델에 맞는 경로를 통해 권한을 온체인에 제출합니다. 권장 순서대로 세 가지 옵션이 있습니다.
+결제는 의도적으로 `verify()`와 분리되어 있습니다. `verify()`가 반환된 후, 운영 모델에 맞는 경로를 통해 승인을 온체인으로 제출합니다. 세 가지 옵션은 권장 순서입니다.
 
-### 기본: 서버가 직접 제출
+### 기본값: 서버가 직접 제출
 
-판매자의 EOA가 서명된 권한과 함께 `transferWithAuthorization`을 USDT0에 제출합니다. 판매자는 USDT0(Stable의 네이티브 가스 토큰)로 가스를 지불하므로, 관리해야 할 별도의 가스 토큰 잔액이 없습니다.
+판매자의 EOA가 서명된 승인과 함께 `transferWithAuthorization`을 USDT0에 제출합니다. 판매자는 USDT0(Stable의 기본 가스 토큰)으로 가스비를 지불하므로 별도의 가스 토큰 잔액을 관리할 필요가 없습니다.
 
 ```typescript
 // src/settle.ts
@@ -253,9 +253,9 @@ export async function settleDirect(credential: {
 { txHash: "0x8f3a1b2c..." }
 ```
 
-### 대안: Gas Waiver를 통한 정산
+### 대안: Gas Waiver를 통한 결제
 
-Stable의 [Gas Waiver](/ko/how-to/integrate-gas-waiver)를 사용하여 내부 트랜잭션을 `gasPrice = 0`으로 제출합니다. 판매자는 여전히 래핑 트랜잭션에 서명하지만 가스는 지불하지 않습니다. Waiver Server API 키가 필요합니다.
+Stable의 [Gas Waiver](/ko/how-to/integrate-gas-waiver)를 사용하여 `gasPrice = 0`으로 내부 트랜잭션을 제출합니다. 판매자는 래핑 트랜잭션에 계속 서명하지만 가스비를 지불하지 않습니다. Waiver Server API 키가 필요합니다.
 
 ```typescript
 // src/settle-waiver.ts
@@ -263,7 +263,7 @@ import { encodeFunctionData } from "viem";
 import { USDT0_STABLE } from "./method";
 import { USDT0_ABI } from "./settle";
 
-const WAIVER_SERVER = "https://waiver.stable.xyz"; // mainnet endpoint
+const WAIVER_SERVER = "https://waiver.stable.xyz"; // 메인넷 엔드포인트
 
 export async function settleViaWaiver(
   credential: { challenge: { request: any }; payload: { from: string; signature: string } },
@@ -280,7 +280,7 @@ export async function settleViaWaiver(
 
   const lines = (await res.text()).trim().split("\n");
   const result = JSON.parse(lines[0]);
-  if (!result.success) throw new Error(`Settle failed: ${result.error?.message}`);
+  if (!result.success) throw new Error(`결제 실패: ${result.error?.message}`);
   return { txHash: result.txHash };
 }
 ```
@@ -289,17 +289,17 @@ export async function settleViaWaiver(
 { txHash: "0x8f3a1b2c..." }
 ```
 
-게시 전에 서명된 내부 트랜잭션(`gasPrice: 0`, 인코딩된 `transferWithAuthorization` 호출)을 구성하는 방법은 [Gas waiver 프로토콜](/ko/reference/gas-waiver-api)을 참고하세요.
+서명된 내부 트랜잭션(`gasPrice: 0`, 인코딩된 `transferWithAuthorization` 호출)을 게시하기 전에 빌드하는 방법에 대한 자세한 내용은 [Gas waiver protocol](/ko/reference/gas-waiver-api)을 참조하세요.
 
-### 대안: x402 facilitator에 위임
+### 대안: x402 통신자에게 넘기기
 
-이미 x402 facilitator 통합([Semantic Pay](https://docs.semanticpay.io) 또는 [Heurist](https://docs.heurist.ai/x402-products/facilitator))을 운영 중이라면, 이를 정산 대상으로 재사용할 수 있습니다. `/settle`에 `paymentPayload`를 POST하면 facilitator가 온체인 호출을 제출합니다.
+이미 x402 통신자 통합([Semantic Pay](https://docs.semanticpay.io) 또는 [Heurist](https://docs.heurist.ai/x402-products/facilitator))을 운영하고 있다면, 이를 결제 대상으로 재사용할 수 있습니다. `/settle`에 `paymentPayload`를 POST하면 통신자가 온체인 호출을 제출합니다.
 
-정확한 `paymentPayload` 형태는 x402 미들웨어 내부에 있으며 와이어 수준에서 명시되지 않습니다. 가장 간단한 경로는 facilitator의 자체 SDK를 사용하여 페이로드를 구성하거나, 위의 직접 제출 경로를 고수하는 것입니다. facilitator는 MPP를 이해할 필요가 없으며, `transferWithAuthorization` 필드만 보게 됩니다.
+정확한 `paymentPayload` 형식은 x402 미들웨어 내부이며 와이어 레벨에서 지정되지 않습니다. 가장 간단한 방법은 통신자의 자체 SDK를 사용하여 페이로드를 구축하거나 위에서 설명한 직접 제출 경로를 유지하는 것입니다. 통신자는 MPP를 말할 필요가 없습니다. `transferWithAuthorization` 필드만 봅니다.
 
 ## 4. 클라이언트: 자격 증명 서명
 
-`Method.toClient`는 `createCredential()`을 `mppx`에 연결합니다. 클라이언트는 Challenge를 읽고, 에이전트의 viem 계정으로 EIP-712 권한에 서명하며, 자격 증명을 직렬화합니다.
+`Method.toClient`는 `createCredential()`을 `mppx`에 연결합니다. 클라이언트는 챌린지를 읽고, 에이전트의 viem 계정으로 EIP-712 승인에 서명하며, 자격 증명을 직렬화합니다.
 
 ```typescript
 // src/client-method.ts
@@ -343,12 +343,12 @@ export function createUsdt0StableClient(privateKey: `0x${string}`) {
 ```
 
 ```text
-"eyJjaGFsbGVuZ2UiOnsi..." // base64-serialized credential, ~600 bytes
+"eyJjaGFsbGVuZ2UiOnsi..." // base64 직렬화된 자격 증명, ~600바이트
 ```
 
-## 5. 서버 연결하기
+## 5. 서버 연결
 
-`mppx`의 Express 미들웨어를 사용하여 Challenge를 발급하고, 들어오는 `Authorization` 헤더를 파싱하고, `verify()`를 실행하고, 정산 함수를 호출하고, `Payment-Receipt` 헤더를 내보냅니다.
+`mppx`의 Express 미들웨어를 사용하여 챌린지를 발행하고, 들어오는 `Authorization` 헤더를 파싱하고, `verify()`를 실행하고, 결제 함수를 호출하고, `Payment-Receipt` 헤더를 내보냅니다.
 
 ```typescript
 // src/server.ts
@@ -392,23 +392,23 @@ app.get(
 );
 
 app.listen(PORT, () => {
-  console.log(`MPP server listening on http://localhost:${PORT}`);
+  console.log(`MPP 서버가 http://localhost:${PORT}에서 수신 중입니다`);
 });
 ```
 
 ```text
-MPP server listening on http://localhost:4022
+MPP 서버가 http://localhost:4022에서 수신 중입니다
 ```
 
-## 6. 전체 흐름을 끝까지 실행하기
+## 6. 전체 흐름 실행
 
-서버를 시작하고, Challenge를 확인하고, 클라이언트를 실행한 후, 정산을 확인합니다.
+서버를 시작하고, 챌린지를 확인하고, 클라이언트를 실행하고, 결제를 확인합니다.
 
 :::warning
-다음 단계는 Stable 메인넷에서 실제 USDT0 결제를 정산합니다. 전용 지갑과 소액을 사용하세요.
+다음 단계는 Stable 메인넷에서 실제 USDT0 결제를 진행합니다. 전용 지갑과 소액을 사용하세요.
 :::
 
-### Challenge 확인하기
+### 챌린지 확인
 
 ```bash
 curl -i http://localhost:4022/weather
@@ -434,7 +434,7 @@ const client = Mppx.create({
 });
 
 const res = await fetch("http://localhost:4022/weather", {
-  // mppx wraps fetch with the 402 retry loop:
+  // mppx는 fetch를 402 재시도 루프와 함께 래핑합니다:
   ...client.fetchOptions(),
 });
 
@@ -451,18 +451,18 @@ npx tsx src/client.ts
 Payment-Receipt: reference="0x8f3a1b2c...", status="success", timestamp="2026-06-01T12:34:56.000Z"
 ```
 
-### Stablescan에서 확인하기
+### Stablescan에서 확인
 
-`https://stablescan.xyz/tx/0x8f3a1b2c...`를 열고 `transferWithAuthorization`이 여러분의 `PAY_TO` 주소로 정산되었는지 확인하세요.
+`https://stablescan.xyz/tx/0x8f3a1b2c...`를 열고 `transferWithAuthorization`이 `PAY_TO` 주소로 결제되었는지 확인합니다.
 
 ## 방금 한 일
 
-- 구매자 측에서 관리할 가스 토큰 잔액 없이, 달러로 표시된 USDT0로 결제했습니다.
+- USDT0으로 달러화된 결제를 구매자 측에서 가스 토큰 잔액을 관리할 필요 없이 지불했습니다.
 - 클라이언트-서버 홉에서 MPP의 `WWW-Authenticate` / `Authorization` / `Payment-Receipt` 와이어 형식을 사용했습니다.
-- 동일한 HTTP 요청 수명 주기 내에서 Stable의 `transferWithAuthorization`으로 정산했습니다(~700ms 블록 타임).
+- 동일한 HTTP 요청 수명 주기(~700ms 블록 시간)에서 `transferWithAuthorization`으로 Stable에서 결제를 완료했습니다.
 
 ## 다음 권장 사항
 
-- [**MPP 개념**](/ko/explanation/mpp) — MPP가 x402와 어떤 관련이 있는지, 그리고 다른 의도들이 어떻게 생겼는지 읽어보세요.
-- [**MPP 세션**](/ko/explanation/mpp-sessions) — 요청당 정산이 너무 비쌀 때 오프체인 바우처로 마이크로페이먼트를 스트리밍하세요.
-- [**Facilitators**](/ko/reference/agentic-facilitators) — 직접 제출하는 대신 Semantic Pay나 Heurist를 정산 대상으로 사용하세요.
+- [**MPP 개념**](/ko/explanation/mpp): MPP가 x402와 어떤 관련이 있는지, 다른 의도가 어떻게 보이는지 알아보세요.
+- [**MPP 세션**](/ko/explanation/mpp-sessions): 요청당 결제가 너무 비쌀 때 오프체인 바우처로 마이크로 결제를 스트리밍합니다.
+- [**통신자**](/ko/reference/agentic-facilitators): 직접 제출하는 대신 Semantic Pay 또는 Heurist를 결제 대상으로 사용합니다.

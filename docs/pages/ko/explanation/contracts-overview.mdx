@@ -1,36 +1,36 @@
 ---
 source_path: explanation/contracts-overview.mdx
-source_sha: 4b2c800a696bced5ac5ec2269d7ddfaf82506a18
+source_sha: d004e6f88f0f2db9748b4114627eabb27e41c94c
 title: "Stable의 컨트랙트"
-description: "Stable에서 스마트 컨트랙트를 배포, 검증, 인덱싱하세요. 완전한 EVM 호환성과 함께 Bank, Distribution, Staking 모듈을 위한 프리컴파일을 제공합니다."
+description: "Stable에서 스마트 컨트랙트를 배포, 검증 및 인덱싱합니다. Bank, Distribution 및 Staking 모듈을 위한 완전한 EVM 호환성 및 프리컴파일 기능이 제공됩니다."
 diataxis: "explanation"
 ---
 
 # Stable의 컨트랙트
 
-Stable은 완전히 EVM 호환됩니다. Solidity, Vyper, Hardhat, Foundry, ethers.js, viem이 변경 없이 작동합니다. 도구를 Stable의 RPC로 가리키기만 하면 기존 컨트랙트가 그대로 배포됩니다. 표준 EVM 위에, Stable은 프로토콜 수준 모듈(Bank, Distribution, Staking)을 고정 주소의 프리컴파일된 컨트랙트로 노출하므로, Solidity에서 스테이킹과 보상 분배를 다시 구현하지 않고도 호출할 수 있습니다.
+Stable은 EVM과 완벽하게 호환됩니다. Solidity, Vyper, Hardhat, Foundry, ethers.js 및 viem은 변경 없이 작동합니다. 툴링을 Stable의 RPC로 지정하면 기존 컨트랙트가 그대로 배포됩니다. 표준 EVM 외에도 Stable은 프로토콜 수준 모듈(Bank, Distribution, Staking)을 고정 주소의 프리컴파일된 컨트랙트로 노출하므로 Solidity가 스테이킹 및 보상 분배를 다시 구현할 필요 없이 호출할 수 있습니다.
 
-## 무엇을 만들 수 있는가
+## 만들 수 있는 것
 
-- 어떤 EVM 도구체인으로든 **표준 애플리케이션 컨트랙트**(ERC-20, ERC-721, 에스크로, AMM)를 만들 수 있습니다.
-- ethers.js를 통한 실시간 이벤트 스트림과 함께 Stablescan에서 **검증되고 인덱싱된 컨트랙트**.
-- Solidity에서 Bank / Distribution / Staking 프리컴파일을 호출하는 **프로토콜 통합 컨트랙트**.
-- 표준 `eth_getLogs`를 통해 프로토콜이 발생시킨 이벤트(예: 언본딩 완료)를 감시하는 **시스템 트랜잭션 리스너**.
+- 모든 EVM 툴체인을 사용한 **표준 애플리케이션 컨트랙트**(ERC-20, ERC-721, 에스크로, AMM).
+- ethers.js를 통해 라이브 이벤트 스트림으로 Stablescan에서 **검증되고 인덱싱된 컨트랙트**.
+- Solidity에서 Bank/Distribution/Staking 프리컴파일을 호출하는 **프로토콜 통합 컨트랙트**.
+- 표준 `eth_getLogs`를 통해 프로토콜에서 방출된 이벤트(예: 언본딩 완료)를 감시하는 **시스템 트랜잭션 리스너**.
 
-## Stable이 다른 점
+## Stable의 차이점
 
-- **USDT0가 가스 토큰입니다.** `maxPriorityFeePerGas`는 `0`이어야 합니다. 네이티브 전송의 `value` 필드는 ETH가 아닌 USDT0를 전달합니다. [USDT0를 가스로 사용하기](/ko/how-to/work-with-usdt-gas)를 참고하세요.
-- **USDT0는 이중 역할을 합니다.** 네이티브 USDT0를 보유한 컨트랙트는 ERC-20 `transferFrom`이나 `permit`에 의해 잔액이 변경될 수 있으므로 — 절대 네이티브 잔액을 `uint256`에 미러링하지 마세요. [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참고하세요.
-- **프리컴파일 주소는 테스트넷과 메인넷에서 동일하게 고정되어 있습니다.** 컨트랙트에 상수로 박아 넣으세요.
+- **USDT0은 가스 토큰입니다.** `maxPriorityFeePerGas`는 `0`이어야 합니다. 기본 전송의 `value` 필드는 ETH가 아닌 USDT0을 전달합니다. [가스로 USDT0 작업](/ko/how-to/work-with-usdt-gas)을 참조하세요.
+- **USDT0은 이중 역할을 합니다.** 기본 USDT0을 보유하는 컨트랙트는 ERC-20 `transferFrom` 또는 `permit`에 의해 잔액이 변경될 수 있습니다. `uint256`에 기본 잔액을 미러링하지 마십시오. [Stable의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참조하십시오.
+- **프리컴파일 주소는 테스트넷 및 메인넷에서 고정됩니다.** 이를 상수로서 컨트랙트에 고정하십시오.
 
-## 여기서 시작하세요
+## 시작하기
 
-- [**배포**](/ko/tutorial/smart-contract) — Foundry를 스캐폴딩하고, Stable을 구성하고, Counter를 배포합니다.
-- [**검증**](/ko/how-to/verify-contract) — forge verify-contract로 Stablescan에 소스를 업로드합니다.
-- [**인덱싱**](/ko/how-to/index-contract) — ethers.js로 이벤트를 구독하고 과거 로그를 백필합니다.
+- [**배포**](/ko/tutorial/smart-contract): Foundry를 스캐폴드하고 Stable을 구성한 다음 Counter를 배포합니다.
+- [**확인**](/ko/how-to/verify-contract): `forge verify-contract`를 사용하여 Stablescan에 소스를 업로드합니다.
+- [**인덱스**](/ko/how-to/index-contract): ethers.js로 이벤트에 구독하고 기록 로그를 백필합니다.
 
 ## 다음 권장 사항
 
-- [**컨트랙트 가이드 색인**](/ko/explanation/contracts-guides) — 컨트랙트 가이드, 프리컴파일 참조, 시스템 모듈 ABI의 전체 목록.
-- [**시스템 모듈 사용하기**](/ko/how-to/use-system-modules) — Solidity와 ethers.js에서 Bank / Distribution / Staking을 호출합니다.
-- [**JSON-RPC 참조**](/ko/reference/json-rpc-api) — Stable이 지원하는 `eth_*` 및 `debug_*` 메서드.
+- [**컨트랙트 가이드 인덱스**](/ko/explanation/contracts-guides): 컨트랙트 가이드, 프리컴파일 참조 및 시스템 모듈 ABI의 전체 목록입니다.
+- [**시스템 모듈 사용**](/ko/how-to/use-system-modules): Solidity 및 ethers.js에서 Bank/Distribution/Staking을 호출합니다.
+- [**JSON-RPC 참조**](/ko/reference/json-rpc-api): Stable이 지원하는 `eth_*` 및 `debug_*` 메서드입니다.

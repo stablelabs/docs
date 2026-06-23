@@ -108,7 +108,7 @@ cast chain-id --rpc-url https://rpc.testnet.stable.xyz
 
 Expected output:
 
-```
+```text
 2201
 ```
 
@@ -133,7 +133,7 @@ Stable uses **USDT0** as its gas token. The same asset you use to pay for goods 
 
 Visit the testnet faucet and request funds:
 
-```
+```text
 https://faucet.stable.xyz
 ```
 
@@ -169,7 +169,7 @@ Foundry compiles the contract, broadcasts a deployment transaction, and waits fo
 
 **Checkpoint:** The output should look like this:
 
-```
+```text
 [⠒] Compiling...
 No files changed, compilation skipped
 Deployer: 0xYourAddress
@@ -204,17 +204,17 @@ cast call 0xSomeContractAddress "number()(uint256)" \
 
 Expected output:
 
-```
+```text
 42
 ```
 
-You just wrote to and read from the Stable Testnet. The round-trip — deploy, write, read — is the core loop of EVM development, and it works identically here to any other EVM chain.
+You just wrote to and read from the Stable Testnet. The round-trip (deploy, write, read) is the core loop of EVM development, and it works identically here to any other EVM chain.
 
 ## 9. Inspect your deployment on Stablescan
 
 Open the Stable Testnet block explorer and paste your contract address:
 
-```
+```text
 https://testnet.stablescan.xyz
 ```
 
@@ -224,7 +224,7 @@ You will see your deployment transaction and the `setNumber` call you made. Stab
 
 ## What you have built
 
-You deployed a contract, sent a state-changing transaction, and read on-chain state — all on the Stable Testnet. You now know how to:
+You deployed a contract, sent a state-changing transaction, and read on-chain state, all on the Stable Testnet. You now know how to:
 
 - Configure Foundry (or any EVM toolchain) to target Stable using a standard RPC endpoint
 - Fund a wallet using the USDT0 faucet
@@ -233,6 +233,6 @@ You deployed a contract, sent a state-changing transaction, and read on-chain st
 
 ## Next recommended
 
-- [**Verify the contract**](/en/how-to/verify-contract) — Upload your source to Stablescan so users can read and interact with it.
-- [**Index contract events**](/en/how-to/index-contract) — Subscribe to events with ethers.js and backfill historical logs.
-- [**Gas pricing reference**](/en/reference/gas-pricing-api) — Understand how USDT0-denominated fees are calculated.
+- [**Verify the contract**](/en/how-to/verify-contract): Upload your source to Stablescan so users can read and interact with it.
+- [**Index contract events**](/en/how-to/index-contract): Subscribe to events with ethers.js and backfill historical logs.
+- [**Gas pricing reference**](/en/reference/gas-pricing-api): Understand how USDT0-denominated fees are calculated.

@@ -1,46 +1,46 @@
 ---
 source_path: explanation/payments-overview.mdx
-source_sha: 2fea137885b2c4afe4b47e7f020f28cdf919a044
-title: "Stable 上的支付"
-description: "在 Stable 上构建支付流程：P2P 转账、订阅、发票、按次调用 API、零 gas 流程以及跨链桥接。"
+source_sha: ca8b4d0fe13257b16803c7c519f2126a47977183
+title: "在 Stable 上支付"
+description: "在 Stable 上构建支付流：P2P 转账、订阅、发票、按次计费 API、零 Gas 费用流和桥接。"
 diataxis: "explanation"
 ---
 
-# Stable 上的支付
+# 在 Stable 上支付
 
-Stable 是围绕支付构建的。USDT0 是原生资产，也是 gas 代币，因此结算和手续费共享同一个余额。单槽终局性（single-slot finality）意味着一笔转账可在一秒内完成。ERC-3009、EIP-7702 和 x402 都是原生基元，而非变通方案——你可以用一个签名完成结算、从委托账户中拉取资金，或者无需运行计费系统即可按 HTTP 请求收费。
+Stable 围绕支付构建。USDT0 是原生资产和 Gas 代币，因此结算和费用共享一个余额。单槽最终性意味着转账在不到一秒的时间内清算。ERC-3009、EIP-7702 和 x402 是原生原语，而非权宜之计。您可以凭签名结算，从委托账户中提取，或按 HTTP 请求收费，而无需运行计费堆栈。
 
-## 你可以构建什么
+## 您可以构建什么
 
-- **P2P 转账** — 原生 USDT0 转账，21k gas，亚秒级终局性。
-- **订阅** — 基于拉取的周期性计费，使用 EIP-7702 委托。
-- **发票结算** — 使用带确定性 nonce 的 ERC-3009 `transferWithAuthorization`，实现精确对账。
-- **按次调用 API** — 使用 x402 中间件实现按请求的 USDT0 支付；无需 API 密钥，无需注册。
-- **零 gas 用户体验** — 通过 Gas Waiver 服务实现应用赞助的交易。
-- **跨链 USDT0** — 通过 LayerZero OFT 从以太坊及其他网络进行桥接。
+- **P2P 转账**：原生 USDT0 发送，21k Gas 费，亚秒级最终性。
+- **订阅**：通过 EIP-7702 委托实现的拉取式循环计费。
+- **发票结算**：具有确定性 Nonce 的 ERC-3009 `transferWithAuthorization`，用于精确对账。
+- **按次计费 API**：用于按请求支付 USDT0 的 x402 中间件；无需 API 密钥，无需注册。
+- **零 Gas 费用 UX**：通过 Gas Waiver 服务实现应用程序赞助的交易。
+- **跨链 USDT0**：来自以太坊和其他网络的 LayerZero OFT 桥接。
 
 ## Stable 的不同之处
 
-- **一种资产搞定一切**：发送方无需持有单独的 gas 代币。
-- **原生 ERC-3009**：USDT0 直接实现了 `transferWithAuthorization`，因此支付只需一个签名即可结算，无需 approve 步骤。
-- **确定性终局**：区块在提交的那一刻即为最终状态。无需等待确认。
-- **原生 x402**：facilitator 通过 Gas Waiver 不支付 gas，因此每次请求的结算成本可保持在一美分以下。
+- **一个资产用于所有用途**：发送方无需持有单独的 Gas 代币。
+- **原生 ERC-3009**：USDT0 直接实现 `transferWithAuthorization`，因此支付可通过签名结算，无需批准步骤。
+- **确定性最终性**：区块在提交后立即最终确定。无需等待确认。
+- **原生 x402**：通过 Gas Waiver，促成者无需支付 Gas 费，因此每次请求的结算成本保持在 1 美分以下。
 
 ## 从这里开始
 
-- [**发送你的第一笔 USDT0**](/cn/tutorial/send-usdt0) — 在同一余额上进行原生和 ERC-20 转账。
-- [**零 gas 交易**](/cn/how-to/zero-gas-transactions) — 通过 Gas Waiver 支付手续费来转账 USDT0。
-- [**学习 P2P 支付**](/cn/how-to/build-p2p-payments) — 从零构建一个钱包 + 发送 + 接收 + 历史记录的应用。
-- [**构建按次调用 API**](/cn/how-to/build-pay-per-call) — 使用 x402 为 HTTP 端点按请求定价。
-- [**Stable SDK**](/cn/explanation/sdk-overview) — 使用类型化客户端，几行代码即可实现转账、桥接和兑换。
+- [**发送您的第一笔 USDT0**](/cn/tutorial/send-usdt0)：在同一余额上进行原生和 ERC-20 转账。
+- [**零 Gas 费用交易**](/cn/how-to/zero-gas-transactions)：使用 Gas Waiver 支付费用来转账 USDT0。
+- [**学习 P2P 支付**](/cn/how-to/build-p2p-payments)：从头开始构建一个钱包 + 发送 + 接收 + 历史应用程序。
+- [**构建按次计费 API**](/cn/how-to/build-pay-per-call)：使用 x402 按请求为 HTTP 端点定价。
+- [**Stable SDK**](/cn/explanation/sdk-overview)：使用类型化客户端，只需几行代码即可进行转账、桥接和兑换。
 
-## 支付基元
+## 支付原语
 
-- [**ERC-3009**](/cn/explanation/erc-3009) — Transfer With Authorization：发票和 x402 背后的结算标准。
-- [**x402（HTTP 原生支付）**](/cn/explanation/x402) — 服务器响应 402，客户端签署 ERC-3009，facilitator 在链上结算。
+- [**ERC-3009**](/cn/explanation/erc-3009)：授权转账：发票和 x402 背后的结算标准。
+- [**x402 (HTTP 原生支付)**](/cn/explanation/x402)：服务器响应 402，客户端签署 ERC-3009，促成者在链上结算。
 
-## 接下来推荐
+## 下一步推荐
 
-- [**支付指南索引**](/cn/explanation/payments-guides) — 支付标签下的所有指南、概念和参考资料。
-- [**订阅与收款**](/cn/how-to/subscribe-and-collect) — 通过 EIP-7702 实现基于拉取的周期性计费。
-- [**使用发票付款**](/cn/how-to/pay-with-invoice) — 使用带确定性 nonce 的 ERC-3009 实现精确对账。
+- [**支付指南索引**](/cn/explanation/payments-guides)：“支付”选项卡下的所有指南、概念和参考。
+- [**订阅和收款**](/cn/how-to/subscribe-and-collect)：通过 EIP-7702 实现的拉取式循环计费。
+- [**使用发票支付**](/cn/how-to/pay-with-invoice)：具有确定性 Nonce 的 ERC-3009，用于精确对账。

@@ -101,12 +101,12 @@ const { txHash } = await stable.transfer({ from, to: "0xRecipient", amount: 5 })
 
 | **Mode** | **Use when** |
 | :--- | :--- |
-| `account` | Backend services, scripts, agents — anywhere you hold the key. |
+| `account` | Backend services, scripts, agents, anywhere you hold the key. |
 | `transport` | Browser apps where the user signs with MetaMask or a wagmi-less custom flow. |
 | `walletClient` | You already have a configured `WalletClient` (wagmi, RainbowKit, ConnectKit). |
 
 ## Next recommended
 
-- [**Use with wagmi**](/en/how-to/sdk-with-wagmi) — Wire the SDK into a React app through wagmi hooks.
-- [**SDK reference**](/en/reference/sdk) — Every config field, method, enum, and error class.
-- [**SDK quickstart**](/en/tutorial/sdk-quickstart) — Run your first transfer, bridge, and swap on testnet.
+- [**Use with wagmi**](/en/how-to/sdk-with-wagmi): Wire the SDK into a React app through wagmi hooks.
+- [**SDK reference**](/en/reference/sdk): Every config field, method, enum, and error class.
+- [**SDK quickstart**](/en/tutorial/sdk-quickstart): Run your first transfer, bridge, and swap on testnet.

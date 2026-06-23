@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
+import { ConsentBanner } from './components/ConsentBanner'
 
 /* ----------------------------- Language label ---------------------------- */
 /* The top-nav language dropdown is a Vocs `topNav` item (vocs.config.ts), whose
@@ -55,6 +56,20 @@ function installLangRelabel() {
     characterData: true,
   })
   schedule()
+}
+
+/* Vocs renders the default export as the `Layout` consumer component — a
+   pass-through wrapper around the entire app (every page, every layout variant),
+   rendered in vocs' Root outside DocsLayout/LandingLayout. We use it as the
+   single mount point for the site-wide analytics consent banner. Keep it a
+   transparent wrapper: render `children` unchanged, then the banner. */
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      {children}
+      <ConsentBanner />
+    </>
+  )
 }
 
 /* Vocs renders the named `TopNavEnd` export at the end of the top navigation

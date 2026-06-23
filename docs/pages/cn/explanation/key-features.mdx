@@ -1,21 +1,36 @@
 ---
 source_path: explanation/key-features.mdx
-source_sha: ec20a9f726140707f7ebd0cb56b921b3fc4e26b2
-title: '核心功能'
-description: "Stable 区块链的核心技术特性：EVM 兼容、dPoS 共识、亚秒级最终性与 USDT 原生设计。"
+source_sha: 743dbe77cee418846f01652fecf871c2ab504539
+title: '主要功能'
+description: "Stable 的主要技术规格（单槽确定性、USDT0 作为燃料、完全 EVM 兼容性）以及在此基础上构建的 USDT 特有功能。"
+diataxis: "explanation"
 ---
 
-# 核心功能
+# 主要功能
 
-Stable 是一条高性能区块链，专为支持 USDT 相关活动而设计。基于 **委托权益证明（dPoS）** 机制构建，Stable 实现了 **完全兼容 EVM**，并达成 **亚秒级出块时间**，确保交易快速可靠地达成最终性。作为一个 **专注于 USDT 的网络**，Stable 提供了一系列优化用户体验的 USDT 专属功能。
+Stable 是一个委托权益证明 Layer 1，具有单槽最终性、完全 EVM 兼容性，并以 USDT0 作为原生 gas 代币。以下功能决定了日常集成。每个功能都链接到详细介绍它的页面。
 
-主要功能包括：
+## 协议级功能
 
-- **亚秒级交易最终性**：实现亚秒级出块和单轮次最终确认  
-- **100% EVM 兼容性**：支持所有 Ethereum 工具和智能合约  
-- **USDT 作为 Gas 代币**：USDT0 作为其原生 Gas 代币。USDT0 同时作为用于支付 Gas 和进行价值转移的原生资产，并作为支持 `approve`、`transfer`、`transferFrom` 和 `permit` 的 ERC20 代币。
-- **USDT0 跨链转移**：支持从包括 Ethereum、Arbitrum、HyperEVM 等 EVM 区块链，以及 Tron 等其他区块链通过跨链桥转移 USDT0 
-- **Stable Pay 提供 Web2.5 用户体验**：通过 Stable Pay 实现无缝的链上交互体验  
+| 功能 | 含义 |
+| :--- | :--- |
+| **单槽确定性** | 交易一旦进入区块即为最终确认。无需多区块确认等待。 |
+| **完全 EVM 兼容性** | Solidity、Vyper、Foundry、Hardhat、ethers、viem 和 `eth_*` RPC 方法无需更改即可工作。 |
+| **USDT0 作为燃料** | 同一资产既是原生余额又是 ERC-20 代币。无需持有单独的 gas 代币。 |
+| **跨链桥接** | USDT0 通过 LayerZero OFT 从 Ethereum、Arbitrum、HyperEVM、Tron 和其他链移动到 Stable。 |
 
-未来，Stable 还将推出更多功能，以进一步提升 USDT 的可用性和网络效率。其中包括 **USDT Transfer Aggregator（USDT 转账聚合器）**，可将多个 USDT 转账打包为单一交易以提升处理效率；以及 **企业专用区块空间 Enterprise Blockspace**，为机构用户提供可预测、稳定的 USDT 使用环境。
+## USDT 特有功能
 
+- [**USDT 作为燃料**](/cn/explanation/usdt-as-gas-token)：USDT0 在同一余额中既作为原生 gas 代币又作为 ERC-20 代币。
+- [**Gas 豁免**](/cn/explanation/gas-waiver)：治理授权的豁免提交包装器交易，以零 gas 价格代表用户执行。
+- [**保证区块空间**](/cn/explanation/guaranteed-blockspace)：企业合作伙伴为支付流在每个区块中确保预留容量。
+- [**USDT 转账聚合器**](/cn/explanation/usdt-transfer-aggregator)：大容量 USDT0 转账批量处理成并行化、容错的结算捆绑。
+- [**私密转账**](/cn/explanation/confidential-transfer)：零知识密码学屏蔽转账金额，同时保持参与方可审计。
+
+有关当前已上线和路线图上的升级，请参阅[路线图](/cn/explanation/technical-roadmap)。
+
+## 下一步建议
+
+- [**以太坊比较**](/cn/explanation/ethereum-comparison)：识别将 DApp 从以太坊移植到 Stable 时保持不变和发生变化的地方。
+- [**资金流向**](/cn/explanation/flow-of-funds)：追踪 USDT 从充值到链上转账再到提现结算。
+- [**架构概览**](/cn/explanation/core-optimization-overview)：了解提供这些功能的共识、执行、数据库和 RPC 层。

@@ -20,7 +20,8 @@
  * pending orphan decisions); those are skipped by the parity check.
  *
  * Run from the repo root:
- *   npm run i18n:check
+ *   npm run i18n:check          # missing translations block; stale warns
+ *   npm run i18n:check:strict   # missing or stale translations block
  */
 
 import { execFileSync } from 'node:child_process'
@@ -31,6 +32,7 @@ const PAGES = 'docs/pages'
 const SOURCE = 'en'
 const TARGETS = ['cn', 'ko']
 const ALLOWLIST_PATH = 'docs/i18n-allowlist.json'
+const strict = process.argv.includes('--strict')
 
 function walk(dir) {
   const out = []
@@ -102,7 +104,7 @@ for (const locale of TARGETS) {
   console.log(`\n## ${locale}`)
   console.log(`  missing (blocking): ${missingByLocale[locale].length}`)
   for (const f of missingByLocale[locale]) console.log(`    ✗ ${f}`)
-  console.log(`  stale (warn): ${staleByLocale[locale].length}`)
+  console.log(`  stale (${strict ? 'blocking' : 'warn'}): ${staleByLocale[locale].length}`)
   for (const f of staleByLocale[locale]) console.log(`    ⚠ ${f}`)
 }
 
@@ -111,5 +113,5 @@ console.log(
     `${missing} missing, ${stale} stale${allowlist.length ? `, ${allowlist.length} allowlisted` : ''}`,
 )
 
-// Only missing translations block; staleness is advisory.
-process.exit(missing === 0 ? 0 : 1)
+// Missing translations always block; stale translations block only in strict mode.
+process.exit(missing === 0 && (!strict || stale === 0) ? 0 : 1)

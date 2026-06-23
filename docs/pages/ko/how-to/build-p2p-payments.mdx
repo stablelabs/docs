@@ -1,26 +1,26 @@
 ---
 source_path: how-to/build-p2p-payments.mdx
-source_sha: cb21475c28be41c86374be5066e7b1c5c5261c56
-title: "P2P 결제 배우기"
-description: "Stable에서 P2P 결제 앱을 구축합니다. 지갑을 생성하고, 잔액을 확인하고, USDT0를 보내고 받고, 거래 내역을 조회합니다."
+source_sha: 57dc356587b68955bf9eac544e7b2bcf1b337bee
+title: "P2P 결제 학습"
+description: "Stable에서 P2P 결제 앱을 구축합니다. 지갑을 생성하고, 잔액을 확인하고, USDT0을 보내고 받으며, 거래 내역을 쿼리합니다."
 diataxis: "how-to"
 ---
 
-# P2P 결제 배우기
+# P2P 결제 학습
 
-이 가이드는 Stable에서 P2P 결제 애플리케이션을 구축하는 과정을 안내합니다. 이 앱은 결제의 전체 수명 주기를 처리합니다. 발신자는 USDT0를 직접 전송하고, 수신자는 들어오는 결제를 실시간으로 감지하며, 양쪽 모두 자신의 거래 내역을 조회할 수 있습니다. 모바일 앱이든 웹 체크아웃이든 백엔드 서비스든, 모든 지갑이나 결제 인터페이스와 동일한 아키텍처입니다.
+이 가이드는 Stable에서 P2P 결제 애플리케이션을 구축하는 과정을 안내합니다. 이 앱은 전체 결제 수명 주기를 처리합니다. 즉, 발신자는 USDT0을 직접 전송하고, 수신자는 실시간으로 들어오는 결제를 감지하며, 양측 모두 자신의 거래 내역을 쿼리할 수 있습니다. 모바일 앱, 웹 결제, 백엔드 서비스 등 모든 지갑 또는 결제 인터페이스와 동일한 아키텍처입니다.
 
-미들웨어도 중개자도 없습니다. 개념적 개요는 [P2P 결제](/ko/reference/p2p-payments)를 참고하세요. ABI 작업을 건너뛰고 몇 줄로 작동하는 `transfer`에 도달하려면 [Stable SDK](/ko/explanation/sdk-overview)를 사용하세요.
+미들웨어, 중개자 없음. 개념적 개요는 [P2P 결제](/ko/reference/p2p-payments)를 참조하십시오. ABI 작업을 건너뛰고 몇 줄 안에 작동하는 `transfer`를 사용하려면 [Stable SDK](/ko/explanation/sdk-overview)를 사용하십시오.
 
 ## 구축할 내용
 
-최소한의 결제 앱을 구성하는 다섯 개의 스크립트:
+최소한의 결제 앱을 구성하는 다섯 가지 스크립트:
 
-- `wallet.ts` — 지갑 생성 또는 복원.
-- `getBalance.ts` — 현재 USDT0 잔액 조회.
-- `send.ts` — 다른 주소로 USDT0 전송.
-- `receive.ts` — 들어오는 결제를 실시간으로 감시.
-- `history.ts` — 특정 주소의 과거 Transfer 이벤트 조회.
+- `wallet.ts`: 지갑을 생성하거나 복원합니다.
+- `getBalance.ts`: 현재 USDT0 잔액을 쿼리합니다.
+- `send.ts`: 다른 주소로 USDT0을 보냅니다.
+- `receive.ts`: 실시간으로 들어오는 결제를 모니터링합니다.
+- `history.ts`: 주소에 대한 과거 전송 이벤트를 쿼리합니다.
 
 ### 데모
 
@@ -39,10 +39,10 @@ step 4. Bob receives payment (real-time event)
         tx:     0x8f3a...2d41
 ```
 
-## 사전 요구 사항
+## 전제 조건
 
 - Node.js 20 이상.
-- 테스트넷 USDT0가 있는 개인 키 (지갑에 자금을 충전하려면 [빠른 시작](/ko/tutorial/quick-start) 참고).
+- 테스트넷 USDT0이 있는 프라이빗 키 (지갑 자금 조달을 위해 [빠른 시작](/ko/tutorial/quick-start) 참조).
 
 ## 프로젝트 설정
 
@@ -55,7 +55,7 @@ npm init -y && npm install ethers dotenv
 added 2 packages, audited 3 packages in 1s
 ```
 
-모든 스크립트가 공유하는 `config.ts`를 생성합니다:
+모든 스크립트에서 공유되는 `config.ts` 생성:
 
 ```typescript
 // config.ts
@@ -71,24 +71,24 @@ export const provider = new ethers.JsonRpcProvider(STABLE_RPC);
 
 ## 1. 지갑 생성 또는 복원
 
-지갑은 시드 문구에서 파생된 키 쌍입니다. 새 사용자를 위해 하나를 생성하고 백업할 수 있도록 문구를 반환합니다. 돌아온 사용자는 동일한 문구로 지갑을 복원합니다.
+지갑은 시드 구문에서 파생된 키 쌍입니다. 새 사용자를 위해 지갑을 생성하고 구문을 반환하여 백업할 수 있도록 합니다. 기존 사용자는 동일한 구문에서 지갑을 복원합니다.
 
 ```typescript
 // wallet.ts
 import { ethers } from "ethers";
 import { provider } from "./config";
 
-/** Create a new wallet for a new user. */
+/** 새 사용자를 위한 새 지갑을 생성합니다. */
 export function createWallet() {
   const wallet = ethers.Wallet.createRandom(provider);
   return {
     wallet,
     address: wallet.address,
-    seedPhrase: wallet.mnemonic!.phrase, // display to user for backup
+    seedPhrase: wallet.mnemonic!.phrase, // 백업을 위해 사용자에게 표시
   };
 }
 
-/** Restore a wallet from a seed phrase (returning user). */
+/** 시드 구문에서 지갑을 복원합니다 (기존 사용자). */
 export function restoreWallet(seedPhrase: string) {
   const wallet = ethers.Wallet.fromPhrase(seedPhrase, provider);
   return { wallet, address: wallet.address };
@@ -112,7 +112,7 @@ Seed phrase: liberty shoot ... (12 words)
 
 ## 2. 잔액 확인
 
-USDT0는 Stable의 네이티브 자산이므로, 잔액 조회는 Ethereum의 ETH와 정확히 동일하게 작동합니다. 네이티브 잔액은 소수점 18자리이며, 표시할 때는 `formatEther`를 사용합니다.
+USDT0은 Stable의 기본 자산이므로 잔액 쿼리는 이더리움의 ETH와 똑같이 작동합니다. 기본 잔액은 18자리 소수이며, 표시를 위해 `formatEther`를 사용합니다.
 
 ```typescript
 // getBalance.ts
@@ -141,7 +141,7 @@ Balance: 0.01 USDT0
 
 ## 3. 결제 전송
 
-발신자는 전송을 직접 서명하고 제출합니다. Stable에서 USDT0는 네이티브 자산이므로, 단순한 value 전송이 가장 저렴한 경로입니다(21,000 가스). 이는 모든 결제 앱에서 "보내기"와 동일한 코드 경로입니다.
+보내는 사람은 직접 이체를 서명하고 제출합니다. Stable에서 USDT0은 기본 자산이므로 간단한 가치 이체가 가장 저렴한 경로입니다 (21,000 가스). 이는 모든 결제 앱의 "보내기"와 동일한 코드 경로입니다.
 
 ```typescript
 // send.ts
@@ -151,7 +151,7 @@ import { provider } from "./config";
 export async function sendPayment(
   senderKey: string,
   recipient: string,
-  amount: string // e.g. "0.001" for 0.001 USDT0
+  amount: string // 예시: 0.001 USDT0의 경우 "0.001"
 ) {
   const wallet = new ethers.Wallet(senderKey, provider);
   const block = await provider.getBlock("latest");
@@ -161,7 +161,7 @@ export async function sendPayment(
     to: recipient,
     value: ethers.parseEther(amount),
     maxFeePerGas: baseFee * 2n,
-    maxPriorityFeePerGas: 0n, // always 0 on Stable
+    maxPriorityFeePerGas: 0n, // Stable에서는 항상 0
   });
 
   console.log("Payment sent:", tx.hash);
@@ -186,9 +186,9 @@ Payment sent: 0x8f3a...2d41
 Payment settled
 ```
 
-## 4. 결제 실시간 수신
+## 4. 실시간으로 결제 수신
 
-수신자는 들어오는 `Transfer` 이벤트를 수신 대기합니다. 이는 전통적인 결제 앱의 푸시 알림과 동일합니다. Stable에서는 단일 슬롯 완결성(single-slot finality) 덕분에 수신자가 거의 즉시 결제를 확인할 수 있습니다.
+수신자는 들어오는 `Transfer` 이벤트를 수신합니다. 이는 기존 결제 앱의 푸시 알림과 동일합니다. Stable에서는 단일 슬롯 완결성 덕분에 수신자는 결제를 거의 즉시 확인합니다.
 
 ```typescript
 // receive.ts
@@ -233,12 +233,12 @@ Payment received:
 ```
 
 :::note
-USDT0는 Stable에서 네이티브 자산이면서 동시에 ERC-20 토큰이기 때문에, 네이티브 전송(value 전송)도 USDT0 ERC-20 컨트랙트에서 `Transfer` 이벤트를 발생시킵니다. 단일 이벤트 리스너로 두 가지 전송 방식을 모두 처리할 수 있습니다.
+기본 전송(값 전송)은 Stable에서 USDT0이 기본 자산이자 ERC-20 토큰이므로 USDT0 ERC-20 계약에 `Transfer` 이벤트도 발행합니다. 단일 이벤트 리스너가 두 전송 방법을 모두 다룹니다.
 :::
 
-## 5. 거래 내역 조회
+## 5. 거래 내역 쿼리
 
-과거 `Transfer` 이벤트를 조회하여 은행 명세서나 모든 결제 앱의 거래 목록과 같은 거래 내역 화면을 구성합니다.
+과거 `Transfer` 이벤트를 쿼리하여 은행 명세서 또는 모든 결제 앱의 거래 목록과 같은 거래 내역 보기를 구축합니다.
 
 ```typescript
 // history.ts
@@ -298,11 +298,11 @@ received  0.01  USDT0  0xFaucet...     0x22b1...3f09
 ```
 
 :::warning
-넓은 블록 범위(수백만 개의 블록)를 스캔하면 타임아웃이 발생하고 RPC 속도 제한을 초과할 수 있습니다. 프로덕션 환경에서는 페이지네이션 방식의 내역 조회를 위해 [Stablescan Etherscan 호환 API](https://stablescan.xyz)를 사용하세요 — 모든 거래가 이미 인덱싱되어 있습니다.
+넓은 블록 범위(수백만 블록)를 스캔하면 시간 초과가 발생하고 RPC 속도 제한을 초과할 수 있습니다. 프로덕션 환경의 경우 페이지별 내역 쿼리에 [Stablescan Etherscan-compatible API](https://stablescan.xyz)를 사용하십시오. 모든 트랜잭션은 이미 색인화되어 있습니다.
 :::
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**구독 및 수금**](/ko/how-to/subscribe-and-collect) — EIP-7702 위임을 사용한 풀 기반 정기 구독.
-- [**인보이스로 결제하기**](/ko/how-to/pay-with-invoice) — ERC-3009와 결정론적 nonce로 인보이스를 정산합니다.
-- [**첫 USDT0 보내기**](/ko/tutorial/send-usdt0) — 기본적인 네이티브 vs. ERC-20 전송 흐름을 참고하세요.
+- [**구독 및 수집**](/ko/how-to/subscribe-and-collect): EIP-7702 위임을 통한 풀 방식 정기 구독.
+- [**인보이스로 결제**](/ko/how-to/pay-with-invoice): ERC-3009 및 결정적 논스를 사용하여 인보이스 정산.
+- [**첫 USDT0 전송**](/ko/tutorial/send-usdt0): 기본 네이티브 대 ERC-20 전송 흐름 참조.

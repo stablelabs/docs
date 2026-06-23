@@ -1,50 +1,50 @@
 ---
 source_path: explanation/bridge-security.mdx
-source_sha: f1e67d648ec59eb4f8972eedeef0e8cda8c943af
-title: "브리지 보안과 DVN"
-description: "Stable이 LayerZero DVN을 구성하여 크로스체인 메시지를 검증하는 방법과 단일 키 손상이 치명적이지 않은 이유를 이해합니다."
+source_sha: 1566bfa5dadef64d40a9d10ef7ece18b4384ca62
+title: "브리지 보안 및 DVN"
+description: "Stable이 LayerZero DVN을 구성하여 교차 체인 메시지를 확인하는 방법과 단일 키 손상이 치명적이지 않은 이유를 이해하십시오."
 diataxis: "explanation"
 ---
 
-# 브리지 보안과 DVN
+# 브리지 보안 및 DVN
 
-LayerZero 브리지의 보안은 한 체인에서 보낸 메시지가 다른 체인에서 발생했음을 확인하는 검증 계층만큼만 안전합니다. 그 계층이 바로 탈중앙화 검증자 네트워크(Decentralized Verifier Network, DVN)입니다. 이 페이지에서는 DVN이 무엇을 하는지, Stable이 자사 브리지에서 DVN을 어떻게 구성하는지, 그리고 단일 DVN의 손상이 왜 Stable을 위험에 빠뜨리지 않는지를 설명합니다.
+LayerZero 브리지는 한 체인에서 보낸 메시지가 다른 체인에서 발생했음을 확인하는 검증 계층만큼 안전합니다. 이 계층은 분산형 검증자 네트워크(DVN)입니다. 이 페이지에서는 DVN이 하는 일, Stable이 브리지에서 DVN을 구성하는 방법, 단일 DVN 손상이 Stable을 위험에 빠뜨리지 않는 이유를 설명합니다.
 
-## DVN의 작동 방식
+## DVN 작동 방식
 
-LayerZero 메시지가 체인 A에서 체인 B로 이동할 때, 구성된 DVN 집합이 독립적으로 그 메시지가 진짜임을 입증하기 전까지 목적지 컨트랙트는 메시지를 실행하지 않습니다. 각 애플리케이션은 자체 구성을 선택합니다:
+LayerZero 메시지가 체인 A에서 체인 B로 이동할 때, 대상 계약은 구성된 DVN 세트가 메시지가 실제임을 독립적으로 증명할 때까지 메시지를 실행하지 않습니다. 각 애플리케이션은 자체 구성을 선택합니다.
 
-- **필수 DVN.** 메시지가 수락되기 전에 모든 필수 DVN이 서명해야 합니다.
-- **N-of-M 임계값을 갖는 선택적 DVN.** 필수 집합 위에 선택적 풀을 추가할 수 있으며, 필수 서명에 더해 2-of-5와 같은 임계값을 충족해야 합니다.
-- **블록 확인 깊이.** DVN이 서명하기 전에 기다리는 소스 체인 확인 수입니다.
+- **필수 DVN.** 메시지가 승인되기 전에 모든 필수 DVN이 서명해야 합니다.
+- **N-of-M 임계값을 가진 선택적 DVN.** 필수 세트 외에 선택적 풀을 추가할 수 있으며, 필수 서명 외에 2-of-5와 같은 임계값이 충족되어야 합니다.
+- **블록 확인 깊이.** DVN이 서명하기 전에 대기하는 소스 체인 확인 횟수입니다.
 
-브리지의 안전성은 전적으로 이 구성에 달려 있습니다. 단일 DVN을 유일한 검증자로 두는 1/1 설정은 그 하나의 DVN 서명 키가 손상되면 공격자가 크로스체인 메시지를 위조할 수 있음을 의미합니다. 세 개의 독립적인 운영자에 걸친 3/3 구성은 세 운영자가 모두 동시에 손상되어야 합니다. 이 차이는 단일 도난 키로 브리지를 잃는 것과 한 운영자에 대한 표적 공격에서 살아남는 것의 차이입니다.
+브리지의 안전은 전적으로 이 구성에 달려 있습니다. 단일 DVN이 유일한 검증자인 1/1 설정은 해당 DVN의 서명 키가 손상되면 공격자가 교차 체인 메시지를 위조할 수 있음을 의미합니다. 세 명의 독립적인 운영자에 걸쳐 3/3은 세 명 모두 동시에 손상되어야 합니다. 그 차이는 단일 도난 키로 브리지를 잃는 것과 한 운영자에 대한 표적 공격에서 살아남는 것의 차이입니다.
 
 ## Stable의 구성
 
-Stable의 브리지는 세 개의 독립적인 운영자인 **LayerZero Labs**, **Canary**, **Horizen**과 함께 **3/3 필수 DVN** 구성을 실행합니다. 목적지 컨트랙트가 메시지를 실행하기 전에 세 운영자 모두가 모든 크로스체인 메시지에 서명해야 합니다. 임계값을 갖는 선택적 풀은 없으며, 필수 집합이 전체 검증 표면입니다.
+Stable의 브리지는 **LayerZero Labs**, **Canary**, **Horizen**의 세 명의 독립적인 운영자와 함께 **3/3 필수 DVN** 구성을 실행합니다. 세 명 모두 모든 교차 체인 메시지에 서명해야 대상 계약이 메시지를 실행합니다. 임계값을 가진 선택적 풀은 없습니다. 필수 세트가 전체 검증 표면입니다.
 
-LayerZero 자체 키를 포함한 단일 서명 키의 손상은 이 태세에 아무런 영향을 미치지 못합니다. 메시지를 위조하려면 세 개의 독립적인 운영자 모두가 동시에 손상되어야 합니다.
+LayerZero 자체를 포함하여 단일 서명 키가 손상되어도 이 자세에 아무런 영향을 미치지 않습니다. 메시지를 위조하려면 세 명의 독립적인 운영자 모두가 동시에 손상되어야 합니다.
 
-DVN 컨트랙트 주소는 [브리지: Stable의 DVN 운영자](/ko/reference/bridges#stable-s-dvn-operators)를 참조하세요.
+DVN 계약 주소는 [브리지: Stable의 DVN 운영자](/ko/reference/bridges#stable-s-dvn-operators)를 참조하십시오.
 
 ## STABLE OFT 아키텍처
 
-STABLE 토큰은 LayerZero의 Omnichain Fungible Token(OFT) 표준을 사용하여 다른 체인으로 브리지됩니다. 두 가지 컨트랙트 유형이 배포됩니다:
+STABLE 토큰은 LayerZero의 Omnichain Fungible Token(OFT) 표준을 사용하여 다른 체인으로 브리징됩니다. 두 가지 계약 유형이 배포됩니다.
 
-- Stable의 **`StableOFTAdapter`**. 어댑터는 홈 체인에서 STABLE을 잠그고 STABLE이 크로스체인으로 전송될 때 LayerZero 메시지를 발생시킵니다.
-- 각 원격 체인의 **`StableOFTUpgradeable`**. 이 컨트랙트는 구성된 DVN이 메시지를 검증할 때 목적지에서 STABLE을 발행하고, 반환 경로에서 이를 소각하여 홈 체인 공급량이 정규(canonical) 상태로 유지되도록 합니다.
+- Stable의 **`StableOFTAdapter`**. 어댑터는 홈 체인에서 STABLE을 잠그고 STABLE이 교차 체인으로 전송될 때 LayerZero 메시지를 내보냅니다.
+- 각 원격 체인의 **`StableOFTUpgradeable`**. 이 계약은 구성된 DVN이 메시지를 확인하면 대상에서 STABLE을 발행하고, 홈 체인 공급이 정식 상태를 유지하도록 반환 경로에서 소각합니다.
 
-각 체인에 배포된 주소는 [브리지: STABLE OFT 컨트랙트](/ko/reference/bridges#stable-oft-contracts)를 참조하세요.
+각 체인에 배포된 주소는 [브리지: STABLE OFT 계약](/ko/reference/bridges#stable-oft-contracts)을 참조하십시오.
 
-## 운영상의 의존성
+## 운영 종속성
 
-Stable 자체의 브리지 보안은 상위 프로토콜과 독립적이지만, 파트너 프로토콜이 자체 브리지를 일시 중지할 때 Stable을 통한 크로스체인 흐름은 여전히 일시 중지될 수 있습니다. 예를 들어 USDT0가 크로스체인 발행과 소각을 일시 중지하면, USDT0가 재개될 때까지 USDT0는 Stable로 또는 Stable에서 이동할 수 없습니다. Stable 내의 자금은 계속 자유롭게 이동하며, 특정 크로스체인 작업만 사용할 수 없습니다.
+Stable 자체의 브리지 보안은 상위 프로토콜과 독립적이지만, 파트너 프로토콜이 자체 브리지를 일시 중지하면 Stable을 통한 교차 체인 흐름이 일시 중지될 수 있습니다. 예를 들어, USDT0이 교차 체인 발행 및 소각을 일시 중지하면 USDT0이 재개될 때까지 USDT0은 Stable으로 이동하거나 Stable에서 나올 수 없습니다. Stable 내의 자금은 자유롭게 이동하며, 특정 교차 체인 작업만 사용할 수 없습니다.
 
-파트너 브리지를 통해 라우팅되는 애플리케이션 표면은 사용자가 그 구분을 이해할 수 있도록 이를 명확하게 전달해야 합니다. 사용자의 자금은 위험에 처한 것이 아니라, 특정 크로스체인 경로만 일시적으로 사용할 수 없는 것입니다.
+파트너 브리지를 통해 라우팅하는 애플리케이션 표면은 사용자가 차이점을 이해할 수 있도록 이를 명확하게 전달해야 합니다. 즉, 자금이 위험에 처한 것이 아니라 특정 교차 체인 경로를 일시적으로 사용할 수 없는 것입니다.
 
 ## 다음 권장 사항
 
-- [**USDT0를 Stable로 브리징하기**](/ko/explanation/usdt0-bridging) — USDT0가 OFT Mesh와 Legacy Mesh를 통해 Stable에 도달하는 방법을 확인하세요.
-- [**브리지 제공자와 주소**](/ko/reference/bridges) — 컨트랙트 주소, DVN 운영자, 지원되는 브리지 제공자를 참조하세요.
-- [**LayerZero DVN 문서**](https://docs.layerzero.network/v2/concepts/protocol/security-stack-dvns) — 필수 및 선택적 DVN 검증에 대한 LayerZero의 사양을 읽어보세요.
+- [**USDT0을 Stable로 브리징**](/ko/explanation/usdt0-bridging): USDT0이 OFT 메시 및 레거시 메시를 통해 Stable에 도달하는 방법을 확인하십시오.
+- [**브리지 제공자 및 주소**](/ko/reference/bridges): 계약 주소, DVN 운영자 및 지원되는 브리지 제공자를 참조하십시오.
+- [**LayerZero DVN 문서**](https://docs.layerzero.network/v2/concepts/protocol/security-stack-dvns): LayerZero의 필수 및 선택적 DVN 확인 사양을 읽어보십시오.

@@ -1,31 +1,31 @@
 ---
 source_path: explanation/payment-use-cases-overview.mdx
-source_sha: 4318f96f731d9b094368974969e39818ddee3488
-title: "활용 사례 개요"
-description: "Stable의 결제 패턴: P2P 송금, 구독 청구, 인보이스 정산, 호출당 결제 API."
+source_sha: bf9607c6c0449af0e3eb7cfc9a817d9c0e9cb9f2
+title: "사용 사례 개요"
+description: "Stable의 결제 패턴: P2P 송금, 구독 결제, 청구서 결제, API 종량제."
 diataxis: "explanation"
 ---
 
-# 활용 사례 개요
+# 사용 사례 개요
 
-Stable은 간단한 지갑 간 송금부터 에이전트 기반 서비스 결제까지 다양한 결제 패턴을 지원합니다. 아래 활용 사례는 오늘날 프로덕션에 바로 사용할 수 있는 패턴을 다룹니다. 곧 도입될 패턴(보장된 정산, 비공개 결제, 에이전트 간 상거래)에 대해서는 [예정된 활용 사례](/ko/explanation/upcoming-use-cases)를 참조하세요.
+Stable은 단순한 지갑 간 송금부터 에이전트 기반 서비스 결제에 이르기까지 다양한 결제 패턴을 지원합니다. 아래 사용 사례는 현재 프로덕션에서 사용 가능한 패턴을 다룹니다. 향후 구현될 패턴(확약된 정산, 기밀 결제, 에이전트 간 상거래)에 대해서는 [향후 사용 사례](/ko/explanation/upcoming-use-cases)를 참조하십시오.
 
-## 사용 가능한 활용 사례
+## 현재 사용 사례
 
-- [**P2P 결제**](/ko/reference/p2p-payments) — 지갑 간 USDT0 송금. 1초 미만의 정산, Gas Waiver를 통한 가스 비용 제로.
-- [**구독 청구**](/ko/reference/subscriptions) — EIP-7702를 통한 풀 기반 정기 청구. 구독자가 한 번 승인하면 제공자가 주기마다 수금합니다.
-- [**인보이스 정산**](/ko/reference/invoices) — 결정론적 논스를 사용하는 B2B 인보이스 결제. 온체인 정산이 인보이스에 자동으로 연결됩니다.
-- [**호출당 결제 API**](/ko/reference/pay-per-call) — x402 미들웨어를 통한 요청별 HTTP 결제. 계정, API 키, 청구 주기가 필요 없습니다.
+- [**P2P 결제**](/ko/reference/p2p-payments): 지갑 간 USDT0 송금. 1초 미만 정산, 가스 면제를 통한 가스 비용 없음.
+- [**구독 결제**](/ko/reference/subscriptions): EIP-7702를 통한 풀 기반 반복 결제. 구독자는 한 번만 승인하고, 제공자는 매 주기마다 수금합니다.
+- [**청구서 결제**](/ko/reference/invoices): 확정적인 논스를 사용한 B2B 청구서 결제. 온체인 정산은 자동으로 청구서에 연결됩니다.
+- [**API 종량제**](/ko/reference/pay-per-call): x402 미들웨어를 통한 요청별 HTTP 결제. 계정, API 키, 청구 주기가 없습니다.
 
-## 공통 기반
+## 공유 기반
 
-대부분의 패턴은 동일한 두 가지 프로토콜을 기반으로 구축됩니다:
+대부분의 패턴은 동일한 두 가지 프로토콜을 기반으로 합니다.
 
-- **[ERC-3009](/ko/explanation/erc-3009)**: 위임 정산을 위한 서명된 승인. 인보이스, 호출당 결제, P2P 애플리케이션 시작 송금에 사용됩니다.
-- **[x402](/ko/explanation/x402)**: 표준 헤더를 통한 HTTP 네이티브 결제. 호출당 결제 API와 MCP 기반 결제 흐름에 사용됩니다.
-- **[EIP-7702](/ko/explanation/eip-7702)**: 정기 승인을 위한 EOA 위임. 구독 청구에 사용됩니다.
+- **[ERC-3009](/ko/explanation/erc-3009)**: 위임된 정산을 위한 서명된 승인. 청구서, 종량제 및 P2P 애플리케이션 시작 전송에 사용됩니다.
+- **[x402](/ko/explanation/x402)**: 표준 헤더를 통한 HTTP 기본 결제. 종량제 API 및 MCP 기반 결제 흐름에 사용됩니다.
+- **[EIP-7702](/ko/explanation/eip-7702)**: 반복 승인을 위한 EOA 위임. 구독 결제에 사용됩니다.
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**ERC-3009**](/ko/explanation/erc-3009) — 핵심 정산 표준부터 시작하세요.
-- [**예정된 활용 사례**](/ko/explanation/upcoming-use-cases) — 에이전트 간 상거래, 보장된 정산, 비공개 결제를 미리 살펴보세요.
+- [**ERC-3009**](/ko/explanation/erc-3009): 핵심 정산 표준부터 시작하십시오.
+- [**향후 사용 사례**](/ko/explanation/upcoming-use-cases): 에이전트 간 상거래, 확약된 정산 및 기밀 결제를 미리 확인하십시오.

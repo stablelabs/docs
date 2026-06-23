@@ -87,7 +87,11 @@ jobs:
       - name: Translate changed pages into cn + ko
         if: steps.guard.outputs.skip != 'true' && steps.changed.outputs.pages != ''
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Provider/model are swappable here without touching the scripts.
+          LLM_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          TRANSLATE_MODEL: google/gemini-2.5-flash
+          MAX_OUTPUT_TOKENS: 32000 # 2.5-flash supports a large output window
+          # REVIEW_MODEL: google/gemini-2.5-flash  # set to enable the QA pass
         run: |
           pages=$(echo "${{ steps.changed.outputs.pages }}" | tr '\n' ' ')
           node docs/lib/i18n-translate.mjs cn $pages
@@ -98,7 +102,9 @@ jobs:
       - name: Regenerate localized sidebars
         if: steps.guard.outputs.skip != 'true' && steps.sidebar.outputs.changed == 'true'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LLM_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          TRANSLATE_MODEL: google/gemini-2.5-flash
+          MAX_OUTPUT_TOKENS: 32000
         run: |
           node docs/lib/i18n-sidebar.mjs cn
           node docs/lib/i18n-sidebar.mjs ko

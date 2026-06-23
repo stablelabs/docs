@@ -1,311 +1,38 @@
 ---
 source_path: explanation/distribution-module.mdx
-source_sha: 704e0b6d878ca629ffa66f024070c339d066eca1
-title: 分配模块
-description: "在 EVM 环境中桥接 x/distribution 模块以管理手续费收集和奖励提取的预编译合约。"
+source_sha: b4b638cbe7c29d11dc0a29398fd8c1280d898d93
+title: "Distribution 模块"
+description: "Distribution 预编译模块将质押奖励（提取地址、奖励查询和佣金管理）呈现给 EVM 合约。"
+diataxis: "explanation"
 ---
 
-# 分配模块
+# Distribution 模块
 
-## 概述
+`x/distribution` 模块处理委托人 (delegator) 和验证人 (validator) 的质押奖励累积和提取。其预编译模块将此行为桥接到 EVM，因此 Solidity 合约无需直接与 Cosmos SDK 交互即可领取奖励、设置提取地址和查询未结奖励。
 
-`distribution` 预编译合约作为桥梁，使 Stable SDK 的 `x/distribution` 模块功能能在 EVM 环境中使用。
+## 它公开了什么
 
-## 目录
+- **设置提取地址**：委托人指定哪个地址接收他们的奖励。默认情况下，奖励会进入委托人自己的地址；设置提取地址会将奖励路由到其他地方（对于合约管理的质押很有用）。
+- **提取委托人奖励**：一次调用即可从单个验证人那里领取所有未结奖励。
+- **提取验证人佣金**：验证人从委托人奖励中领取他们累积的佣金。
+- **查询方法**：无需交易即可读取奖励余额、佣金率和社区池状态。
 
-1. **[概念](#concepts)**
-2. **[配置](#configuration)**
-3. **[方法](#methods)**
-4. **[事件](#events)**
+## 授权语义
 
-## 概念
+预编译模块检查调用者是否是要修改其状态的委托人（或验证人）。您不能领取他人的奖励或更改他们的提取地址。
 
-在 `distribution` 预编译合约中，会进行额外检查以确保委托者或存款者是调用者。
+## 何时使用它
 
-## 配置
+- 资金库或质押聚合器按计划领取奖励：直接调用 `withdrawDelegatorRewards`。
+- DAO 将质押奖励路由到财务地址：设置一次提取地址，然后奖励自动流动。
+- 前端显示当前奖励余额：使用查询方法（无需交易）。
 
-合约地址和gas费用已预定义。
+## 在哪里可以找到 ABI
 
-### 合约地址
+完整的方法签名、输入/输出类型和发出的事件在[Distribution 预编译参考](/cn/reference/distribution-module-api)中。
 
-- `0x0000000000000000000000000000000000000801`
+## 下一步建议
 
-## 方法
-
-### `setWithdrawAddress`
-
-设置用于接收委托者向验证者委托代币奖励的地址。
-有时，当委托者是自我委托时，验证者地址被用作委托者。
-
-当提取者地址成功设置时，会发出 `SetWithdrawAddress` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|withdrawerAddress|address|接收委托奖励的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果提取者地址成功设置，则为true|
-
-### `withdrawDelegatorRewards`
-
-提取委托者从验证者那里应得的奖励。
-验证者奖励给委托者的所有类型的代币都在单次交易中提取。
-
-当奖励成功提取时，会发出 `WithdrawDelegatorRewards` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|amount|Coin[]|委托者将获得的各种代币奖励|
-
-`Coin` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|denom|string|奖励的denomination|
-|amount|uint256|奖励的数量|
-
-### `withdrawValidatorCommission`
-
-提取验证者的佣金。
-验证者作为佣金获得的所有类型的代币都在单次交易中提取。
-
-当佣金成功提取时，会发出 `WithdrawValidatorCommission` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|amount|Coin[]|验证者将获得的各种代币佣金|
-
-### `validatorDistributionInfo`
-
-返回代表验证者将获得奖励的分配信息。验证者可以在自己的地址上向自己委托代币，这被称为自绑定。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|distributionInfo|ValidatorDistributionInfo|验证者的分配信息|
-
-`ValidatorDistributionInfo` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|operatorAddress|address|验证者操作员的地址|
-|selfBondRewards|DecCoin[]|验证者的自绑定金额|
-|commission|DecCoin[]|验证者的佣金|
-
-`DecCoin` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|denom|string|奖励的denomination|
-|amount|uint256|奖励的数量|
-|precision|uint8|奖励的精度|
-
-### `validatorOutstandingRewards`
-
-返回验证者的未结算奖励。未结算奖励表示由验证者的佣金和自绑定奖励以及委托者的总奖励组成的奖励总额。如果有验证者A，委托者B、C和D委托给A，那么验证者的未结算奖励是A的佣金和自绑定奖励 + B、C和D的奖励的总和。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|rewards|DecCoin[]|验证者的未结算奖励|
-
-### `validatorCommission`
-
-返回验证者的佣金。此方法用于在调用 `withdrawValidatorCommission` 方法之前检索验证者的佣金。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|commission|DecCoin[]|验证者的佣金|
-
-### `validatorSlashes`
-
-返回验证者在起始高度和结束高度之间的削减历史。削减是当验证者恶意行为或违反网络规则（如双重签名、不当行为或不遵循链规则）时施加的罚款。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-|startingHeight|uint64|起始高度|
-|endingHeight|uint64|结束高度|
-|pageRequest|PageReq|分页请求|
-
-`PageReq` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|key|bytes|分页的键|
-|offset|uint64|分页的偏移量|
-|limit|uint64|分页的限制|
-|countTotal|bool|是否计算总页数|
-|reverse|bool|是否反转分页|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|slashes|ValidatorSlashEvent[]|验证者的削减|
-|pagination|PageResp|分页响应|
-
-`ValidatorSlashEvent` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|validatorPeriod|uint64|验证者的期间|
-|fraction|Dec|削减的分数|
-
-`Dec` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|value|uint64|Dec的值|
-|precision|uint8|Dec的精度|
-
-`PageResp` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|nextKey|bytes|分页的下一个键|
-|total|uint64|总页数|
-
-### `delegationRewards`
-
-返回委托者从验证者那里获得的奖励。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的十六进制地址|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|rewards|DecCoin[]|委托者从验证者那里获得的奖励|
-
-### `delegationTotalRewards`
-
-返回委托者从所有验证者那里获得的总奖励。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的十六进制地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|rewards|DelegationDelegatorReward[]|委托者从所有验证者那里获得的总奖励|
-|total|DecCoin[]|奖励的总额|
-
-`DelegationDelegatorReward` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-|reward|DecCoin[]|委托者从验证者那里获得的奖励|
-
-### `delegatorValidators`
-
-返回委托者绑定的验证者。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的十六进制地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|validators|string[]|委托者绑定的验证者|
-
-### `delegatorWithdrawAddress`
-
-返回通过 `setWithdrawAddress` 方法设置的接收委托奖励的地址。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的十六进制地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|withdrawAddress|address|接收委托奖励的地址|
-
-## 事件
-
-### SetWithdrawAddress
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|caller|address|Y|调用者（委托者）的地址|
-|withdrawAddress|address|N|接收委托奖励的地址|
-
-### WithdrawDelegatorRewards
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|delegatorAddress|address|Y|委托者的地址|
-|validatorAddress|address|Y|验证者的地址|
-|amount|uint256|N|奖励的数量|
-
-### WithdrawValidatorCommission
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|validatorAddress|address|Y|验证者的地址|
-|commission|uint256|N|佣金的总数量|
+- [**Distribution 预编译参考**](/cn/reference/distribution-module-api)：调用 `withdrawDelegatorRewards`，设置提取地址，并读取奖励余额。
+- [**Staking 模块**](/cn/explanation/staking-module)：了解委托（这些奖励的来源）的工作原理。
+- [**系统交易**](/cn/explanation/system-transactions)：了解解绑完成如何作为事件到达 EVM。

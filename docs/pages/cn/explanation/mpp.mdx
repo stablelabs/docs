@@ -1,63 +1,63 @@
 ---
 source_path: explanation/mpp.mdx
-source_sha: 9aafb5fd6791e2d6d14b6cb938ce94878b0e27a1
-title: "Machine Payments Protocol (MPP)"
-description: "了解 MPP——这一扩展 x402 的 IETF 标准跟踪支付规范，以及如何用它在 Stable 上进行 USDT0 支付。"
+source_sha: 02666af168909bb96414ce0c52d158b4af376522
+title: "机器支付协议 (MPP)"
+description: "了解 MPP，这是一个扩展 x402 的 IETF-track 支付标准，以及如何在 Stable 上使用它进行 USDT0 支付。"
 diataxis: "explanation"
 ---
 
-# Machine Payments Protocol (MPP)
+# 机器支付协议 (MPP)
 
-MPP（Machine Payments Protocol，机器支付协议）是一个开放标准，用于在请求 HTTP 资源的同一请求中完成对该资源的付款。它扩展了 [x402](/cn/explanation/x402)，新增了支付意图（charge、subscription、session）、多通道支持（稳定币、银行卡、Lightning）、生产特性（幂等性、正文摘要绑定、过期机制）以及额外的传输方式（MCP、WebSocket）。该协议处于 IETF 标准跟踪进程中。
+MPP（机器支付协议）是一个开放标准，用于在请求 HTTP 资源的同时支付这些资源。它通过新的支付意图（收费、订阅、会话）、多轨道支持（稳定币、银行卡、闪电网络）、生产功能（幂等性、主体摘要绑定、过期）和附加传输（MCP、WebSocket）扩展了 [x402](/cn/explanation/x402)。该协议正在 IETF 标准化进程中。
 
-## MPP 与 x402
+## MPP 和 x402
 
-MPP 客户端向后兼容：MPP 客户端无需任何更改即可调用现有的 x402 服务器。两种协议的差异之处：
+MPP 客户端是向后兼容的：MPP 客户端可以在不更改的情况下调用现有的 x402 服务器。两种协议的区别在于：
 
 | **方面** | **x402** | **MPP** |
 | :--- | :--- | :--- |
-| 支付意图 | 按请求收费 | Charge、subscription、session |
-| 通道 | 仅区块链 | 稳定币、银行卡、Lightning、自定义 |
-| 生产特性 | 有限 | 幂等性、正文摘要绑定、过期机制 |
-| 传输方式 | HTTP | HTTP、MCP/JSON-RPC、WebSocket |
+| 支付意图 | 按请求收费 | 收费、订阅、会话 |
+| 轨道 | 仅区块链 | 稳定币、银行卡、闪电网络、自定义 |
+| 生产功能 | 有限 | 幂等性、主体摘要绑定、过期 |
+| 传输 | HTTP | HTTP、MCP/JSON-RPC、WebSocket |
 | 标头（客户端 ↔ 服务器） | `PAYMENT-REQUIRED` / `PAYMENT-SIGNATURE` / `PAYMENT-RESPONSE` | `WWW-Authenticate` / `Authorization` / `Payment-Receipt` |
-| 治理 | 社区协议 | IETF 标准跟踪 |
-| 方法编写权 | 由基金会控制 | 无需许可 |
+| 治理 | 社区协议 | IETF 标准化进程 |
+| 方法编写 | 基金会控制 | 无需许可 |
 
 ## 挑战、凭证、收据
 
-MPP 将每个付费请求封装成客户端与资源服务器之间的三步交换：
+MPP 将每个付费请求封装在客户端和资源服务器之间的三步交换中：
 
-1. **挑战（Challenge）。** 服务器返回 `402 Payment Required` 以及一个 `WWW-Authenticate` 标头，其中列出所支持的方法、金额和过期时间。
-2. **凭证（Credential）。** 客户端选择一种方法，对支付凭证进行签名，并附带一个携带序列化凭证的 `Authorization` 标头重新提交请求。
-3. **收据（Receipt）。** 服务器验证凭证、结算付款，并在响应中返回一个包含结算引用的 `Payment-Receipt` 标头。
+1. **挑战。** 服务器响应 `402 Payment Required` 和一个 `WWW-Authenticate` 标头，其中包含支持的方法、金额和过期时间。
+2. **凭证。** 客户端选择一个方法，签署支付证明，并使用包含序列化凭证的 `Authorization` 标头重新提交请求。
+3. **收据。** 服务器验证凭证，结算支付，并返回响应，其中包含一个 `Payment-Receipt` 标头，其中包含结算参考。
 
-挑战可以通过正文摘要在密码学上绑定到请求正文，因此为某个请求签名的凭证无法在另一个不同的请求上重用。
+一个挑战可以通过主体摘要与请求主体进行加密绑定，因此为T一个请求签署的凭证不能在另一个请求中重复使用。
 
 ## 支付意图
 
-**Charge（收费）。** 针对单个资源的一次性付款。凭证授权一次精确金额的转账。
+**收费。** 对单个资源进行一次性支付。凭证授权一次精确金额的转账。
 
-**Subscription（订阅）。** 在单个受限范围凭证下的周期性付款。凭证授权在一个计费周期内重复收费，由通道强制执行续订节奏。
+**订阅。** 在单个范围凭证下进行定期支付。凭证授权在计费周期内重复收费，由轨道强制执行续订周期。
 
-**Session（会话）。** 使用链下凭单的按量付费。客户端先将资金存入托管一次，然后为每个请求签名低成本的链下凭单。只有净额在链上结算。详见 [MPP 会话](/cn/explanation/mpp-sessions)。
+**会话。** 通过链下凭证按使用量付费。客户端将资金一次性存入托管，然后为每个请求签署廉价的链下凭证。只有净金额在链上结算。有关详细信息，请参阅 [MPP 会话](/cn/explanation/mpp-sessions)。
 
-## 传输方式
+## 传输
 
-MPP 在多种传输方式上定义了相同的挑战 / 凭证 / 收据交换：
+MPP 定义了通过多种传输的相同挑战/凭证/收据交换：
 
-- **HTTP。** 默认方式。标头如上所列。
-- **MCP / JSON-RPC。** 让 MCP 服务器能够对单个工具调用进行变现。AI 客户端在调用工具前签名一份凭证。
-- **WebSocket。** 持久连接，支持带内凭单充值，专为流式会话设计。
+- **HTTP。** 默认。标头如上所示。
+- **MCP / JSON-RPC。** 允许 MCP 服务器通过单个工具调用实现货币化。AI 客户端在调用工具之前签署凭证。
+- **WebSocket。** 具有带内凭证充值的持久连接，专为流媒体会话设计。
 
 ## Stable 上的 MPP
 
-MPP 并未自带 Stable 支付方法。`mppx` SDK（[wevm/mppx](https://github.com/wevm/mppx)）包含针对 Tempo 和 Stripe 的方法，而 `mpp.dev` 列出了 Tempo、Stripe、Lightning、Solana、Stellar、Monad 和 RedotPay。目前这两个列表中都没有 Stable。
+MPP 不附带 Stable 支付方法。`mppx` SDK ([wevm/mppx](https://github.com/wevm/mppx)) 包含 Tempo 和 Stripe 的方法，而 `mpp.dev` 列出了 Tempo、Stripe、Lightning、Solana、Stellar、Monad 和 RedotPay。今天 Stable 不在这两个列表上。
 
-该标准无需许可，因此你可以编写自己的方法。对于 Stable 上的 USDT0，`verify()` 钩子是针对 ERC-3009 的签名验证，结算则委托给现有的结算服务：诸如 [Semantic Pay](https://docs.semanticpay.io) 或 [Heurist](https://docs.heurist.ai/x402-products/facilitator) 这样的 x402 facilitator，或 Stable 自有的 [Gas 豁免](/cn/how-to/integrate-gas-waiver)。完整演练请参阅 [在 Stable 上构建 MPP 端点](/cn/how-to/build-mpp-endpoint)。
+该标准是无需许可的，因此您可以编写自己的方法。对于 Stable 上的 USDT0，`verify()` 钩子是针对 ERC-3009 的签名验证，结算委托给现有的结算服务：一个像 [Semantic Pay](https://docs.semanticpay.io) 或 [Heurist](https://docs.heurist.ai/x402-products/facilitator) 这样的 x402 协调器，或者 Stable 自己的 [Gas Waiver](/cn/how-to/integrate-gas-waiver)。请参阅 [在 Stable 上构建 MPP 端点](/cn/how-to/build-mpp-endpoint) 以获取完整的演练。
 
-## 推荐后续
+## 推荐阅读
 
-- [**在 Stable 上构建 MPP 端点**](/cn/how-to/build-mpp-endpoint) — 为 USDT0 编写三个 MPP 自定义方法钩子并结算一笔真实付款。
-- [**MPP 会话**](/cn/explanation/mpp-sessions) — 使用链下凭单进行微支付流式传输，并一次性净额结算。
-- [**x402**](/cn/explanation/x402) — 阅读 MPP 所泛化的原始 HTTP-402 协议。
+- [**在 Stable 上构建 MPP 端点**](/cn/how-to/build-mpp-endpoint)：为 USDT0 编写三个 MPP 自定义方法钩子，并结算真实的支付。
+- [**MPP 会话**](/cn/explanation/mpp-sessions)：通过链下凭证和一次净结算流式传输微支付。
+- [**x402**](/cn/explanation/x402)：阅读 MPP 泛化的原始 HTTP-402 协议。

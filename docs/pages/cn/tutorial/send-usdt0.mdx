@@ -1,53 +1,53 @@
 ---
 source_path: tutorial/send-usdt0.mdx
-source_sha: 1fff06b2bb41a34bd51591c23054ad451815f05e
-title: "发送你的第一笔 USDT0"
-description: "在 Stable 上以原生转账和 ERC-20 转账两种方式发送 USDT0，并验证它们使用的是同一个余额。"
+source_sha: d631d3ab8138addcd0cd58e30ac907fe503a5d04
+title: "发送第一笔 USDT0"
+description: "在 Stable 上以原生转账和 ERC-20 转账的方式发送 USDT0，并验证两者操作的是同一个余额。"
 diataxis: "tutorial"
 ---
 
-# 发送你的第一笔 USDT0
+# 发送第一笔 USDT0
 
-在 Stable 上，USDT0 既是链的原生资产，也是一个 ERC-20 代币。这意味着 `approve`、`transferFrom` 和 `permit` 在标准价值转账之外仍然完全可用，并且这两条路径都从同一个底层余额中转移资金。
+在 Stable 上，USDT0 既是链的原生资产，也是一种 ERC-20 代币。这意味着 `approve`、`transferFrom` 和 `permit` 完全可用，同时支持标准的价值转账，并且这两种方式都从同一个底层余额中转移资金。
 
-本页将引导你通过这两条路径发送 USDT0，并确认它们都从同一个余额中扣款。
+本页面将引导您通过这两种方式发送 USDT0，并确认它们都从一个余额中提取。
 
 :::note
-更喜欢使用带类型的客户端？[Stable SDK](/cn/explanation/sdk-overview) 提供了一个统一的 `transfer({ to, amount, token? })`，它涵盖了两条路径，在链上处理小数位，并为你切换钱包所在的链。
+喜欢类型化的客户端？[Stable SDK](/cn/explanation/sdk-overview) 暴露了一个单独的 `transfer({ to, amount, token? })` 方法，它支持这两种方式，处理链上小数，并为您切换钱包的链。
 :::
 
 :::note
-**18 位与 6 位小数**：原生 USDT0 使用 18 位小数（标准 EVM 精度），而 ERC-20 接口报告 6 位小数（标准 USDT 精度）。两者反映的是同一个余额，因此由于小数对账，`address(x).balance` 和 `USDT0.balanceOf(x)` 可能相差最多 0.000001 USDT0。请参阅 [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
+**18 位小数与 6 位小数**：原生 USDT0 使用 18 位小数（标准 EVM 精度），而 ERC-20 接口报告 6 位小数（标准 USDT 精度）。两者都反映相同的余额，因此 `address(x).balance` 和 `USDT0.balanceOf(x)` 可能会因小数协调而相差最多 0.000001 USDT0。请参阅 [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
 :::
 
-## 你将构建什么
+## 您将构建什么
 
-一个两脚本流程：以原生转账方式发送 0.001 USDT0，以 ERC-20 转账方式发送 0.001 USDT0，并打印两个余额。
+一个两步脚本流，以原生转账的方式发送 0.001 USDT0，以 ERC-20 转账的方式发送 0.001 USDT0，并打印两种余额。
 
 ### 演示
 
 ```text
-step 1. Connect wallet → balance displayed
+步骤 1. 连接钱包 → 显示余额
         0.01 USDT0
 
-step 2. Send 0.001 USDT0 (choose native or ERC-20 transfer)
+步骤 2. 发送 0.001 USDT0（选择原生转账或 ERC-20 转账）
 
-step 3. Result
-        Sent:              0.001 USDT0
-        Gas fee:           0.000021 USDT0
-        Native balance:    0.008979 USDT0
-        ERC-20 balance:    0.008979 USDT0
+步骤 3. 结果
+        发送：              0.001 USDT0
+        手续费：           0.000021 USDT0
+        原生余额：    0.008979 USDT0
+        ERC-20 余额：    0.008979 USDT0
 ```
 
-## 前提条件
+## 先决条件
 
 - Node.js 20 或更高版本
-- 一个持有测试网 USDT0 的私钥。请参阅[快速开始](/cn/tutorial/quick-start)为钱包充值。
+- 带有测试网 USDT0 的私钥。请参阅[快速入门](/cn/tutorial/quick-start)以资助钱包。
 
 **USDT0 合约地址**
 
-- 主网：`0x779ded0c9e1022225f8e0630b35a9b54be713736`
-- 测试网：`0x78cf24370174180738c5b8e352b6d14c83a6c9a9`
+- 主网： `0x779ded0c9e1022225f8e0630b35a9b54be713736`
+- 测试网： `0x78cf24370174180738c5b8e352b6d14c83a6c9a9`
 
 ## 设置
 
@@ -64,9 +64,9 @@ export const provider = new ethers.JsonRpcProvider(STABLE_TESTNET_RPC);
 export const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 ```
 
-## 选项 1（推荐）：以原生转账方式发送
+## 选项 1 (推荐)：作为原生转账发送
 
-原生转账的工作方式与在以太坊上发送 ETH 相同。`value` 字段携带 USDT0 数量。一次原生转账仅消耗 21,000 gas，是发送 USDT0 最便宜的方式。
+原生转账的工作方式与在以太坊上发送 ETH 相同。`value` 字段携带 USDT0 金额。原生转账仅需 21,000 gas, 是发送 USDT0 最便宜的方式。
 
 ```typescript
 // sendNative.ts
@@ -98,9 +98,9 @@ npx tsx sendNative.ts
 Native transfer tx: 0x8f3a...2d41
 ```
 
-## 选项 2：以 ERC-20 转账方式发送
+## 选项 2：作为 ERC-20 转账发送
 
-USDT0 也可以作为 ERC-20 转账发送。这会从同一个余额中扣款，但使用 6 位小数精度的 ERC-20 接口。
+USDT0 也可以作为 ERC-20 转账发送。这会从相同的余额中扣除，但使用 6 位小数精度的 ERC-20 接口。
 
 ```typescript
 // sendERC20.ts
@@ -129,7 +129,7 @@ ERC-20 transfer tx: 0xa2b1...77c0
 
 ## 验证统一余额
 
-在任一种转账之后，查询两个余额以确认它们来自同一来源。
+在任何一种转账之后，查询两种余额以确认它们来自于同一来源。
 
 ```typescript
 // balances.ts
@@ -151,14 +151,14 @@ npx tsx balances.ts
 ```
 
 ```text
-Native balance: 0.008979 USDT0
-ERC-20 balance: 0.008979 USDT0
+原生余额: 0.008979 USDT0
+ERC-20 余额: 0.008979 USDT0
 ```
 
-这两个值代表的是同一个余额。由于[小数余额对账](/cn/explanation/usdt0-behavior#balance-reconciliation)，它们可能相差最多 0.000001 USDT0。
+这两个值代表相同的余额。它们之间可能存在高达 0.000001 USDT0 的差异，这是由于[小数余额协调](/cn/explanation/usdt0-behavior#balance-reconciliation)造成的。
 
-## 推荐的下一步
+## 下一步推荐
 
-- [**零 gas 交易**](/cn/how-to/zero-gas-transactions) — 通过豁免服务支付 gas 费来发送 USDT0。
-- [**构建 P2P 支付应用**](/cn/how-to/build-p2p-payments) — 创建钱包、发送、接收并查询支付历史。
-- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior) — 了解双角色余额对账和合约设计。
+- [**零 Gas 费交易**](/cn/how-to/zero-gas-transactions)：使用豁免服务支付 Gas 费来发送 USDT0。
+- [**构建 P2P 支付应用**](/cn/how-to/build-p2p-payments)：创建钱包、发送、接收并查询支付历史。
+- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior)：了解双重角色余额协调和合约设计。

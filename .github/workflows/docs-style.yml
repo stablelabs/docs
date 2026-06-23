@@ -1,0 +1,124 @@
+name: docs style
+
+# Enforces the mechanical rules in STYLEGUIDE.md on the en source pages
+# (frontmatter, diataxis/folder match, description length, code-fence language
+# tags, no em dashes). en is the source of truth; generated cn/ko are not checked.
+
+on:
+  pull_request:
+    paths:
+      - 'docs/pages/en/**'
+      - 'docs/lib/verify-style.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Check styleguide compliance
+        id: style
+        # Capture the exit code so we can still post the comment on failure;
+        # the job is failed explicitly in the final step.
+        run: |
+          set +e
+          npm run style:check
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+        env:
+          STYLE_REPORT: ${{ runner.temp }}/style-report.md
+          STYLE_SUGGESTIONS: ${{ runner.temp }}/style-suggestions.json
+          # Blob base for the PR head commit; makes report paths clickable
+          # links pinned to the exact reviewed revision.
+          STYLE_REPO_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.event.pull_request.head.sha }}
+      - name: Comment styleguide report
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = `${process.env.RUNNER_TEMP}/style-report.md`;
+            if (!fs.existsSync(path)) return;
+            const marker = '<!-- styleguide-check -->';
+            const body = `${marker}\n${fs.readFileSync(path, 'utf8')}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+      - name: Suggest fixes inline
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = `${process.env.RUNNER_TEMP}/style-suggestions.json`;
+            if (!fs.existsSync(path)) return;
+            const suggestions = JSON.parse(fs.readFileSync(path, 'utf8'));
+            if (!suggestions.length) return;
+
+            const { owner, repo } = context.repo;
+            const pull_number = context.issue.number;
+            const commit_id = context.payload.pull_request.head.sha;
+            const MARK = '<!-- styleguide-suggestion -->';
+
+            // Map each changed file to the set of new-side line numbers the PR
+            // adds. GitHub only accepts suggestions on lines in the diff.
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number });
+            const addedLines = new Map();
+            for (const f of files) {
+              if (!f.patch) continue;
+              const set = new Set();
+              let newLine = 0;
+              for (const ln of f.patch.split('\n')) {
+                const h = ln.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+                if (h) { newLine = parseInt(h[1], 10); continue; }
+                if (ln.startsWith('+') && !ln.startsWith('+++')) { set.add(newLine); newLine++; }
+                else if (ln.startsWith('-') && !ln.startsWith('---')) { /* old side only */ }
+                else { newLine++; }
+              }
+              addedLines.set(f.filename, set);
+            }
+
+            // Clear our previous suggestion comments so reruns don't pile up.
+            const prior = await github.paginate(github.rest.pulls.listReviewComments, { owner, repo, pull_number });
+            for (const c of prior) {
+              if (c.body && c.body.includes(MARK)) {
+                await github.rest.pulls.deleteReviewComment({ owner, repo, comment_id: c.id });
+              }
+            }
+
+            let posted = 0, skipped = 0;
+            for (const s of suggestions) {
+              const filename = `docs/pages/en/${s.rel}`;
+              if (!addedLines.get(filename)?.has(s.line)) { skipped++; continue; }
+              const body = `${MARK}\n${s.reason}\n\n\`\`\`suggestion\n${s.fixed}\n\`\`\``;
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner, repo, pull_number, commit_id, path: filename, line: s.line, side: 'RIGHT', body,
+                });
+                posted++;
+              } catch (e) {
+                core.warning(`Could not suggest on ${filename}:${s.line} — ${e.message}`);
+                skipped++;
+              }
+            }
+            core.info(`Inline suggestions posted: ${posted}, skipped (not in diff): ${skipped}`);
+
+      - name: Fail on blocking issues
+        if: steps.style.outputs.exit_code != '0'
+        run: |
+          echo "Styleguide check found blocking issues. See the PR comment for details."
+          exit 1

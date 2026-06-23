@@ -1,22 +1,22 @@
 ---
 source_path: how-to/pay-with-invoice.mdx
-source_sha: 7c09e8018dbc151950875e9df186903fe8674032
-title: "使用发票付款"
-description: "在 Stable 上使用 ERC-3009 结算发票，nonce 由发票元数据确定性派生。通过链上事件进行对账。"
+source_sha: b7c9e4ad00713067eaea4c312ff14a82656e23bb
+title: "发票支付"
+description: "使用 ERC-3009 在 Stable 上结算发票，其中确定性随机数来源于发票元数据。通过链上事件进行对账。"
 diataxis: "how-to"
 ---
 
-# 使用发票付款
+# 发票支付
 
-本指南演示如何使用 [ERC-3009](/cn/explanation/erc-3009) 在链上结算发票，其中 nonce 由发票元数据确定性派生。该 nonce 将每笔付款与其发票关联起来，并防止重复付款。
+本指南将介绍如何使用 [ERC-3009](/cn/explanation/erc-3009) 在链上结算发票，其中确定性随机数来源于发票元数据。该随机数将每次支付与发票关联起来，并防止重复支付。
 
 :::note
-**概念：** 关于发票结算模型以及与传统 B2B 开票方式的比较，请参阅[发票结算](/cn/reference/invoices)。
+**概念：** 有关发票结算模型以及与传统 B2B 发票的比较，请参见 [发票结算](/cn/reference/invoices)。
 :::
 
-## 你将构建的内容
+## 您将构建什么
 
-一个完整的发票生命周期：买方在链下签署一个 ERC-3009 授权，供应商将其提交到链上，对账过程通过确定性 nonce 将产生的 `AuthorizationUsed` 事件匹配回发票。
+一个完整的发票生命周期：买方在链下签署 ERC-3009 授权，供应商在链上提交，对账将生成的 `AuthorizationUsed` 事件通过确定性随机数与发票匹配。
 
 ### 演示
 
@@ -40,11 +40,11 @@ step 4. Reconciliation
         ERP: marked PAID at block 1284371
 ```
 
-## 概览
+## 概述
 
 **买方：**
 
-```
+```text
 ─── Buyer ───────────────────────────────────────────
 nonce = getInvoiceNonce(invoice)
 authorization = { from: buyer, to: vendor, value: amount, nonce, ... }
@@ -59,7 +59,7 @@ usdt0.transferWithAuthorization(authorization, signature)
 
 **供应商：**
 
-```
+```text
 ─── Vendor ──────────────────────────────────────────
 // If Option B: submit transferWithAuthorization using the buyer's signature
 
@@ -110,9 +110,9 @@ export interface Invoice {
 }
 ```
 
-## 步骤 1：生成确定性 nonce
+## 步骤 1：生成一个确定性随机数
 
-买方和供应商都可以根据发票元数据独立计算出相同的 nonce。无需外部注册表。
+买方和供应商都可以从发票元数据中独立计算出相同的随机数。无需外部注册表。
 
 ```typescript
 // nonce.ts
@@ -148,7 +148,7 @@ const nonce = getInvoiceNonce(invoice);
 
 ## 步骤 2：签署授权（买方）
 
-买方使用步骤 1 中的确定性 nonce 签署一个 ERC-3009 的 `transferWithAuthorization`。
+买方使用步骤 1 中的确定性随机数签署 ERC-3009 `transferWithAuthorization`。
 
 ```typescript
 // sign-invoice.ts
@@ -188,11 +188,11 @@ async function signInvoiceAuthorization(invoice: Invoice) {
 
 ## 步骤 3：提交交易
 
-根据由谁提交，有两种选择。
+根据提交者的不同，有两种选择。
 
 ### 选项 A：买方提交
 
-买方直接提交 `transferWithAuthorization` 交易并支付 gas。当买方需要控制付款执行的时间和方式时使用此选项，例如当买方的会计系统需要将 tx hash 与内部审批流程绑定时。
+买方直接提交 `transferWithAuthorization` 交易并支付 gas。当买方控制支付的执行时间和方式时使用此方法，例如当买方的会计系统需要与内部审批流程关联的交易哈希时。
 
 ```typescript
 // pay.ts
@@ -234,7 +234,7 @@ async function payInvoice(
 
 ### 选项 B：供应商提交
 
-买方通过 API、电子邮件或任何渠道将 `{authorization, signature}` 发送给供应商。供应商（或协助方）代表买方提交交易，因此买方无需管理 gas。当供应商需要在同一请求流程内获得同步确认时使用此选项。
+买方通过 API、电子邮件或任何渠道将 `{authorization, signature}` 发送给供应商。供应商（或促成者）代表买方提交交易，因此买方无需管理 Gas。当供应商需要在同一请求流程中进行同步确认时使用此方法。
 
 ```typescript
 // settle.ts
@@ -273,12 +273,12 @@ async function settleInvoice(
 }
 ```
 
-## 步骤 4：通过链上事件对账（供应商）
+## 步骤 4：通过链上事件进行对账（供应商）
 
-无论由谁提交交易，每笔发票付款都会发出一个携带确定性 nonce 的 `AuthorizationUsed` 事件。供应商监听该事件并通过 nonce 将其匹配到待处理的发票。由于 nonce 是从发票元数据派生的，因此匹配是精确的。
+无论谁提交了交易，每次发票支付都会发出一个 `AuthorizationUsed` 事件，其中包含确定性随机数。供应商监听此事件，并通过随机数将其与待处理发票进行匹配。由于随机数来源于发票元数据，因此匹配是精确的。
 
 :::note
-通过 nonce 匹配可以识别哪张发票已付款，但供应商还应验证同一交易中的 `Transfer` 事件，以确认正确的金额已发送给正确的收款人。下面的代码包含了此项验证。
+通过随机数匹配可以确定支付了哪张发票，但供应商还应验证同一交易中的 `Transfer` 事件，以确认已将正确金额发送给正确接收方。下面的代码包括此验证。
 :::
 
 ```typescript
@@ -359,19 +359,19 @@ Invoice INV-2026-001234 PAID
   settled at block: 1284371
 ```
 
-## 处理失败的付款
+## 处理失败的支付
 
-已提交的 `transferWithAuthorization` 可能因多种原因而回滚。检测并向供应商或买方呈现每种原因，以便重试或关闭发票。
+提交的 `transferWithAuthorization` 可能会因多种原因而回滚。检测并向供应商或买方报告每个原因，以便可以重试或关闭发票。
 
-| **回滚原因** | **起因** | **恢复方法** |
+| **回滚原因** | **原因** | **恢复** |
 | :--- | :--- | :--- |
-| `FiatTokenV2: invalid signature` | 签名与授权字段不匹配。 | 要求买方在发票数据不变的情况下重新签署。 |
-| `FiatTokenV2: authorization is used or canceled` | nonce 已被消耗（重复提交）或买方取消了该授权。 | 将发票标记为已付款；通过 nonce 查找原始交易。 |
-| `FiatTokenV2: authorization is not yet valid` | 在 `validAfter` 之前提交。 | 等待至 `validAfter` 或签发新的授权。 |
-| `FiatTokenV2: authorization is expired` | 在 `validBefore` 之后提交。 | 签发一个具有更长时间窗口的新授权。 |
-| `FiatTokenV2: transfer amount exceeds balance` | 买方的 USDT0 余额不足。 | 通知买方为钱包充值，然后用相同的签名重试。 |
+| `FiatTokenV2: invalid signature` | 签名与授权字段不匹配。 | 要求买方使用未更改的发票数据重新签名。 |
+| `FiatTokenV2: authorization is used or canceled` | 随机数已被使用（重复提交）或买方已取消。 | 将发票标记为已支付；通过随机数查找原始交易。 |
+| `FiatTokenV2: authorization is not yet valid` | 在 `validAfter` 之前提交。 | 等待 `validAfter` 或签发新的授权。 |
+| `FiatTokenV2: authorization is expired` | 在 `validBefore` 之后提交。 | 签发新的授权，并延长有效期。 |
+| `FiatTokenV2: transfer amount exceeds balance` | 买方的 USDT0 余额不足。 | 通知买方充值钱包，然后重试同一签名。 |
 
-捕获回滚并在重试前对其分类。
+在重试之前捕获回滚并对其进行分类。
 
 ```typescript
 // retry.ts
@@ -406,11 +406,11 @@ async function submitWithRetry(
 ```
 
 :::warning
-切勿在未对错误进行分类的情况下重试失败的提交。对已回滚的 transferWithAuthorization 进行盲目重试，可能会在买方充值后通过验证，而这可能与买方的最新意图不符。
+切勿在未对错误进行分类的情况下重试失败的提交。对已回滚的 `transferWithAuthorization` 进行盲目重试，可能会在买方充值余额后通过验证，这可能与买方的最新意图不符。
 :::
 
 ## 接下来推荐
 
-- [**发票结算概念**](/cn/reference/invoices) — 了解确定性 nonce 的对账模型。
-- [**ERC-3009**](/cn/explanation/erc-3009) — 回顾此流程背后的签名授权标准。
-- [**启用免 gas 交易**](/cn/how-to/integrate-gas-waiver) — 与 Gas Waiver 结合，从结算路径中消除 gas。
+- [**发票结算概念**](/cn/reference/invoices)：了解确定性随机数对账模型。
+- [**ERC-3009**](/cn/explanation/erc-3009)：回顾此流程背后的签名授权标准。
+- [**启用免 Gas 交易**](/cn/how-to/integrate-gas-waiver)：结合 Gas Waiver 以消除结算路径中的 Gas。

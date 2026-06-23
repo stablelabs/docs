@@ -1,39 +1,39 @@
 ---
 source_path: how-to/account-abstraction.mdx
-source_sha: 8eaa5c6ea2859611c839ed8d5c8acbe81f18c38a
-title: "EIP-7702를 활용한 계정 추상화"
-description: "EIP-7702 스마트 컨트랙트에 위임하여 기존 EOA에서 일괄 결제, 지출 한도, 세션 키를 구현합니다."
+source_sha: 30e0b565660c81e67967daa2ddf0f0ceae7aa9ef
+title: "EIP-7702를 사용한 계정 추상화"
+description: "EIP-7702 스마트 계약에 위임하여 기존 EOA에서 배치 결제, 지출 한도 및 세션 키를 구현합니다."
 diataxis: "how-to"
 ---
 
-# EIP-7702를 활용한 계정 추상화
+# EIP-7702를 사용한 계정 추상화
 
-이 가이드는 EOA에 EIP-7702를 적용하고 위임을 사용하여 세 가지 패턴, 즉 일괄 결제, 지출 한도, 세션 키를 구현하는 과정을 단계별로 설명합니다. EOA는 그 과정 내내 자신의 주소와 개인 키를 유지합니다.
+이 가이드는 EIP-7702를 EOA에 적용하고 배치를 세 가지 패턴(일괄 결제, 지출 한도 및 세션 키)에 사용하는 방법을 설명합니다. EOA는 이 과정을 통해 주소와 개인 키를 유지합니다.
 
 :::note
-**개념:** EIP-7702가 Stable에서 무엇을 가능하게 하는지와 보안 고려 사항에 대해서는 [EIP-7702](/ko/explanation/eip-7702)를 참조하세요.
+**개념:** Stable에서 EIP-7702가 가능하게 하는 기능과 보안 고려 사항은 [EIP-7702](/ko/explanation/eip-7702)를 참조하세요.
 :::
 
-## 사전 요구 사항
+## 전제 조건
 
-- EOA와 스마트 컨트랙트 계정의 차이 이해(EOA는 기본적으로 코드가 없습니다).
-- EVM 트랜잭션 유형에 대한 이해([EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)).
+- EOA와 스마트 계약 계정의 차이점에 대한 이해(EOA는 기본적으로 코드가 없음).
+- EVM 트랜잭션 유형([EIP-2718](https://eips.ethereum.org/EIPS/eip-2718))에 대한 친숙함.
 
 ## 개요
 
-EIP-7702는 `authorizationList`를 담는 새로운 트랜잭션 유형(`0x04`)을 도입합니다. 각 권한 부여는 EOA가 해당 트랜잭션에서 실행할 코드를 가진 스마트 컨트랙트를 지정합니다. 흐름은 다음과 같습니다:
+EIP-7702는 `authorizationList`를 포함하는 새로운 트랜잭션 유형(`0x04`)을 도입합니다. 각 권한 부여는 EOA가 해당 트랜잭션에 대해 코드를 실행할 스마트 계약을 지정합니다. 흐름은 다음과 같습니다:
 
-1. **위임 컨트랙트 선택 또는 배포**: EOA가 사용할 로직을 구현하는 표준 Solidity 컨트랙트입니다. 배포된 컨트랙트를 사용하거나 직접 배포할 수 있습니다. 가능하면 감사받은 컨트랙트를 사용하세요.
-2. **권한 부여 서명**: EOA 소유자가 위임 컨트랙트를 승인하는 메시지에 서명합니다.
-3. **EIP-7702 트랜잭션 제출**: 트랜잭션에 권한 부여가 포함되며, EOA는 실행 중에 위임 컨트랙트의 코드를 실행합니다.
+1. **위임 계약 선택 또는 배포**: EOA가 사용하려는 로직을 구현하는 표준 Solidity 계약입니다. 배포된 계약을 사용하거나 직접 배포할 수 있습니다. 가능한 경우 감사된 계약을 사용하십시오.
+2. **권한 부여 서명**: EOA 소유자가 위임 계약을 승인하는 메시지에 서명합니다.
+3. **EIP-7702 트랜잭션 제출**: 트랜잭션에는 권한 부여가 포함되며, EOA는 실행 중에 위임자의 코드를 실행합니다.
 
 ## 사용 사례: 일괄 트랜잭션
 
-아래 단계는 `Multicall3`을 위임 컨트랙트로 사용하여 이 흐름을 단계별로 설명합니다. `Multicall3`은 여러 호출을 단일 트랜잭션으로 집계하는 널리 배포된 유틸리티 컨트랙트입니다. `Multicall3`을 EIP-7702 위임 대상으로 지정하면 EOA가 임의의 컨트랙트 상호작용(토큰 전송, 승인, 컨트랙트 읽기, 또는 이들의 조합)을 하나의 원자적 트랜잭션으로 일괄 처리할 수 있습니다. 일괄 결제는 그 한 가지 예입니다. 급여 지급을 위해 열 개의 별도 트랜잭션을 보내는 대신, EOA는 이를 한 번에 모두 실행합니다.
+아래 단계는 `Multicall3`를 위임 계약으로 사용하여 이 흐름을 설명합니다. `Multicall3`는 여러 호출을 단일 트랜잭션으로 집계하는 널리 배포된 유틸리티 계약입니다. `Multicall3`를 EIP-7702 위임자로 지정하면 EOA는 임의의 계약 상호 작용(토큰 전송, 승인, 계약 읽기 또는 모든 조합)을 하나의 원자적 트랜잭션으로 일괄 처리할 수 있습니다. 일괄 결제가 한 예입니다. 급여 실행을 위해 열 개의 별도 트랜잭션을 보내는 대신 EOA는 모든 트랜잭션을 한 번에 실행합니다.
 
-### 1단계: Multicall3을 위임 컨트랙트로 사용
+### 1단계: Multicall3를 위임 계약으로 사용
 
-`Multicall3`은 Stable에서 `0xcA11bde05977b3631167028862bE2a173976CA11`에 배포되어 있습니다. 이미 배포되어 널리 사용되고 있으므로 직접 위임 컨트랙트를 배포할 필요가 없습니다. EIP-7702 권한 부여에 서명하면 위임 대상에 EOA에 대한 완전한 실행 권한이 부여됩니다.
+`Multicall3`는 Stable의 `0xcA11bde05977b3631167028862bE2a173976CA11`에 배포되어 있습니다. 이미 배포되어 널리 사용되고 있으므로 직접 위임 계약을 배포할 필요가 없습니다. EIP-7702 권한 부여에 서명하면 위임자는 EOA에 대한 전체 실행 권한을 얻습니다.
 
 ```solidity
 // Multicall3 interface (relevant functions only)
@@ -48,7 +48,7 @@ interface IMulticall3 {
         bytes returnData;
     }
 
-    /// @notice Aggregate calls, allowing each to succeed or fail independently
+    /// @notice 여러 호출을 집계하여 각 호출이 독립적으로 성공 또는 실패하도록 허용합니다.
     function aggregate3(Call3[] calldata calls)
         external payable returns (Result[] memory returnData);
 }
@@ -56,7 +56,7 @@ interface IMulticall3 {
 
 ### 2단계: 권한 부여 서명
 
-EOA 소유자가 위임 컨트랙트를 지정하는 권한 부여에 서명합니다. 이 권한 부여는 EIP-7702 트랜잭션에 포함됩니다.
+EOA 소유자는 위임 계약을 지정하는 권한 부여에 서명합니다. 이 권한 부여는 EIP-7702 트랜잭션에 포함됩니다.
 
 ```javascript
 // config.ts
@@ -89,7 +89,7 @@ export async function signAuthorization() {
 
 ### 3단계: EIP-7702 트랜잭션 제출
 
-권한 부여를 `Multicall3.aggregate3` 호출과 결합합니다. 이 예시는 세 개의 USDT0 전송을 단일 트랜잭션으로 일괄 처리합니다.
+권한 부여를 `Multicall3.aggregate3` 호출과 결합합니다. 이 예제는 단일 트랜잭션에서 세 개의 USDT0 전송을 일괄 처리합니다.
 
 ```javascript
 import { ethers } from "ethers";
@@ -122,34 +122,34 @@ async function main() {
   const signedAuth = await signAuthorization();
 
   const tx = await wallet.sendTransaction({
-    type: 4,                          // EIP-7702 transaction type
-    to: wallet.address,               // call is directed at the EOA itself
-    data: batchData,                  // aggregate3 call to execute
+    type: 4,                          // EIP-7702 트랜잭션 유형
+    to: wallet.address,               // 호출은 EOA 자체로 향함
+    data: batchData,                  // 실행할 aggregate3 호출
     authorizationList: [signedAuth],
     maxPriorityFeePerGas: 0n,
   });
 
   const receipt = await tx.wait(1);
-  console.log("Batch transactions executed in tx:", receipt.hash);
+  console.log("트랜잭션 일괄 처리됨:", receipt.hash);
 }
 ```
 
 ```text
-Batch transactions executed in tx: 0x...
+일괄 트랜잭션이 tx에서 실행됨: 0x...
 ```
 
-EOA는 `Multicall3.aggregate3`을 통해 세 개의 호출을 모두 단일 원자적 트랜잭션으로 실행합니다. 위임은 명시적으로 변경되거나 해제될 때까지 지속됩니다. 이 예시는 일괄 결제를 보여주지만, 동일한 패턴이 컨트랙트 호출의 모든 조합에 적용됩니다.
+EOA는 `Multicall3.aggregate3`를 통해 세 가지 호출을 단일 원자적 트랜잭션으로 실행합니다. 위임은 명시적으로 변경되거나 지워질 때까지 유지됩니다. 이 예는 일괄 결제를 보여주지만, 동일한 패턴은 모든 종류의 계약 호출 조합에 적용됩니다.
 
 ## 사용 사례: 지출 한도
 
-위임 컨트랙트는 계정 마이그레이션 없이 EOA에 트랜잭션당 또는 일일 상한을 적용할 수 있습니다.
+위임 계약은 계정 마이그레이션 없이 EOA에 대한 트랜잭션당 또는 일일 한도를 강제할 수 있습니다.
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 /// @title SpendingLimitExecutor
-/// @notice Delegate contract that enforces daily spending caps
+/// @notice 일일 지출 한도를 강제하는 위임 계약
 contract SpendingLimitExecutor {
     mapping(address => uint256) public dailyLimit;
     mapping(address => uint256) public spentToday;
@@ -174,25 +174,25 @@ contract SpendingLimitExecutor {
         spentToday[msg.sender] += value;
         require(
             spentToday[msg.sender] <= dailyLimit[msg.sender],
-            "daily limit exceeded"
+            "일일 한도 초과"
         );
 
         (bool success,) = target.call{value: value}(data);
-        require(success, "call failed");
+        require(success, "호출 실패");
     }
 }
 ```
 
 ## 사용 사례: 세션 키
 
-세션 키를 사용하면 dApp이 범위가 지정된 권한(시간 창과 허용된 대상 컨트랙트 집합) 내에서 EOA를 대신하여 트랜잭션을 실행할 수 있습니다. 이는 빈번한 온체인 상호작용이 그렇지 않으면 반복적인 지갑 승인을 요구하게 되는 dApp에 유용합니다.
+세션 키를 사용하면 dApp이 EOA를 대신하여 범위가 지정된 권한(시간 창 및 허용되는 대상 계약 세트) 내에서 트랜잭션을 실행할 수 있습니다. 이는 빈번한 온체인 상호 작용이 반복적인 지갑 승인을 필요로 하는 dApp에 유용합니다.
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 /// @title SessionKeyExecutor
-/// @notice Delegate contract that grants scoped, time-limited access to a session key
+/// @notice 세션 키에 범위가 지정된 시간 제한 액세스 권한을 부여하는 위임 계약
 contract SessionKeyExecutor {
     struct Session {
         address key;
@@ -204,7 +204,7 @@ contract SessionKeyExecutor {
     mapping(address => Session) public sessions;
     mapping(address => mapping(address => bool)) public allowedTargets;
 
-    /// @notice Register a session key with scoped permissions
+    /// @notice 범위가 지정된 권한으로 세션 키 등록
     function startSession(
         address key,
         uint256 validUntil,
@@ -223,7 +223,7 @@ contract SessionKeyExecutor {
         }
     }
 
-    /// @notice Execute a call using the session key
+    /// @notice 세션 키를 사용하여 호출 실행
     function executeAsSessionKey(
         address owner,
         address target,
@@ -232,40 +232,40 @@ contract SessionKeyExecutor {
     ) external {
         Session storage session = sessions[owner];
 
-        require(msg.sender == session.key, "not session key");
-        require(block.timestamp <= session.validUntil, "session expired");
-        require(allowedTargets[owner][target], "target not allowed");
+        require(msg.sender == session.key, "세션 키가 아님");
+        require(block.timestamp <= session.validUntil, "세션 만료됨");
+        require(allowedTargets[owner][target], "대상이 허용되지 않음");
 
         uint256 beforeBalance = owner.balance;
 
         (bool success,) = target.call{value: value}(data);
-        require(success, "call failed");
+        require(success, "호출 실패");
 
         session.spent += owner.balance - beforeBalance;
-        require(session.spent <= session.spendingLimit, "budget exceeded");
+        require(session.spent <= session.spendingLimit, "예산 초과");
     }
 
-    /// @notice Revoke the active session
+    /// @notice 활성 세션 해지
     function revokeSession() external {
         delete sessions[msg.sender];
     }
 }
 ```
 
-## 중요 고려 사항
+## 중요한 고려 사항
 
-- **지속적인 위임**: 위임은 EOA가 명시적으로 변경하거나 해제할 때까지 지속됩니다. 단일 트랜잭션에 국한되지 않습니다.
-- **가스 비용**: EIP-7702 트랜잭션은 권한 부여 처리로 인해 기본 가스가 약간 더 높지만, 위임이 여러 호출을 일괄 처리할 때 상쇄됩니다.
-- **감사받은 위임 사용**: 악의적인 위임 컨트랙트는 EOA의 자산을 탈취할 수 있습니다. 감사받은 컨트랙트에만 위임하세요.
+- **지속적인 위임**: 위임은 EOA가 명시적으로 변경하거나 지울 때까지 유지됩니다. 단일 트랜잭션에 국한되지 않습니다.
+- **가스 비용**: EIP-7702 트랜잭션은 권한 부여 처리로 인해 기본 가스 비용이 약간 높지만, 위임자가 여러 호출을 일괄 처리할 때 상쇄됩니다.
+- **감사된 위임자 사용**: 악의적인 위임 계약은 EOA의 자산을 소진할 수 있습니다. 감사된 계약에만 위임하십시오.
 
-## 핵심 요점
+## 주요 내용
 
-- EIP-7702를 사용하면 EOA가 새로운 계정 유형으로 마이그레이션하지 않고도 스마트 컨트랙트 로직을 실행할 수 있습니다.
-- Stable에서 EIP-7702는 기존 EOA에서 일괄 결제, 지출 한도, 범위가 지정된 세션 키를 가능하게 합니다.
-- 위임은 명시적으로 변경될 때까지 지속됩니다. 항상 감사받은 위임 컨트랙트를 사용하세요.
+- EIP-7702는 EOA가 새 계정 유형으로 마이그레이션하지 않고도 스마트 계약 로직을 실행할 수 있도록 합니다.
+- Stable에서 EIP-7702는 기존 EOA에 일괄 결제, 지출 한도 및 범위가 지정된 세션 키를 활성화합니다.
+- 위임은 명시적으로 변경될 때까지 유지됩니다. 항상 감사된 위임 계약을 사용하십시오.
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**구독 및 수금**](/ko/how-to/subscribe-and-collect) — SubscriptionManager를 사용하여 반복 구독 결제에 EIP-7702를 적용합니다.
-- [**EIP-7702 개념**](/ko/explanation/eip-7702) — 배포하기 전에 위임 모델을 이해하세요.
-- [**EIP-7702 레퍼런스**](/ko/reference/eip-7702-api) — `0x04` 트랜잭션 형식과 권한 부여 필드를 찾아보세요.
+- [**구독 및 수집**](/ko/how-to/subscribe-and-collect): SubscriptionManager를 사용하여 EIP-7702를 정기 구독 결제에 적용합니다.
+- [**EIP-7702 개념**](/ko/explanation/eip-7702): 위임 모델을 배포하기 전에 이해하십시오.
+- [**EIP-7702 참조**](/ko/reference/eip-7702-api): `0x04` 트랜잭션 형식 및 권한 부여 필드를 찾아보십시오.

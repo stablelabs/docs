@@ -1,25 +1,25 @@
 ---
 source_path: tutorial/quick-start.mdx
-source_sha: ac60005c171579369156d04b03a48434c2e6bbba
-title: "快速开始"
-description: "连接到 Stable 测试网，从水龙头为钱包注资，并发送你的第一笔 USDT0 交易"
+source_sha: f3a60f028fff5319841801dd9508ebb86d37069f
+title: "快速入门"
+description: "连接到 Stable 测试网，通过水龙头资助钱包，并发送您的第一个 USDT0 交易"
 diataxis: "tutorial"
 ---
 
-# 快速开始
+# 快速入门
 
-你只需要 Node.js、一些来自水龙头的 USDT0 以及一个私钥。Stable 使用 USDT0 作为其 gas 代币，因此你只需要 USDT0 即可进行交易。无需单独为某种 gas 资产注资。
+您只需要 Node.js、一些来自水龙头的 USDT0 和一个私钥。Stable 使用 USDT0 作为其 Gas 代币，因此您只需 USDT0 即可进行交易。无需资助单独的 Gas 资产。
 
 :::note
-更喜欢类型化的客户端？[Stable SDK](/cn/explanation/sdk-overview) 封装了 viem，并提供 `transfer`、`bridge` 和 `swap` 方法，让你省去手动处理 ABI 和小数位的工作。
+偏好类型化客户端？[Stable SDK](/cn/explanation/sdk-overview) 通过 `transfer`、`bridge` 和 `swap` 方法封装了 viem，因此您可以跳过手动 ABI 和小数处理。
 :::
 
-## 前置条件
+## 前提条件
 
 - Node.js 20 或更高版本
-- 一个你掌控的私钥（一个全新的测试密钥即可）
+- 您控制的一个私钥（一个新的测试密钥即可）
 
-## 1. 安装与配置
+## 1. 安装和配置
 
 创建一个项目，安装 `ethers`，并保存测试网配置。
 
@@ -32,7 +32,7 @@ npm init -y && npm install ethers
 added 1 package, audited 2 packages in 1s
 ```
 
-将你的私钥保存到 `.env`：
+将您的私钥保存到 `.env`：
 
 ```bash
 echo "PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE" > .env
@@ -52,9 +52,9 @@ export const provider = new ethers.JsonRpcProvider(STABLE_TESTNET_RPC);
 export const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 ```
 
-## 2. 为钱包注资
+## 2. 资助钱包
 
-打印你的地址，然后从水龙头申请测试网 USDT0。
+打印您的地址，然后从水龙头请求测试网 USDT0。
 
 ```typescript
 // address.ts
@@ -71,19 +71,19 @@ npx tsx address.ts
 Wallet address: 0x1234...abcd
 ```
 
-前往 [https://faucet.stable.xyz](https://faucet.stable.xyz)，粘贴地址，并选择按钮以接收测试网 USDT0。水龙头会发送 1 USDT0，足以进行数千次原生转账。
+访问 [https://faucet.stable.xyz](https://faucet.stable.xyz)，粘贴地址，然后选择按钮以接收测试网 USDT0。水龙头发送 1 USDT0，足以进行数千次原生转账。
 
-## 3. 发送你的第一笔交易
+## 3. 发送您的第一笔交易
 
-原生发送 0.001 USDT0。在 Stable 上，USDT0 是原生资产，因此简单的价值转账是最便宜的方式（21,000 gas）。
+原生发送 0.001 USDT0。在 Stable 上，USDT0 是原生资产，因此简单的价值转账是最便宜的路径（21,000 gas）。
 
 ```typescript
 // send.ts
 import { ethers } from "ethers";
 import { provider, wallet } from "./config";
 
-const recipient = "0xRecipientAddress"; // replace with any address
-const amount = ethers.parseEther("0.001"); // 0.001 USDT0 (18 decimals, native)
+const recipient = "0xRecipientAddress"; // 替换为任意地址
+const amount = ethers.parseEther("0.001"); // 0.001 USDT0 (18 位小数，原生)
 
 const block = await provider.getBlock("latest");
 const baseFee = block!.baseFeePerGas!;
@@ -92,7 +92,7 @@ const tx = await wallet.sendTransaction({
   to: recipient,
   value: amount,
   maxFeePerGas: baseFee * 2n,
-  maxPriorityFeePerGas: 0n, // always 0 on Stable
+  maxPriorityFeePerGas: 0n, // 在 Stable 上始终为 0
 });
 
 const receipt = await tx.wait(1);
@@ -109,14 +109,14 @@ Tx: 0x8f3a...2d41
 Explorer: https://testnet.stablescan.xyz/tx/0x8f3a...2d41
 ```
 
-打开浏览器链接以确认该交易。出块时间大约为 0.7 秒，因此它应该已经最终确认。
+打开浏览器链接以确认交易。出块时间约为 0.7 秒，因此它应该已经最终确定。
 
 :::warning
-`maxPriorityFeePerGas` 会被 Stable 忽略，并且必须设置为 `0`。请参阅 [Gas 定价](/cn/reference/gas-pricing-api)，了解仅基于 base-fee 的模型如何改变交易构造。
+`maxPriorityFeePerGas` 被 Stable 忽略，并且必须设置为 `0`。有关仅基础费用模型如何改变交易构造，请参阅[Gas 定价](/cn/reference/gas-pricing-api)。
 :::
 
 ## 接下来去哪里
 
-- [**部署智能合约**](/cn/tutorial/smart-contract) — 搭建一个 Foundry 项目并部署到 Stable 测试网。
-- [**构建支付应用**](/cn/how-to/build-p2p-payments) — 创建钱包，发送、接收并查询支付历史。
-- [**使用 AI 进行开发**](/cn/how-to/develop-with-ai) — 将 MCP 服务器和 agent 技能接入你的 AI 编辑器。
+- [**部署智能合约**](/cn/tutorial/smart-contract)：搭建 Foundry 项目并部署到 Stable 测试网。
+- [**构建支付应用程序**](/cn/how-to/build-p2p-payments)：创建钱包，发送、接收和查询支付历史记录。
+- [**使用 AI 进行开发**](/cn/how-to/develop-with-ai)：将 MCP 服务器和代理技能连接到您的 AI 编辑器。

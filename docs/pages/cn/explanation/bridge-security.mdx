@@ -1,50 +1,50 @@
 ---
 source_path: explanation/bridge-security.mdx
-source_sha: f1e67d648ec59eb4f8972eedeef0e8cda8c943af
-title: "桥接安全性与 DVN"
-description: "了解 Stable 如何配置 LayerZero DVN 来验证跨链消息，以及为什么单个密钥泄露不会造成致命影响。"
+source_sha: 1566bfa5dadef64d40a9d10ef7ece18b4384ca62
+title: "跨链桥安全性与DVN"
+description: "了解Stable如何配置LayerZero DVN来验证跨链消息，以及单个密钥泄露为何不是致命的。"
 diataxis: "explanation"
 ---
 
-# 桥接安全性与 DVN
+# 跨链桥安全性与DVN
 
-LayerZero 桥的安全性，完全取决于确认某条链上发送的消息确实在另一条链上发生的验证层。这个层就是去中心化验证者网络（Decentralized Verifier Network，DVN）。本页将解释 DVN 的作用、Stable 如何在其桥上配置 DVN，以及为什么任何单个 DVN 的泄露都不会使 Stable 面临风险。
+LayerZero 跨链桥的安全性取决于验证层，该验证层确认一条链上发送的消息是否在另一条链上发生。该层是一个去中心化验证网络（Decentralized Verifier Network，简称 DVN）。本页面解释了 DVN 的作用，Stable 如何在其跨链桥上配置它们，以及单个 DVN 的泄露为何不会使 Stable 处于风险之中。
 
-## DVN 如何工作
+## DVN 的工作原理
 
-当 LayerZero 消息从链 A 移动到链 B 时，目标合约不会立即执行它，直到一组配置好的 DVN 独立证明该消息是真实的。每个应用都选择自己的配置：
+当 LayerZero 消息从链 A 传输到链 B 时，目标合约不会执行它，直到一组配置好的 DVN 独立证明该消息是真实的。每个应用程序选择自己的配置：
 
-- **必需 DVN（Required DVNs）。** 每个必需 DVN 都必须签名后，消息才会被接受。
-- **带 N-of-M 阈值的可选 DVN（Optional DVNs）。** 可在必需集合之上额外添加一个可选池，设置类似 2-of-5 的阈值，在必需签名之外还必须满足该阈值。
-- **区块确认深度。** DVN 在签名前等待的源链确认数量。
+- **必需的 DVN。** 在消息被接受之前，每个必需的 DVN 都必须签名。
+- **可选的 DVN，带有 N-of-M 阈值。** 除了必需的 DVN 集之外，还可以添加一个可选池，其阈值例如 2-of-5，必须满足该阈值才能加上必需的签名。
+- **区块确认深度。** DVN 在签名之前等待的源链确认数量。
 
-桥的安全性完全由这个配置决定。如果采用 1/1 配置，仅由单个 DVN 作为唯一验证者，那么该 DVN 签名密钥的任何泄露都会让攻击者伪造跨链消息。而横跨三个独立运营商的 3/3 配置，则要求三者同时被攻破。这其中的差别，就是因单个被盗密钥而失去整座桥，与在针对某一运营商的定向攻击中幸存下来之间的差别。
+跨链桥的安全性完全取决于此配置。如果采用 1/1 设置，只有一个 DVN 作为唯一的验证者，那么该 DVN 签名密钥的任何泄露都将允许攻击者伪造跨链消息。在三个独立运营商之间采用 3/3 设置，则需要同时泄露所有三个密钥。这两者之间的区别在于，一个是因单个密钥被盗而丢失跨链桥，另一个是在一个运营商遭受针对性攻击后仍能幸存。
 
 ## Stable 的配置
 
-Stable 的桥运行 **3/3 必需 DVN** 配置，由三个独立运营商组成：**LayerZero Labs**、**Canary** 和 **Horizen**。三者都必须对每条跨链消息签名后，目标合约才会执行它。这里没有带阈值的可选池；必需集合就是全部的验证面。
+Stable 的跨链桥采用 **3/3 必需 DVN** 配置，由三个独立的运营商组成： **LayerZero Labs**、**Canary** 和 **Horizen**。所有这三个运营商都必须签署每条跨链消息，然后目标合约才会执行它。没有带阈值的可选池；必需的 DVN 集是整个验证面。
 
-单个签名密钥被泄露（包括 LayerZero 自己的密钥）对这种安全态势毫无作用。伪造一条消息将需要同时攻破全部三个独立运营商。
+单个泄露的签名密钥，包括 LayerZero 自己的密钥，对这种态势没有任何影响。伪造消息需要同时泄露所有三个独立的运营商。
 
-关于 DVN 合约地址，请参阅 [桥：Stable 的 DVN 运营商](/cn/reference/bridges#stable-s-dvn-operators)。
+有关 DVN 合约地址，请参阅[跨链桥：Stable 的 DVN 运营商](/cn/reference/bridges#stable-s-dvn-operators)。
 
 ## STABLE OFT 架构
 
-STABLE 代币使用 LayerZero 的全链同质化代币（Omnichain Fungible Token，OFT）标准桥接到其他链。部署了两种合约类型：
+STABLE 代币使用 LayerZero 的 Omnichain Fungible Token (OFT) 标准桥接到其他链。部署了两种合约类型：
 
-- **`StableOFTAdapter`** 部署在 Stable 上。当 STABLE 被跨链发送时，该适配器在主链上锁定 STABLE 并发出一条 LayerZero 消息。
-- **`StableOFTUpgradeable`** 部署在每条远程链上。当消息被配置的 DVN 验证后，该合约在目标链上铸造 STABLE，并在返回路径上销毁它，从而使主链供应量保持权威性。
+- **`StableOFTAdapter`** 在 Stable 上。此适配器锁定主链上的 STABLE，并在 STABLE 跨链发送时发出 LayerZero 消息。
+- **`StableOFTUpgradeable`** 在每个远程链上。当消息通过配置的 DVN 验证后，此合约在目标链上铸造 STABLE，并在返回路径上销毁 STABLE，以便主链上的供应保持规范。
 
-关于各链上的已部署地址，请参阅 [桥：STABLE OFT 合约](/cn/reference/bridges#stable-oft-contracts)。
+有关每个链上部署的地址，请参阅[跨链桥：STABLE OFT 合约](/cn/reference/bridges#stable-oft-contracts)。
 
-## 运营依赖
+## 运营依赖项
 
-Stable 自身的桥接安全性独立于上游协议，但当合作协议暂停其自身的桥时，通过 Stable 的跨链流动仍可能暂停。例如，当 USDT0 暂停跨链铸造和销毁时，USDT0 无法进出 Stable，直到 USDT0 恢复为止。Stable 内的资金仍可自由流动；仅特定的跨链操作不可用。
+Stable 自己的跨链桥安全性独立于上游协议，但流经 Stable 的跨链流仍可能在合作协议暂停其自己的跨链桥时暂停。例如，当 USDT0 暂停跨链铸造和销毁时，USDT0 无法与 Stable 之间转移，直到 USDT0 恢复。Stable 内的资金继续自由流动；只有特定的跨链操作不可用。
 
-通过合作桥进行路由的应用界面应清楚地传达这一点，以便用户理解其中的区别：他们的资金没有风险，只是某条特定的跨链路径暂时不可用。
+通过合作伙伴跨链桥路由的应用程序界面应清楚地传达这一点，以便用户理解其区别：他们的资金没有风险，只是特定的跨链路径暂时不可用。
 
-## 下一步推荐
+## 下一步建议
 
-- [**将 USDT0 桥接到 Stable**](/cn/explanation/usdt0-bridging) — 了解 USDT0 如何通过 OFT Mesh 和 Legacy Mesh 到达 Stable。
-- [**桥提供商与地址**](/cn/reference/bridges) — 参考合约地址、DVN 运营商和支持的桥提供商。
-- [**LayerZero DVN 文档**](https://docs.layerzero.network/v2/concepts/protocol/security-stack-dvns) — 阅读 LayerZero 关于必需和可选 DVN 验证的规范。
+- [**将 USDT0 桥接到 Stable**](/cn/explanation/usdt0-bridging)：了解 USDT0 如何通过 OFT Mesh 和 Legacy Mesh 到达 Stable。
+- [**跨链桥提供商和地址**](/cn/reference/bridges)：参考合约地址、DVN 运营商和支持的跨链桥提供商。
+- [**LayerZero DVN 文档**](https://docs.layerzero.network/v2/concepts/protocol/security-stack-dvns)：阅读 LayerZero 关于必需和可选 DVN 验证的规范。

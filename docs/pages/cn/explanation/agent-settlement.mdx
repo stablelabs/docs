@@ -1,57 +1,57 @@
 ---
 source_path: explanation/agent-settlement.mdx
-source_sha: 161a49c64c60ae1d96e433bc9f7348f9f0220133
+source_sha: 1cf4364b9675c77a3542fbe1cbd4ac6aacaaaf53
 title: "代理结算"
-description: "自主代理如何在 Stable 上以 USDT 持有、支付和结算，无需独立的 gas 代币，并具备亚秒级最终确认。"
+description: "自主代理如何在 Stable 上持有、支付和结算 USDT，无需单独的 gas 代币，且具有亚秒级终结性。"
 diataxis: "explanation"
 ---
 
 # 代理结算
 
-代理结算是 Stable 面向机器支付的通道。代理持有 USDT0 余额，通过 HTTP 为某个资源付费，付款在同一请求周期内于链上结算。代理从同一个余额中同时支出付款和网络费用。无需独立的 gas 代币，无需注册，也无需轮换 API 密钥。
+代理结算是 Stable 针对机器支付的通道。代理持有 USDT0 余额，通过 HTTP 方式为资源付费，支付在同一请求周期内于链上结算。代理从一个余额中支出，用于支付和网络费用。无需单独的 gas 代币，无需注册，也无需 API 密钥轮换。
 
 ## 这对代理为何重要
 
-代理的交易方式与人类不同。它们持续运行，进行大量小额付款，且无法完成注册流程或轮换 API 密钥。Stable 上的结算正契合这种工作负载：
+代理与人类交易方式不同。它们持续运行，进行大量小额支付，并且无法完成注册流程或轮换 API 密钥。Stable 上的结算匹配了这种工作负载：
 
-- **USDT0 既是 gas 代币也是支付代币。** 代理钱包持有单一资产，并用它同时支付费用和付款。
-- **亚美分、可预测的费用。** 费用以美元计价，因此代理可以为每个操作的成本做预算，而无需从波动的 gas 资产进行换算。
-- **亚秒级最终确认。** 已付费的 HTTP 调用在请求生命周期内完成结算（约 700 毫秒出块时间），这使高频机器流量成为可能。
-- **USDT 的分发覆盖。** USDT 是持有最广泛的稳定币；Stable 是专为它打造的场所。
+- **USDT0 既是 gas 代币也是支付代币。** 代理钱包持有单一资产，并将其用于支付费用和款项。
+- **亚美分级、可预测的费用。** 费用以美元计价，因此代理可以预算每次操作的成本，而无需从不稳定的 gas 资产中进行转换。
+- **亚秒级终结性。** 已支付的 HTTP 调用在请求生命周期内（约 700 毫秒区块时间）完成结算，这使得高频机器流量成为可能。
+- **USDT 分发。** USDT 是持有最广泛的稳定币；Stable 是专为此目的而构建的平台。
 
-## 各层级如何协作
+## 各层级如何协同
 
-两个层级承担不同的职责，互为补充而非相互替代：
+两个层级各司其职，互为补充，而非替代：
 
-- **x402** 是*支付标准*。它是一种 HTTP 原生协议，服务器以 `402 Payment Required` 响应，客户端签署授权，由 facilitator 提交。
-- **MPP（Machine Payments Protocol）** 是 IETF 标准化路线上的标准，它通过更广泛的意图和多通道支持取代 x402；x402 是 Stable 目前支持的向后兼容子集。参见 [MPP](/cn/explanation/mpp)。
-- **Stable** 是*结算层*。USDT0 的链上转账实际上在这里发生。
+- **x402** 是*支付标准*。它是一种 HTTP 原生协议，服务器响应 `402 Payment Required`，客户端签署授权，然后由协调器提交。
+- **MPP (Machine Payments Protocol)** 是 IETF 正在跟踪的标准，它以更广泛的意图和多通道支持取代了 x402；x402 是 Stable 目前支持的向后兼容子集。参见 [MPP](/cn/explanation/mpp)。
+- **Stable** 是*结算层*。这是 USDT0 链上转账实际发生的地方。
 
-**facilitator** 位于两者之间：它验证已签名的付款并提交链上调用，从而使开发者无需运行结算基础设施。请参见 [Facilitators](/cn/reference/agentic-facilitators)，了解目前支持 Stable 的提供商。
+一个**协调器**位于两者之间：它验证已签名的支付并提交链上调用，因此开发者无需运行结算基础设施。请参阅[协调器](/cn/reference/agentic-facilitators)以了解目前支持 Stable 的提供商。
 
 ```text
-agent (client)  ──HTTP──▶  resource server  ──signed payment──▶  facilitator  ──tx──▶  Stable
-                          (returns 402)                          (verify + submit)     (USDT0 settles)
+代理（客户端）──HTTP──▶ 资源服务器 ──已签名支付──▶ 协调器 ──交易──▶ Stable
+                      （返回 402）                  （验证 + 提交）   （USDT0 结算）
 ```
 
-## 你可以构建什么
+## 您可以构建什么
 
-- **按调用付费的 API**，以 USDT0 按请求计价，通过 x402 或 MPP 结算。
-- **代理对代理的商业**，一个代理通过 HTTP 为另一个代理的服务付费。
-- **付费的 MCP 工具**，封装 x402 端点，使 AI 客户端可以通过提示词调用并为其付费。
-- **自主采购**，基于已编入预算的 USDT0 余额。
-- **基于用量的计费**，按每次请求结算而非按发票结算。
-- **代理钱包**，仅以 USDT0 充值，无需托管中间件。
+- **按次付费 API** 以 USDT0 按请求定价，通过 x402 或 MPP 结算。
+- **代理间商务**，即一个代理通过 HTTP 为另一个代理的服务付费。
+- **付费 MPC 工具**，将 x402 端点封装起来，以便 AI 客户端通过提示调用并支付。
+- **自主采购**，根据预算的 USDT0 余额进行。
+- **基于使用量的计费**，按请求而非按发票结算。
+- **代理钱包**仅用 USDT0 资助，无需托管中间件。
 
 ## 从这里开始
 
-- [**构建按调用付费的 API**](/cn/how-to/build-pay-per-call) — 搭建一个 x402 门控的端点，并在请求中结算一笔真实的 USDT0 付款。
-- [**在 Stable 上构建 MPP 端点**](/cn/how-to/build-mpp-endpoint) — 为 USDT0 编写三个 MPP 自定义方法钩子，并在 Stable 上结算。
-- [**使用 AI 进行开发**](/cn/how-to/develop-with-ai) — 将 Docs MCP 和 Runtime MCP 接入你的 AI 编辑器，并粘贴 Stable 上下文块。
-- [**通过 MCP 服务器付费**](/cn/how-to/pay-with-mcp) — 将 x402 付费 API 暴露为 MCP 工具，使代理可以通过自然语言提示词调用它们。
+- [**构建按次付费 API**](/cn/how-to/build-pay-per-call)：建立一个受 x402 保护的端点，并在请求中结算真实的 USDT0 支付。
+- [**在 Stable 上构建 MPP 端点**](/cn/how-to/build-mpp-endpoint)： 为 USDT0 编写三个 MPP 自定义方法钩子并在 Stable 上结算。
+- [**使用 AI 进行开发**](/cn/how-to/develop-with-ai)：将 Docs MCP 和 Runtime MCP 连接到您的 AI 编辑器，并粘贴 Stable 上下文块。
+- [**使用 MCP 服务器支付**](/cn/how-to/pay-with-mcp)：将 x402 支付的 API 作为 MPC 工具暴露，代理可以通过自然语言提示调用。
 
-## 推荐的后续阅读
+## 接下来推荐
 
-- [**深入了解 x402**](/cn/explanation/x402) — 阅读 HTTP 支付协议在 Stable 上端到端的工作方式。
-- [**MPP**](/cn/explanation/mpp) — x402 所属的更广泛的 IETF 标准化路线标准。
-- [**Facilitators**](/cn/reference/agentic-facilitators) — 查看哪些 facilitator 已在 Stable 上结算 USDT0 付款。
+- [**x402 深度解析**](/cn/explanation/x402)：阅读 HTTP 支付协议如何在 Stable 上端到端工作。
+- [**MPP**](/cn/explanation/mpp)：x402 所属的更广泛的 IETF 跟踪标准。
+- [**协调器**](/cn/reference/agentic-facilitators)：查看哪些协调器已经在 Stable 上结算 USDT0 支付。

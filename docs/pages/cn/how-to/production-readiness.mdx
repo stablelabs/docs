@@ -1,30 +1,30 @@
 ---
 source_path: how-to/production-readiness.mdx
-source_sha: 4789a197ff1efd758012e442307c58c105ac716a
-title: "生产环境就绪"
-description: "在部署到主网之前验证集成：安全性、可靠性、运维以及问题升级渠道。"
+source_sha: 99ec4061509a9a91f28a5a835a51015abb204503
+title: "生产可用性"
+description: "在发布到主网之前验证集成：安全性、可靠性、操作以及如何上报问题。"
 diataxis: "how-to"
 ---
 
-# 生产环境就绪
+# 生产可用性
 
-在从测试网切换到主网之前，请逐一完成下面的每个部分。
+在从测试网切换到主网之前，请完成下面列出的所有章节。
 
-## 启动前准备
+## 发布前
 
-- **网络目标。** 你的应用读取的是主网值，而非测试网：chain ID `988`、RPC `https://rpc.stable.xyz`、浏览器 `https://stablescan.xyz`。完整配置见 [连接](/cn/reference/connect)。
-- **合约已验证。** 已部署的合约在 [stablescan.xyz](https://stablescan.xyz) 上完成验证，以便用户和合作伙伴可以检查它们。
-- **主网资金路径。** 你有一套书面记录的方式，让生产钱包获取 USDT0：直接获取、通过 LayerZero 跨链或托管方。水龙头仅限测试网。
-- **环境隔离。** 密钥、RPC 凭据和签名路径在测试网和主网之间相互隔离。
+- **网络目标。** 您的应用程序读取的是主网值，而非测试网：链 ID `988`，RPC `https://rpc.stable.xyz`，浏览器 `https://stablescan.xyz`。完整配置请参见[连接](/cn/reference/connect)。
+- **合约已验证。** 已部署的合约已在 [stablescan.xyz](https://stablescan.xyz) 上验证，以便用户和合作伙伴可以检查它们。
+- **主网资金路径。** 您有记录的生产钱包获取 USDT0 的方式：直接获取、通过 LayerZero 桥接或通过托管人。水龙头仅适用于测试网。
+- **环境隔离。** 密钥、RPC 凭据和签名路径在测试网和主网之间是分离的。
 
 ## 安全检查
 
-USDT0 的双重角色行为打破了一些从以太坊沿用而来的假设。下面每一项都应当验证。完整列表见 [迁移检查清单](/cn/explanation/usdt0-behavior)。
+USDT0 的双重角色行为打破了从以太坊移植过来的一些假设。下面的每个项目都应该进行验证。完整列表请参见[迁移清单](/cn/explanation/usdt0-behavior)。
 
-**偿付能力检查读取真实的原生余额，而非镜像值。**
+**偿付能力检查读取的是真实的原生余额，而非镜像。**
 
 :::warning
-在内部变量中跟踪已存入的原生价值是不安全的。外部的 `USDT0.transferFrom` 调用可以在不触发任何合约代码的情况下耗尽合约的原生余额。
+在内部变量中跟踪存入的原生值是不安全的。外部 `USDT0.transferFrom` 调用可以在不调用任何合约代码的情况下耗尽合约的原生余额。
 :::
 
 ```solidity
@@ -38,12 +38,12 @@ function withdraw() external {
 }
 ```
 
-**基于授权额度的耗尽路径已被测试覆盖。** 每条 `approve` / `transferFrom` / `permit` 路径都有一项试图耗尽合约原生余额的测试。
+**基于授权的耗尽路径已通过测试覆盖。** 每个 `approve` / `transferFrom` / `permit` 路径都有一个尝试耗尽合约原生余额的测试。
 
-**向零地址的转账在调用前被拒绝。**
+**在调用之前拒绝零地址转账。**
 
 :::warning
-在 Stable 上，向 `address(0)` 进行的原生转账和 ERC-20 转账都会回滚。请显式校验接收方，否则你的交易将失败。
+向 `address(0)` 进行的原生和 ERC-20 转账在 Stable 上都会回滚。明确验证接收方，否则您的交易将失败。
 :::
 
 ```solidity
@@ -51,30 +51,30 @@ require(recipient != address(0), "zero address recipient");
 payable(recipient).call{value: amount}("");
 ```
 
-**地址重用检测不依赖于 `EXTCODEHASH`。** 基于 permit 的授权会在不增加 nonce 的情况下改变原生余额，因此 `EXTCODEHASH` 可能在零哈希和空哈希之间来回波动。请改用显式跟踪。
+**地址复用检测不依赖于 `EXTCODEHASH`。** 基于许可的批准会在不增加 nonce 的情况下更改原生余额，因此 `EXTCODEHASH` 可以在零哈希和空哈希之间振荡。请改用显式跟踪。
 
 ## 性能与可靠性
 
-- **RPC 冗余。** 生产流量有故障切换方案。第三方提供商列于 [RPC 提供商](/cn/reference/rpc-providers)。
-- **Gas 估算。** 交易将 `maxPriorityFeePerGas` 设为 `0`，并根据当前的基础费用计算 `maxFeePerGas`。参见 [Gas 定价](/cn/reference/gas-pricing-api)。
-- **出块时间。** 区块大约每 0.7 秒产生一个，并具有单槽最终性。轮询间隔和确认阈值应根据这一节奏进行调整。
-- **重试。** 瞬时 RPC 错误应以幂等方式重试。对于涉及资金的敏感流程，应在下游状态变更之前通过收据或日志验证交易已被打包。
+- **RPC 冗余。** 生产流量有一个故障转移计划。第三方提供商列在 [RPC 提供商](/cn/reference/rpc-providers)中。
+- **Gas 估算。** 交易将 `maxPriorityFeePerGas` 设置为 `0`，并根据当前基本费用计算 `maxFeePerGas`。请参阅 [Gas 定价](/cn/reference/gas-pricing-api)。
+- **出块时间。** 大约每 0.7 秒出块一次，并具有单槽终结性。查询间隔和确认阈值已根据此节奏进行调整。
+- **重试。** 瞬时 RPC 错误会幂等地重试。对于金融敏感的流程，在下游状态更改之前，通过收据或日志验证包含情况。
 
-## 运维归属
+## 运营所有权
 
-- **监控。** 如果你运行自己的节点，告警会监视出块、对等节点健康状况和 RPC 延迟；参见 [监控](/cn/how-to/monitor-node)。如果你使用第三方 RPC，请跟踪提供商的 SLA 和故障切换遥测数据。
-- **升级。** 协议版本发布会被跟踪，以便节点运营者能够安排升级；参见 [主网版本历史](/cn/reference/mainnet-version-history)。
-- **运行手册。** 针对合约暂停、密钥轮换和 RPC 提供商切换都有回滚流程。
+- **监控。** 如果您运行自己的节点，警报会监控出块、对等健康状况和 RPC 延迟；请参阅[监控](/cn/how-to/monitor-node)。如果您使用第三方 RPC，请跟踪提供商的 SLA 和故障转移遥测。
+- **升级。** 协议发布会被跟踪，以便节点运营商可以安排升级；请参阅[主网版本历史](/cn/reference/mainnet-version-history)。
+- **运行手册。** 存在用于合约暂停、密钥轮换和 RPC 提供商切换的回滚程序。
 
-## 支持与升级
+## 支持与上报
 
-- [开发者协助](/cn/reference/developer-assistance)：常见问题和参考指引。
+- [开发者协助](/cn/reference/developer-assistance)：常见问题解答和参考指向。
 - [Discord](https://discord.gg/stablexyz)：社区支持和协议更新。
-- `bizdev@stable.xyz`：合作与集成洽谈。
+- `bizdev@stable.xyz`：合作和集成交流。
 
-## 推荐后续阅读
+## 推荐阅读
 
-- [**USDT0 行为**](/cn/explanation/usdt0-behavior) — 阅读完整的迁移检查清单和合约设计要求。
-- [**主网信息**](/cn/reference/mainnet-information) — 查看主网链参数和版本历史。
-- [**RPC 提供商**](/cn/reference/rpc-providers) — 选择第三方 RPC 提供商以实现冗余。
-- [**监控**](/cn/how-to/monitor-node) — 为出块和 RPC 健康状况接入指标和告警。
+- [**USDT0 行为**](/cn/explanation/usdt0-behavior)：阅读完整的迁移清单和合约设计要求。
+- [**主网信息**](/cn/reference/mainnet-information)：检查主网链参数和版本历史。
+- [**RPC 提供商**](/cn/reference/rpc-providers)：选择第三方 RPC 提供商以实现冗余。
+- [**监控**](/cn/how-to/monitor-node)：连接用于出块和 RPC 健康状况的指标和警报。

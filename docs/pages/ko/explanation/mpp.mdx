@@ -1,63 +1,63 @@
 ---
 source_path: explanation/mpp.mdx
-source_sha: 9aafb5fd6791e2d6d14b6cb938ce94878b0e27a1
-title: "Machine Payments Protocol (MPP)"
-description: "x402를 확장하는 IETF 트랙 결제 표준인 MPP와 Stable에서 USDT0 결제에 이를 사용하는 방법을 이해합니다."
+source_sha: 02666af168909bb96414ce0c52d158b4af376522
+title: "머신 결제 프로토콜(MPP)"
+description: "x402를 확장한 IETF 트랙 결제 표준 MPP와 Stable에서 USDT0 결제에 사용하는 방법을 이해해 보세요."
 diataxis: "explanation"
 ---
 
-# Machine Payments Protocol (MPP)
+# 머신 결제 프로토콜(MPP)
 
-MPP(Machine Payments Protocol)는 HTTP 리소스를 요청하는 동일한 요청 내에서 결제할 수 있는 개방형 표준입니다. 이는 [x402](/ko/explanation/x402)를 새로운 결제 의도(charge, subscription, session), 멀티 레일 지원(스테이블코인, 카드, Lightning), 프로덕션 기능(멱등성, 본문 다이제스트 바인딩, 만료), 추가 전송 방식(MCP, WebSocket)으로 확장합니다. 이 프로토콜은 IETF 표준 트랙에 올라 있습니다.
+MPP(Machine Payments Protocol)는 요청과 동시에 HTTP 리소스 비용을 지불하기 위한 개방형 표준입니다. 새로운 결제 의도(청구, 구독, 세션), 멀티 레일 지원(스테이블코인, 카드, 라이트닝), 생산 기능(멱등성, 본문 다이제스트 바인딩, 만료), 추가 전송(MCP, WebSocket)으로 [x402](/ko/explanation/x402)를 확장합니다. 이 프로토콜은 IETF 표준화 트랙에 있습니다.
 
 ## MPP와 x402
 
-MPP 클라이언트는 하위 호환성을 갖습니다. MPP 클라이언트는 변경 없이 기존 x402 서버를 호출할 수 있습니다. 두 프로토콜이 다른 부분은 다음과 같습니다:
+MPP 클라이언트는 이전 버전과 호환됩니다. MPP 클라이언트는 기존 x402 서버를 변경 없이 호출할 수 있습니다. 두 프로토콜의 차이점:
 
-| **항목** | **x402** | **MPP** |
+| **측면** | **x402** | **MPP** |
 | :--- | :--- | :--- |
-| 결제 의도 | 요청별 charge | Charge, subscription, session |
-| 레일 | 블록체인만 | 스테이블코인, 카드, Lightning, 커스텀 |
-| 프로덕션 기능 | 제한적 | 멱등성, 본문 다이제스트 바인딩, 만료 |
-| 전송 방식 | HTTP | HTTP, MCP/JSON-RPC, WebSocket |
-| 헤더 (클라이언트 ↔ 서버) | `PAYMENT-REQUIRED` / `PAYMENT-SIGNATURE` / `PAYMENT-RESPONSE` | `WWW-Authenticate` / `Authorization` / `Payment-Receipt` |
-| 거버넌스 | 커뮤니티 프로토콜 | IETF 표준 트랙 |
-| 메서드 작성 | 재단 통제 | 무허가형 |
+| 결제 의도 | 요청당 청구 | 청구, 구독, 세션 |
+| 레일 | 블록체인 전용 | 스테이블코인, 카드, 라이트닝, 사용자 지정 |
+| 생산 기능 | 제한적 | 멱등성, 본문 다이제스트 바인딩, 만료 |
+| 전송 | HTTP | HTTP, MCP/JSON-RPC, WebSocket |
+| 헤더(클라이언트 ↔ 서버) | `PAYMENT-REQUIRED` / `PAYMENT-SIGNATURE` / `PAYMENT-RESPONSE` | `WWW-Authenticate` / `Authorization` / `Payment-Receipt` |
+| 거버넌스 | 커뮤니티 프로토콜 | IETF 표준화 트랙 |
+| 메서드 작성 | 재단 관리 | 허가 없는 |
 
 ## 챌린지, 자격 증명, 영수증
 
-MPP는 모든 유료 요청을 클라이언트와 리소스 서버 간의 3단계 교환으로 감쌉니다:
+MPP는 모든 유료 요청을 클라이언트와 리소스 서버 간의 3단계 교환으로 래핑합니다.
 
 1. **챌린지.** 서버는 `402 Payment Required`와 지원되는 메서드, 금액, 만료를 명시하는 `WWW-Authenticate` 헤더로 응답합니다.
-2. **자격 증명.** 클라이언트는 메서드를 선택하고, 결제 증명에 서명한 뒤, 직렬화된 자격 증명을 담은 `Authorization` 헤더와 함께 요청을 다시 제출합니다.
-3. **영수증.** 서버는 자격 증명을 검증하고, 결제를 정산한 뒤, 정산 참조를 담은 `Payment-Receipt` 헤더와 함께 응답을 반환합니다.
+2. **자격 증명.** 클라이언트는 메서드를 선택하고, 결제 증명을 서명하고, 직렬화된 자격 증명을 전달하는 `Authorization` 헤더와 함께 요청을 다시 제출합니다.
+3. **영수증.** 서버는 자격 증명을 확인하고, 결제를 정산하고, 정산 참조를 포함하는 `Payment-Receipt` 헤더와 함께 응답을 반환합니다.
 
-챌린지는 본문 다이제스트를 통해 요청 본문에 암호학적으로 바인딩될 수 있으므로, 한 요청에 대해 서명된 자격 증명은 다른 요청에 재사용할 수 없습니다.
+챌린지는 본문 다이제스트를 통해 요청 본문에 암호화 방식으로 바인딩될 수 있으므로, 한 요청에 서명된 자격 증명은 다른 요청에 재사용할 수 없습니다.
 
 ## 결제 의도
 
-**Charge.** 단일 리소스에 대한 일회성 결제입니다. 자격 증명은 정확한 금액의 한 번의 전송을 승인합니다.
+**청구.** 단일 리소스에 대한 일회성 결제. 자격 증명은 정확한 금액의 한 번의 이체를 승인합니다.
 
-**Subscription.** 단일 범위 자격 증명 하에서 반복되는 결제입니다. 자격 증명은 청구 기간에 걸쳐 반복 청구를 승인하며, 레일이 갱신 주기를 적용합니다.
+**구독.** 단일 범위 자격 증명에 따른 반복 결제. 자격 증명은 과금 기간 동안 반복 청구를 승인하며, 레일이 갱신 주기를 적용합니다.
 
-**Session.** 오프체인 바우처를 사용하는 종량제입니다. 클라이언트는 자금을 에스크로에 한 번 예치한 뒤, 각 요청에 대해 저렴한 오프체인 바우처에 서명합니다. 순 금액만 온체인에서 정산됩니다. 자세한 내용은 [MPP 세션](/ko/explanation/mpp-sessions)을 참고하세요.
+**세션.** 오프체인 바우처를 사용한 종량제. 클라이언트는 에스크로에 한 번 자금을 예치한 다음, 각 요청에 대해 저렴한 오프체인 바우처를 서명합니다. 오직 순 금액만 온체인에서 정산됩니다. 자세한 내용은 [MPP 세션](/ko/explanation/mpp-sessions)을 참조하십시오.
 
-## 전송 방식
+## 전송
 
-MPP는 여러 전송 방식에 걸쳐 동일한 챌린지 / 자격 증명 / 영수증 교환을 정의합니다:
+MPP는 여러 전송을 통해 동일한 챌린지 / 자격 증명 / 영수증 교환을 정의합니다.
 
-- **HTTP.** 기본값. 위에 나열된 헤더를 사용합니다.
-- **MCP / JSON-RPC.** MCP 서버가 개별 툴 호출을 수익화할 수 있게 합니다. AI 클라이언트는 툴을 호출하기 전에 자격 증명에 서명합니다.
-- **WebSocket.** 대역 내 바우처 충전이 가능한 지속 연결로, 스트리밍 세션을 위해 설계되었습니다.
+- **HTTP.** 기본값. 위에 나열된 헤더.
+- **MCP / JSON-RPC.** MCP 서버가 개별 도구 호출을 수익화할 수 있도록 합니다. AI 클라이언트는 도구를 호출하기 전에 자격 증명에 서명합니다.
+- **WebSocket.** 스트리밍 세션용으로 설계된 인밴드 바우처 충전이 가능한 영속적인 연결.
 
-## Stable에서의 MPP
+## Stable의 MPP
 
-MPP는 Stable 결제 메서드를 기본 제공하지 않습니다. `mppx` SDK([wevm/mppx](https://github.com/wevm/mppx))에는 Tempo와 Stripe 메서드가 포함되어 있으며, `mpp.dev`는 Tempo, Stripe, Lightning, Solana, Stellar, Monad, RedotPay를 나열합니다. 현재 Stable은 두 목록 어디에도 없습니다.
+MPP는 Stable 결제 방법을 제공하지 않습니다. `mppx` SDK([wevm/mppx](https://github.com/wevm/mppx))에는 Tempo 및 Stripe 메서드가 포함되어 있으며, `mpp.dev`에는 Tempo, Stripe, Lightning, Solana, Stellar, Monad, RedotPay가 나열되어 있습니다. Stable은 오늘날 두 목록에 모두 없습니다.
 
-이 표준은 무허가형이므로 직접 메서드를 작성할 수 있습니다. Stable의 USDT0의 경우, `verify()` 훅은 ERC-3009에 대한 서명 검증이며, 정산은 기존 정산 서비스에 위임됩니다. [Semantic Pay](https://docs.semanticpay.io)나 [Heurist](https://docs.heurist.ai/x402-products/facilitator) 같은 x402 퍼실리테이터, 또는 Stable 자체 [Gas Waiver](/ko/how-to/integrate-gas-waiver)가 그 예입니다. 전체 안내는 [Stable에서 MPP 엔드포인트 구축하기](/ko/how-to/build-mpp-endpoint)를 참고하세요.
+표준은 허가되지 않으므로, 자신만의 메서드를 작성할 수 있습니다. Stable의 USDT0의 경우 `verify()` 훅은 ERC-3009에 대한 서명 유효성 검사이며, 정산은 기존 정산 서비스에 위임됩니다. [Semantic Pay](https://docs.semanticpay.io) 또는 [Heurist](https://docs.heurist.ai/x402-products/facilitator)와 같은 x402 촉진자 또는 Stable의 자체 [Gas Waiver](/ko/how-to/integrate-gas-waiver)입니다. 전체 설명은 [Stable에 MPP 엔드포인트 구축](/ko/how-to/build-mpp-endpoint)을 참조하십시오.
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**Stable에서 MPP 엔드포인트 구축하기**](/ko/how-to/build-mpp-endpoint) — USDT0를 위한 세 가지 MPP 커스텀 메서드 훅을 작성하고 실제 결제를 정산합니다.
-- [**MPP 세션**](/ko/explanation/mpp-sessions) — 오프체인 바우처와 단일 순 정산으로 마이크로페이먼트를 스트리밍합니다.
-- [**x402**](/ko/explanation/x402) — MPP가 일반화한 원래의 HTTP-402 프로토콜을 읽어봅니다.
+- [**Stable에 MPP 엔드포인트 구축**](/ko/how-to/build-mpp-endpoint): USDT0에 대한 세 가지 MPP 사용자 지정 메서드 훅을 작성하고 실제 결제를 정산합니다.
+- [**MPP 세션**](/ko/explanation/mpp-sessions): 오프체인 바우처와 하나의 순 정산을 통해 소액 결제를 스트리밍합니다.
+- [**x402**](/ko/explanation/x402): MPP가 일반화하는 원래 HTTP-402 프로토콜을 읽습니다.

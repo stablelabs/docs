@@ -105,6 +105,15 @@ stale.**
 
 ### 5. Translation engine (`docs/lib/i18n-translate.mjs`)
 
+> **Superseded by [DR004](./DR004_Translation_LLM_Provider.md).** The provider/
+> model below (Anthropic SDK, `claude-opus-4-8`, `ANTHROPIC_API_KEY`) was
+> replaced by a swappable OpenAI-compatible seam (`docs/lib/llm.mjs`) defaulting
+> to OpenRouter + a cheap model, with an optional review pass and structural
+> validation. Use `LLM_API_KEY` and see DR004 for current usage. The discovery
+> behavior also changed: explicit paths now skip in-sync pages (drift is always
+> checked), with `--force` to override. The rest of this section is retained as
+> the original record.
+
 ```
 ANTHROPIC_API_KEY=... node docs/lib/i18n-translate.mjs <cn|ko> [--stale] [--limit N] [page ...]
 ```
@@ -119,6 +128,11 @@ tracked from creation. Discovers missing (and, with `--stale`, drifted) pages
 itself, or takes explicit paths.
 
 ### 6. Sidebars (`docs/lib/i18n-sidebar.mjs`)
+
+> **Engine superseded by [DR004](./DR004_Translation_LLM_Provider.md):** the
+> "batched Opus call" is now the provider-agnostic `complete()` seam (cheap model
+> by default, optional review). The structure/regeneration logic below is
+> unchanged.
 
 `en` is the source of truth for sidebar *structure* too: only the `/en` section
 of `docs/sidebar.json` is hand-maintained. `i18n-sidebar.mjs <cn|ko>` regenerates
@@ -164,6 +178,10 @@ reports the outstanding `translate` count; after the translation run it should
 report `0 missing`.
 
 ### Step 2 — Translate the missing pages
+
+> The `ANTHROPIC_API_KEY` invocations below are superseded by
+> [DR004](./DR004_Translation_LLM_Provider.md) — use `LLM_API_KEY` (the engine
+> now calls an OpenAI-compatible provider, OpenRouter by default).
 
 ```bash
 ANTHROPIC_API_KEY=... node docs/lib/i18n-translate.mjs cn

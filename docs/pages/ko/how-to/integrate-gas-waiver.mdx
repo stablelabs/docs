@@ -1,52 +1,52 @@
 ---
 source_path: how-to/integrate-gas-waiver.mdx
-source_sha: 95a46a35ec56b9f823fb443aeb2693a9b0248e18
+source_sha: eaaf45d02173e1ce6279849d803d73014dbb7696
 title: "가스 없는 트랜잭션 활성화"
-description: "서명된 InnerTx 페이로드를 Waiver Server API에 제출하여 가스 없는 트랜잭션을 활성화하도록 Stable Gas Waiver를 통합하세요."
+description: "서명된 InnerTx 페이로드를 Waiver Server API에 제출하여 Stable Gas Waiver를 통합하여 가스 없는 트랜잭션을 활성화합니다."
 diataxis: "how-to"
 ---
 
 # 가스 없는 트랜잭션 활성화
 
-Gas Waiver는 Stable에서 가스 없는 트랜잭션을 가능하게 합니다. Gas Waiver를 사용하면 애플리케이션이 사용자를 대신해 가스 수수료를 부담하므로, 사용자는 가스용 USDT0을 보유하지 않고도 컨트랙트와 상호작용할 수 있습니다.
+Gas Waiver는 Stable에서 가스 없는 트랜잭션을 가능하게 합니다. Gas Waiver를 사용하면 애플리케이션이 사용자를 대신하여 가스 요금을 지불하므로 사용자는 가스 비용으로 USDT0를 보유하지 않고도 컨트랙트와 상호 작용할 수 있습니다.
 
-이 가이드는 Waiver Server API를 통한 통합을 다룹니다.
+이 가이드에서는 Waiver Server API를 통해 통합하는 방법을 다룹니다.
 
 :::note
-**개념:** Gas Waiver가 무엇인지, 왜 존재하는지, 거버넌스 승인 waiver가 어떻게 작동하는지에 대해서는 [Gas waiver](/ko/explanation/gas-waiver)를 참조하세요. 전체 프로토콜 사양(래퍼 트랜잭션 형식, 마커 주소, 실행 시맨틱, 보안 모델)은 [Gas waiver protocol](/ko/reference/gas-waiver-api)을 참조하세요.
+**개념:** Gas Waiver가 무엇인지, 왜 존재하는지, 거버넌스 승인된 Waiver가 어떻게 작동하는지에 대해서는 [Gas waiver](/ko/explanation/gas-waiver)를 참조하십시오. 전체 프로토콜 사양(래퍼 트랜잭션 형식, 마커 주소, 실행 의미 체계, 보안 모델)에 대해서는 [Gas waiver protocol](/ko/reference/gas-waiver-api)을 참조하십시오.
 :::
 
-## 사전 준비 사항
+## 필수 조건
 
 - Stable 팀이 발급한 Waiver Server용 API 키
-- 대상 컨트랙트 주소가 waiver의 `AllowedTarget` 정책에 등록되어 있어야 합니다
+- 대상 컨트랙트 주소는 Waiver의 `AllowedTarget` 정책에 등록되어야 합니다.
 
 ## Waiver Server
 
-**Base URL:**
+**기본 URL:**
 
 - 메인넷: TBD
 - 테스트넷: `https://waiver.testnet.stable.xyz`
 
-**Authorization:** `Bearer <your-api-key>`
+**인증:** `Bearer <your-api-key>`
 
 ## 개요
 
-통합 흐름은 세 단계로 구성됩니다:
+통합 흐름은 세 단계로 구성됩니다.
 
-1. **InnerTx 빌드**: 사용자가 `gasPrice = 0`으로 트랜잭션에 서명합니다.
-2. **Waiver Server에 제출**: 서명된 트랜잭션을 Waiver Server API에 제출합니다.
-3. **응답 처리**: waiver 서버가 트랜잭션을 래핑하고 브로드캐스트합니다. 스트리밍된 결과를 처리하고 트랜잭션 해시를 사용자에게 표시합니다.
+1.  **InnerTx 빌드**: 사용자는 `gasPrice = 0`으로 트랜잭션에 서명합니다.
+2.  **Waiver Server에 제출**: 서명된 트랜잭션을 Waiver Server API에 제출합니다.
+3.  **응답 처리**: Waiver Server가 트랜잭션을 래핑하고 브로드캐스트합니다. 스트리밍된 결과를 처리하고 트랜잭션 해시를 사용자에게 표시합니다.
 
 ## 1단계: 사용자의 InnerTx 생성
 
-사용자는 `gasPrice = 0`으로 표준 트랜잭션에 서명합니다. `to` 주소와 메서드 셀렉터는 waiver의 `AllowedTarget` 정책에 의해 허용되어야 합니다.
+사용자는 `gasPrice = 0`으로 표준 트랜잭션에 서명합니다. `to` 주소와 메서드 선택기는 Waiver의 `AllowedTarget` 정책에 의해 허용되어야 합니다.
 
 ```typescript
 // config.ts
 export const CONFIG = {
   RPC_URL: "https://rpc.testnet.stable.xyz",
-  CHAIN_ID: 2201, // 988 for mainnet
+  CHAIN_ID: 2201, // 메인넷의 경우 988
   WAIVER_SERVER: "https://waiver.testnet.stable.xyz",
   USDT0_ADDRESS: "0x78Cf24370174180738C5B8E352B6D14c83a6c9A9",
 };
@@ -88,7 +88,7 @@ const signedInnerTx = await userWallet.signTransaction(innerTx);
 ```
 
 :::warning
-`gasPrice`는 반드시 `0`이어야 합니다. 0이 아니면 waiver 서버가 트랜잭션을 거부합니다.
+`gasPrice`는 `0`이어야 합니다. 0이 아닌 경우 Waiver Server는 트랜잭션을 거부합니다.
 :::
 
 ## 2단계: Waiver Server에 제출
@@ -112,7 +112,7 @@ const response = await fetch(`${CONFIG.WAIVER_SERVER}/v1/submit`, {
 
 ### 배치 제출
 
-단일 요청으로 여러 개의 서명된 트랜잭션을 제출할 수 있습니다:
+단일 요청으로 여러 개의 서명된 트랜잭션을 제출할 수 있습니다.
 
 ```typescript
 body: JSON.stringify({
@@ -120,11 +120,11 @@ body: JSON.stringify({
 })
 ```
 
-각 결과 라인에는 배열 내 트랜잭션의 위치에 해당하는 `index` 필드가 포함됩니다.
+각 결과 줄에는 배열 내 트랜잭션의 위치에 해당하는 `index` 필드가 포함됩니다.
 
 ## 3단계: 응답 처리
 
-응답은 NDJSON(개행으로 구분된 JSON)으로 스트리밍됩니다. 각 라인은 제출된 하나의 트랜잭션에 해당합니다.
+응답은 NDJSON(줄바꿈으로 구분된 JSON)으로 스트리밍됩니다. 각 줄은 제출된 하나의 트랜잭션에 해당합니다.
 
 ```typescript
 const reader = response.body.getReader();
@@ -162,13 +162,13 @@ while (true) {
 
 | **코드** | **설명** |
 | :--- | :--- |
-| `PARSE_ERROR` | 트랜잭션 파싱 실패 |
-| `INVALID_REQUEST` | 잘못된 형식의 요청 본문 |
+| `PARSE_ERROR` | 트랜잭션 구문 분석 실패 |
+| `INVALID_REQUEST` | 잘못된 요청 본문 |
 | `BATCH_SIZE_EXCEEDED` | 배치 크기가 허용된 최대치를 초과함 |
-| `VALIDATION_FAILED` | 트랜잭션 검증 실패 (예: 잘못된 서명, 허용되지 않은 대상) |
-| `BROADCAST_FAILED` | 체인으로의 브로드캐스트 실패 |
+| `VALIDATION_FAILED` | 트랜잭션 유효성 검사 실패 (예: 유효하지 않은 서명, 허용되지 않는 대상) |
+| `BROADCAST_FAILED` | 체인으로 브로드캐스트 실패 |
 | `RATE_LIMITED` | 속도 제한 초과 |
-| `QUEUE_FULL` | 서버 큐가 가득 참 |
+| `QUEUE_FULL` | 서버 큐가 용량에 도달함 |
 | `TIMEOUT` | 요청 시간 초과 |
 
 ## API 레퍼런스
@@ -179,7 +179,7 @@ while (true) {
 
 ### POST `/v1/submit`
 
-서명된 inner 트랜잭션의 배치를 제출합니다. 인증: 필수 (Bearer).
+서명된 내부 트랜잭션 배치를 제출합니다. 인증: 필수 (Bearer).
 
 **요청 본문:**
 
@@ -189,21 +189,21 @@ while (true) {
 }
 ```
 
-응답은 NDJSON으로 스트리밍됩니다. 각 라인은 제출된 트랜잭션 인덱스에 해당합니다.
+응답은 NDJSON으로 스트리밍됩니다. 각 줄은 제출된 트랜잭션 인덱스에 해당합니다.
 
 ### GET `/v1/submit`
 
 스트리밍 제출을 위한 WebSocket 인터페이스. 인증: 필수 (Bearer).
 
-## 핵심 요약
+## 요점
 
-- Gas Waiver는 서버 측 통합입니다. 백엔드가 서명된 사용자 트랜잭션을 Waiver Server에 제출합니다. 사용자는 Waiver Server와 직접 상호작용하지 않습니다.
-- 사용자가 항상 InnerTx에 서명하므로 서명 무결성이 유지됩니다. waiver는 사용자의 트랜잭션을 수정할 수 없습니다.
-- 대상 컨트랙트는 waiver의 `AllowedTarget` 목록에 있어야 합니다.
+- Gas Waiver는 서버 측 통합입니다. 백엔드가 서명된 사용자 트랜잭션을 Waiver Server에 제출합니다. 사용자는 Waiver Server와 직접 상호 작용하지 않습니다.
+- 사용자는 항상 InnerTx에 서명하여 서명 무결성을 보존합니다. Waiver는 사용자의 트랜잭션을 수정할 수 없습니다.
+- 대상 컨트랙트는 Waiver의 `AllowedTarget` 목록에 있어야 합니다.
 
-## 다음 추천
+## 다음에 권장되는 내용
 
-- [**제로 가스 트랜잭션**](/ko/how-to/zero-gas-transactions) — 데모 중심의 흐름과 영수증에서 제로 가스를 검증하는 방법을 확인하세요.
-- [**자체 호스팅 Gas Waiver**](/ko/how-to/self-hosted-gas-waiver) — 호스팅된 API 없이 자체 waiver를 실행하세요.
-- [**Gas waiver protocol**](/ko/reference/gas-waiver-api) — 전체 래퍼 트랜잭션 사양 및 거버넌스 모델.
-- [**Stable SDK**](/ko/explanation/sdk-overview) — 타입이 지정된 클라이언트를 사용해 사용자 트랜잭션에 서명한 후 Waiver Server에 제출하세요.
+- [**제로 가스 트랜잭션**](/ko/how-to/zero-gas-transactions): 데모 중심 흐름과 영수증에서 제로 가스를 확인하는 방법을 참조하십시오.
+- [**셀프 호스팅 Gas Waiver**](/ko/how-to/self-hosted-gas-waiver): 호스팅된 API 없이 자체 Waiver를 실행합니다.
+- [**Gas Waiver 프로토콜**](/ko/reference/gas-waiver-api): 전체 래퍼 트랜잭션 사양 및 거버넌스 모델.
+- [**Stable SDK**](/ko/explanation/sdk-overview): 유형이 지정된 클라이언트를 사용하여 Waiver Server에 제출할 사용자 트랜잭션에 서명합니다.

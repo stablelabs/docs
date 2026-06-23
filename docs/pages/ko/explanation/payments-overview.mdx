@@ -1,46 +1,46 @@
 ---
 source_path: explanation/payments-overview.mdx
-source_sha: eafa85081c0c5f116d9435f403cd9cb1e757a1a8
+source_sha: ca8b4d0fe13257b16803c7c519f2126a47977183
 title: "Stable의 결제"
-description: "Stable에서 결제 플로우 구축: P2P 송금, 구독, 인보이스, 호출당 과금 API, 제로 가스 플로우, 브리징."
+description: "Stable에서 결제 흐름 구축: P2P 전송, 구독, 송장, 종량제 API, 제로 가스 흐름 및 브리징."
 diataxis: "explanation"
 ---
 
 # Stable의 결제
 
-Stable은 결제를 중심으로 설계되었습니다. USDT0는 네이티브 자산이자 가스 토큰이므로, 정산과 수수료가 하나의 잔액을 공유합니다. 단일 슬롯 완결성(single-slot finality)은 송금이 1초 이내에 처리됨을 의미합니다. ERC-3009, EIP-7702, x402는 우회책이 아니라 네이티브 프리미티브입니다 — 서명으로 정산하거나, 위임된 계정에서 자금을 끌어오거나, 빌링 스택을 운영하지 않고도 HTTP 요청당 과금할 수 있습니다.
+Stable은 결제를 중심으로 구축됩니다. USDT0는 기본 자산이자 가스 토큰이므로, 결제와 수수료는 하나의 잔액을 공유합니다. 단일 슬롯 완결성 덕분에 전송은 1초 이내에 완료됩니다. ERC-3009, EIP-7702, x402는 고유한 기본 요소이며, 임시방편이 아닙니다. 서명으로 결제하고, 위임된 계좌에서 인출하거나, 결제 스택을 실행하지 않고 HTTP 요청당 요금을 청구할 수 있습니다.
 
-## 무엇을 구축할 수 있나요
+## 구축할 수 있는 것
 
-- **P2P 송금** — 21k 가스와 1초 미만의 완결성을 갖춘 네이티브 USDT0 전송.
-- **구독** — EIP-7702 위임을 이용한 풀(pull) 기반 반복 빌링.
-- **인보이스 정산** — 정확한 대사를 위한 결정적 nonce를 갖춘 ERC-3009 `transferWithAuthorization`.
-- **호출당 과금 API** — 요청당 USDT0 결제를 위한 x402 미들웨어; API 키나 가입이 필요 없습니다.
-- **제로 가스 UX** — Gas Waiver 서비스를 통한 애플리케이션 후원 트랜잭션.
-- **크로스체인 USDT0** — Ethereum 및 기타 네트워크로부터의 LayerZero OFT 브리징.
+- **P2P 전송**: 21k gas와 1초 미만의 완결성을 가진 기본 USDT0 전송.
+- **구독**: EIP-7702 위임을 통한 풀 기반 반복 결제.
+- **송장 결제**: 정확한 조정(reconciliation)을 위한 결정적 논스(nonce)를 사용하는 ERC-3009 `transferWithAuthorization`.
+- **종량제 API**: 요청당 USDT0 결제를 위한 x402 미들웨어; API 키나 가입 불필요.
+- **제로 가스 UX**: Gas Waiver 서비스를 통한 애플리케이션 후원 트랜잭션.
+- **크로스체인 USDT0**: 이더리움 및 기타 네트워크에서 LayerZero OFT 브리징.
 
-## Stable의 차별점
+## Stable의 차이점
 
-- **모든 것을 위한 하나의 자산**: 송신자가 별도의 가스 토큰을 보유할 필요가 없습니다.
-- **네이티브 ERC-3009**: USDT0가 `transferWithAuthorization`을 직접 구현하므로, 결제가 서명으로 정산되며 approve 단계가 필요 없습니다.
-- **결정적 완결성**: 블록은 커밋되는 순간 최종 확정됩니다. 확인 대기가 없습니다.
-- **네이티브 x402**: 퍼실리테이터가 Gas Waiver를 통해 가스를 지불하지 않으므로, 요청당 정산 비용이 1센트 미만으로 유지됩니다.
+- **모든 것을 위한 하나의 자산**: 발신자는 별도의 가스 토큰을 보유하지 않습니다.
+- **네이티브 ERC-3009**: USDT0는 `transferWithAuthorization`을 직접 구현하므로 결제는 서명으로 정산되며 승인 단계가 없습니다.
+- **결정론적 완결성**: 블록은 커밋되는 순간 확정됩니다. 확인을 기다릴 필요가 없습니다.
+- **네이티브 x402**: 촉진자는 Gas Waiver를 통해 가스를 지불하지 않으므로 요청당 결제 비용은 1센트 미만으로 유지됩니다.
 
-## 여기서 시작하세요
+## 시작하기
 
-- [**첫 USDT0 보내기**](/ko/tutorial/send-usdt0) — 동일한 잔액에서의 네이티브 및 ERC-20 전송.
-- [**제로 가스 트랜잭션**](/ko/how-to/zero-gas-transactions) — Gas Waiver로 수수료가 충당된 USDT0 전송.
-- [**P2P 결제 배우기**](/ko/how-to/build-p2p-payments) — 지갑 + 보내기 + 받기 + 내역 앱을 처음부터 구축.
-- [**호출당 과금 API 구축**](/ko/how-to/build-pay-per-call) — x402로 HTTP 엔드포인트를 요청당 과금.
-- [**Stable SDK**](/ko/explanation/sdk-overview) — 타입이 지정된 클라이언트로 몇 줄 만에 transfer, bridge, swap을 수행.
+- [**첫 USDT0 전송**](/ko/tutorial/send-usdt0): 동일한 잔액에서 네이티브 및 ERC-20 전송.
+- [**제로 가스 트랜잭션**](/ko/how-to/zero-gas-transactions): Gas Waiver가 수수료를 부담하는 USDT0 전송.
+- [**P2P 결제 학습**](/ko/how-to/build-p2p-payments): 지갑 + 전송 + 수신 + 기록 앱을 처음부터 구축.
+- [**종량제 API 구축**](/ko/how-to/build-pay-per-call): x402로 요청당 HTTP 엔드포인트 가격 책정.
+- [**Stable SDK**](/ko/explanation/sdk-overview): 몇 줄의 코드로 전송, 브리지 및 스왑을 위한 타입스크립트 클라이언트 사용.
 
-## 결제 프리미티브
+## 결제 기본 요소
 
-- [**ERC-3009**](/ko/explanation/erc-3009) — Transfer With Authorization: 인보이스와 x402 뒤에 있는 정산 표준.
-- [**x402 (HTTP 네이티브 결제)**](/ko/explanation/x402) — 서버가 402로 응답하고, 클라이언트가 ERC-3009에 서명하면, 퍼실리테이터가 온체인에서 정산합니다.
+- [**ERC-3009**](/ko/explanation/erc-3009): Transfer With Authorization: 송장 및 x402의 결제 표준.
+- [**x402 (HTTP-native payments)**](/ko/explanation/x402): 서버가 402를 응답하고, 클라이언트가 ERC-3009에 서명하며, 촉진자가 온체인에서 결제.
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**결제 가이드 색인**](/ko/explanation/payments-guides) — 결제(Payments) 탭 아래의 모든 가이드, 개념, 레퍼런스.
-- [**구독 및 수금**](/ko/how-to/subscribe-and-collect) — EIP-7702를 통한 풀 기반 반복 빌링.
-- [**인보이스로 결제하기**](/ko/how-to/pay-with-invoice) — 정확한 대사를 위한 결정적 nonce를 갖춘 ERC-3009.
+- [**결제 가이드 색인**](/ko/explanation/payments-guides): 결제 탭 아래의 모든 가이드, 개념 및 참조.
+- [**구독 및 수집**](/ko/how-to/subscribe-and-collect): EIP-7702를 통한 풀 기반 반복 결제.
+- [**송장으로 결제**](/ko/how-to/pay-with-invoice): 정확한 조정(reconciliation)을 위한 결정적 논스(nonce)를 사용하는 ERC-3009.

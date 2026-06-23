@@ -1,15 +1,16 @@
 ---
 source_path: reference/json-rpc-api.mdx
-source_sha: 1b6ce25dd5d0c90be028f78f97179a32c2c70a39
+source_sha: 838e9e92455c9c3acac3d94e4afcf7d7d907ef25
 title: JSON-RPC API
-description: "Stable 支持的 eth、net、web3 和 debug 命名空间 JSON-RPC API 方法列表。"
+description: "Stable 上 eth、net、web3 和 debug 命名空间中支持的 JSON-RPC API 方法。"
+diataxis: "reference"
 ---
 
 # JSON-RPC API
 
 ## eth_namespace
 
-| API                                        | support |
+| API                                        | 支持 |
 |--------------------------------------------|---------|
 | eth_syncing                                | ✅       |
 | eth_gasPrice                               | ✅       |
@@ -66,7 +67,7 @@ description: "Stable 支持的 eth、net、web3 和 debug 命名空间 JSON-RPC 
 | eth_getLogs                                | ✅       |
 
 ## debug_namespace
-| API                               | support |
+| API                               | 支持 |
 |-----------------------------------|---------|
 | debug_accountRange                | ❌       |
 | debug_backtraceAt                 | ❌       |
@@ -106,7 +107,7 @@ description: "Stable 支持的 eth、net、web3 和 debug 命名空间 JSON-RPC 
 | debug_startCPUProfile             | ✅       |
 | debug_startGoTrace                | ✅       |
 | debug_stopCPUProfile              | ✅       |
-| debug_stopGoTrace                 | ✅       |
+| debug_stopGoTrace                 | ✅       H
 | debug_storageRangeAt              | ❌       |
 | debug_traceBadBlock               | ❌       |
 | debug_traceBlock                  | ❌       |
@@ -121,3 +122,9 @@ description: "Stable 支持的 eth、net、web3 和 debug 命名空间 JSON-RPC 
 | debug_writeBlockProfile           | ✅       |
 | debug_writeMemProfile             | ✅       |
 | debug_writeMutexProfile           | ✅       |
+
+## 下一步建议
+
+- [**Gas 定价参考**](/cn/reference/gas-pricing-api)：根据 Stable 的仅基础费模型构建 EIP-1559 交易。
+- [**EIP-7702 参考**](/cn/reference/eip-7702-api)：使用 `authorizationList` 字段构建类型 4 交易。
+- [**系统模块参考**](/cn/reference/system-modules-api-overview)：在固定的预编译地址调用 Bank、Distribution 和 Staking。

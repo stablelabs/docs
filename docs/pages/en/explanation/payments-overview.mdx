@@ -6,16 +6,16 @@ diataxis: "explanation"
 
 # Payments on Stable
 
-Stable is built around payments. USDT0 is the native asset and the gas token, so settlement and fees share one balance. Single-slot finality means a transfer clears in under a second. ERC-3009, EIP-7702, and x402 are native primitives, not workarounds — you can settle with a signature, pull from a delegated account, or charge per HTTP request without running a billing stack.
+Stable is built around payments. USDT0 is the native asset and the gas token, so settlement and fees share one balance. Single-slot finality means a transfer clears in under a second. ERC-3009, EIP-7702, and x402 are native primitives, not workarounds. You can settle with a signature, pull from a delegated account, or charge per HTTP request without running a billing stack.
 
 ## What you can build
 
-- **P2P transfers** — native USDT0 sends with 21k gas and sub-second finality.
-- **Subscriptions** — pull-based recurring billing with EIP-7702 delegation.
-- **Invoice settlement** — ERC-3009 `transferWithAuthorization` with deterministic nonces for exact reconciliation.
-- **Pay-per-call APIs** — x402 middleware for per-request USDT0 payments; no API keys, no sign-ups.
-- **Zero-gas UX** — application-sponsored transactions via the Gas Waiver service.
-- **Cross-chain USDT0** — LayerZero OFT bridging from Ethereum and other networks.
+- **P2P transfers**: native USDT0 sends with 21k gas and sub-second finality.
+- **Subscriptions**: pull-based recurring billing with EIP-7702 delegation.
+- **Invoice settlement**: ERC-3009 `transferWithAuthorization` with deterministic nonces for exact reconciliation.
+- **Pay-per-call APIs**: x402 middleware for per-request USDT0 payments; no API keys, no sign-ups.
+- **Zero-gas UX**: application-sponsored transactions via the Gas Waiver service.
+- **Cross-chain USDT0**: LayerZero OFT bridging from Ethereum and other networks.
 
 ## How Stable differs
 
@@ -26,19 +26,19 @@ Stable is built around payments. USDT0 is the native asset and the gas token, so
 
 ## Start here
 
-- [**Send your first USDT0**](/en/tutorial/send-usdt0) — Native and ERC-20 transfers on the same balance.
-- [**Zero gas transactions**](/en/how-to/zero-gas-transactions) — Transfer USDT0 with the fee covered by a Gas Waiver.
-- [**Learn P2P payments**](/en/how-to/build-p2p-payments) — Build a wallet + send + receive + history app from scratch.
-- [**Build a pay-per-call API**](/en/how-to/build-pay-per-call) — Price HTTP endpoints per request with x402.
-- [**Stable SDK**](/en/explanation/sdk-overview) — Use the typed client for transfer, bridge, and swap in a few lines.
+- [**Send your first USDT0**](/en/tutorial/send-usdt0): Native and ERC-20 transfers on the same balance.
+- [**Zero gas transactions**](/en/how-to/zero-gas-transactions): Transfer USDT0 with the fee covered by a Gas Waiver.
+- [**Learn P2P payments**](/en/how-to/build-p2p-payments): Build a wallet + send + receive + history app from scratch.
+- [**Build a pay-per-call API**](/en/how-to/build-pay-per-call): Price HTTP endpoints per request with x402.
+- [**Stable SDK**](/en/explanation/sdk-overview): Use the typed client for transfer, bridge, and swap in a few lines.
 
 ## Payment primitives
 
-- [**ERC-3009**](/en/explanation/erc-3009) — Transfer With Authorization: the settlement standard behind invoices and x402.
-- [**x402 (HTTP-native payments)**](/en/explanation/x402) — Server responds 402, client signs ERC-3009, facilitator settles on-chain.
+- [**ERC-3009**](/en/explanation/erc-3009): Transfer With Authorization: the settlement standard behind invoices and x402.
+- [**x402 (HTTP-native payments)**](/en/explanation/x402): Server responds 402, client signs ERC-3009, facilitator settles on-chain.
 
 ## Next recommended
 
-- [**Payments guide index**](/en/explanation/payments-guides) — Every guide, concept, and reference under the Payments tab.
-- [**Subscribe and collect**](/en/how-to/subscribe-and-collect) — Pull-based recurring billing via EIP-7702.
-- [**Paying with invoice**](/en/how-to/pay-with-invoice) — ERC-3009 with deterministic nonces for exact reconciliation.
+- [**Payments guide index**](/en/explanation/payments-guides): Every guide, concept, and reference under the Payments tab.
+- [**Subscribe and collect**](/en/how-to/subscribe-and-collect): Pull-based recurring billing via EIP-7702.
+- [**Paying with invoice**](/en/how-to/pay-with-invoice): ERC-3009 with deterministic nonces for exact reconciliation.

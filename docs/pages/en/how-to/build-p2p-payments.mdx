@@ -14,11 +14,11 @@ No middleware, no intermediary. For the conceptual overview, see [P2P payments](
 
 Five scripts forming a minimal payment app:
 
-- `wallet.ts` — create or restore a wallet.
-- `getBalance.ts` — query the current USDT0 balance.
-- `send.ts` — send USDT0 to another address.
-- `receive.ts` — watch for incoming payments in real time.
-- `history.ts` — query past Transfer events for an address.
+- `wallet.ts`: create or restore a wallet.
+- `getBalance.ts`: query the current USDT0 balance.
+- `send.ts`: send USDT0 to another address.
+- `receive.ts`: watch for incoming payments in real time.
+- `history.ts`: query past Transfer events for an address.
 
 ### Demo
 
@@ -296,11 +296,11 @@ received  0.01  USDT0  0xFaucet...     0x22b1...3f09
 ```
 
 :::warning
-Scanning wide block ranges (millions of blocks) can time out and exceed RPC rate limits. For production, use the [Stablescan Etherscan-compatible API](https://stablescan.xyz) for paginated history queries — every transaction is already indexed.
+Scanning wide block ranges (millions of blocks) can time out and exceed RPC rate limits. For production, use the [Stablescan Etherscan-compatible API](https://stablescan.xyz) for paginated history queries. Every transaction is already indexed.
 :::
 
 ## Next recommended
 
-- [**Subscribe and collect**](/en/how-to/subscribe-and-collect) — Pull-based recurring subscriptions with EIP-7702 delegation.
-- [**Paying with invoice**](/en/how-to/pay-with-invoice) — Settle invoices with ERC-3009 and deterministic nonces.
-- [**Send your first USDT0**](/en/tutorial/send-usdt0) — Reference the basic native vs. ERC-20 transfer flow.
+- [**Subscribe and collect**](/en/how-to/subscribe-and-collect): Pull-based recurring subscriptions with EIP-7702 delegation.
+- [**Paying with invoice**](/en/how-to/pay-with-invoice): Settle invoices with ERC-3009 and deterministic nonces.
+- [**Send your first USDT0**](/en/tutorial/send-usdt0): Reference the basic native vs. ERC-20 transfer flow.

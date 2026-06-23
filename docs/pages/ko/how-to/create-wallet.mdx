@@ -1,26 +1,26 @@
 ---
 source_path: how-to/create-wallet.mdx
-source_sha: 282b1f16baf49a0e39d7df989136218e3727fad2
+source_sha: 0735e9a5c8737cb5606dd4ea1d7406859b371377
 title: "지갑 생성하기"
-description: "ethers.js 또는 Tether WDK를 사용해 새로운 Stable 지갑을 생성하거나 시드 문구로 복구합니다."
+description: "ethers.js 또는 Tether WDK를 사용하여 새로운 Stable 지갑을 생성하거나 시드 구문으로 지갑을 복원합니다."
 diataxis: "how-to"
 ---
 
 # 지갑 생성하기
 
-Stable 지갑은 이더리움 표준 키 쌍입니다. EVM 계정을 생성하는 모든 지갑 라이브러리는 수정 없이 Stable에서 작동합니다. 이 가이드에서는 두 가지 경로를 소개합니다: 대부분의 애플리케이션을 위한 ethers.js, 그리고 에이전트와 결제를 위한 턴키 방식의 자가 수탁(self-custody) 계층을 원하는 통합을 위한 Tether의 [WDK (Wallet Development Kit)](https://github.com/tetherto/wdk)입니다.
+Stable 지갑은 이더리움 표준 키 페어입니다. EVM 계정을 생성하는 모든 지갑 라이브러리는 수정 없이 Stable에서 작동합니다. 이 가이드는 두 가지 경로를 보여줍니다: 대부분의 애플리케이션에 적합한 ethers.js, 그리고 에이전트 및 결제를 위한 턴키 자체 보관 레이어를 원하는 통합을 위한 Tether의 [WDK(Wallet Development Kit)](https://github.com/tetherto/wdk).
 
 :::note
-등록도, Stable 전용 계정 설정도 필요 없습니다. 지갑은 [테스트넷 포셋](/ko/how-to/use-faucet)이나 메인넷 전송으로부터 즉시 USDT0를 받을 수 있습니다.
+등록도, Stable 특정 계정 설정도 필요하지 않습니다. 지갑은 [테스트넷 수도꼭지](/ko/how-to/use-faucet) 또는 메인넷 전송을 통해 USDT0를 즉시 받을 수 있습니다.
 :::
 
-## 사전 준비 사항
+## 필수 조건
 
 - Node.js 20 이상.
 
 ## 옵션 1: ethers.js
 
-라이브러리를 설치하고 키 쌍을 생성합니다.
+라이브러리를 설치하고 키 페어를 생성합니다.
 
 ```bash
 npm install ethers
@@ -32,17 +32,17 @@ import { ethers } from "ethers";
 
 const provider = new ethers.JsonRpcProvider("https://rpc.testnet.stable.xyz");
 
-/** Create a new wallet for a new user. */
+/** 새 사용자를 위한 새 지갑을 생성합니다. */
 export function createWallet() {
   const wallet = ethers.Wallet.createRandom(provider);
   return {
     wallet,
     address: wallet.address,
-    seedPhrase: wallet.mnemonic!.phrase, // show to the user once for backup
+    seedPhrase: wallet.mnemonic!.phrase, // 백업을 위해 사용자에게 한 번만 보여줍니다.
   };
 }
 
-/** Restore a wallet from a seed phrase (returning user). */
+/** 시드 구문으로 지갑을 복원합니다(재방문 사용자). */
 export function restoreWallet(seedPhrase: string) {
   const wallet = ethers.Wallet.fromPhrase(seedPhrase, provider);
   return { wallet, address: wallet.address };
@@ -65,12 +65,12 @@ Seed phrase: liberty shoot ... (12 words)
 ```
 
 :::warning
-프로덕션 환경에서는 시드 문구를 절대 평문으로 로그에 남기거나 저장하지 마세요. 저장 시 암호화하거나 시크릿 매니저를 사용하세요. `ethers.Wallet.createRandom`은 호출당 한 번만 문구를 반환합니다 — 이를 잃어버리면 자금을 복구할 수 없습니다.
+프로덕션 환경에서 시드 구문을 일반 텍스트로 기록하거나 저장하지 마십시오. 저장 시 암호화하거나 비밀 관리자를 사용하십시오. `ethers.Wallet.createRandom`은 호출당 한 번씩 구문을 반환합니다. 잃어버리면 자금을 복구할 수 없습니다.
 :::
 
 ## 옵션 2: Tether WDK
 
-WDK는 키 파생, 서명, 트랜잭션 제출을 하나의 인터페이스로 감쌉니다. 일반적인 계정 흐름을 재구현하지 않고 자가 수탁을 원할 때 적합한 선택이며, 에이전트 결제를 위한 [x402](/ko/how-to/build-pay-per-call)와 직접 통합됩니다.
+WDK는 키 도출, 서명 및 트랜잭션 제출을 단일 인터페이스로 래핑합니다. 일반적인 계정 흐름을 재구현하지 않고도 자체 보관을 원할 때 올바른 선택이며, 에이전트 결제를 위해 [x402](/ko/how-to/build-pay-per-call)와 직접 통합됩니다.
 
 ```bash
 npm install @tetherto/wdk @tetherto/wdk-wallet-evm
@@ -88,7 +88,7 @@ function initWdk(seedPhrase: string) {
     });
 }
 
-/** Create a new wallet for a new user. */
+/** 새 사용자를 위한 새 지갑을 생성합니다. */
 export async function createWallet() {
   const seedPhrase = WDK.getRandomSeedPhrase();
   const wdk = initWdk(seedPhrase);
@@ -96,11 +96,11 @@ export async function createWallet() {
   return {
     account,
     address: await account.getAddress(),
-    seedPhrase, // show to the user once for backup
+    seedPhrase, // 백업을 위해 사용자에게 한 번만 보여줍니다.
   };
 }
 
-/** Restore a wallet from a seed phrase (returning user). */
+/** 시드 구문으로 지갑을 복원합니다(재방문 사용자). */
 export async function restoreWallet(seedPhrase: string) {
   const wdk = initWdk(seedPhrase);
   const account = await wdk.getAccount("stable", 0);
@@ -117,19 +117,19 @@ Address:     0xAlice...1234
 Seed phrase: liberty shoot ... (12 words)
 ```
 
-## 지갑에 자금 충전하기
+## 지갑에 자금 조달
 
-지갑이 트랜잭션을 처리하려면 가스용 USDT0가 필요합니다. 테스트넷에서는 포셋에 요청하세요:
+지갑이 거래를 시작하기 전에 가스용 USDT0가 필요합니다. 테스트넷에서는 수도꼭지에서 요청합니다:
 
 ```bash
 open https://faucet.stable.xyz
 ```
 
-주소를 붙여넣고 버튼을 선택해 1 테스트넷 USDT0(수천 건의 네이티브 전송에 충분한 양)를 받으세요. 메인넷의 경우, 지원되는 거래소나 브리지에서 USDT0를 전송하세요. [Stable로 브리징하기](/ko/explanation/usdt0-bridging)를 참조하세요.
+주소를 붙여넣고 버튼을 선택하여 1개의 테스트넷 USDT0 (수천 건의 기본 전송에 충분함)을 받으세요. 메인넷의 경우 지원되는 모든 거래소 또는 브리지에서 USDT0를 보내십시오. [Stable로 브리징](/ko/explanation/usdt0-bridging)을 참조하십시오.
 
-## 잔액 확인하기
+## 잔액 확인
 
-네이티브 USDT0는 18자리 소수를 사용합니다. 네이티브 잔액이 가스가 지불되는 잔액입니다.
+기본 USDT0는 18자릿수를 사용합니다. 기본 잔액은 가스가 지불되는 잔액입니다.
 
 ```typescript
 // balance.ts
@@ -148,8 +148,8 @@ npx tsx balance.ts
 Balance: 1.0 USDT0
 ```
 
-## 다음 권장 단계
+## 다음에 권장되는 사항
 
-- [**EIP-7702로 위임하기**](/ko/how-to/account-abstraction) — 이 지갑에 일괄 결제, 지출 한도, 세션 키를 추가하세요.
-- [**첫 USDT0 보내기**](/ko/tutorial/send-usdt0) — 동일한 잔액에서의 네이티브 및 ERC-20 전송.
-- [**테스트넷 지갑에 자금 충전하기**](/ko/how-to/use-faucet) — 더 큰 테스트 잔액을 위한 포셋 및 Sepolia 브리지 옵션.
+- [**EIP-7702로 위임하기**](/ko/how-to/account-abstraction): 이 지갑에 배치 결제, 지출 한도 및 세션 키를 추가합니다.
+- [**첫 USDT0 전송하기**](/ko/tutorial/send-usdt0): 동일한 잔액에서 기본 및 ERC-20 전송.
+- [**테스트넷 지갑에 자금 조달하기**](/ko/how-to/use-faucet): 더 큰 테스트 잔액을 위한 수도꼭지 및 Sepolia 브리지 옵션.

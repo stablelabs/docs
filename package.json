@@ -7,13 +7,18 @@
     "node": ">=22"
   },
   "scripts": {
+    "precheck": "npm run check:node",
+    "check": "npm run style:check && npm run i18n:check && npx tsc --noEmit && npm run structured-data:check && npm run docs:build",
+    "check:node": "node docs/lib/check-node.mjs",
     "docs:dev": "vocs dev",
     "docs:build": "NODE_OPTIONS=--max-old-space-size=6144 vocs build",
     "docs:preview": "vocs preview",
-    "i18n:check": "node docs/lib/verify-i18n.mjs"
+    "i18n:check": "node docs/lib/verify-i18n.mjs",
+    "i18n:check:strict": "node docs/lib/verify-i18n.mjs --strict",
+    "structured-data:check": "node --experimental-strip-types docs/lib/verify-structured-data.mts",
+    "style:check": "node docs/lib/verify-style.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.104.2",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

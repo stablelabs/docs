@@ -1,81 +1,81 @@
 ---
 source_path: explanation/ethereum-comparison.mdx
-source_sha: 725ca9815a4f258f89945ec7c668c9729a1652c8
-title: "Ethereum 비교"
-description: "Stable은 완전히 EVM과 호환됩니다. Ethereum에서 포팅할 때 동일하게 유지되는 것, 변경되는 것, 그리고 주의해야 할 점을 설명합니다."
+source_sha: 899ef035bfd583ce5d1f14916e2dbd9df613a7bb
+title: "이더리움 비교"
+description: "Stable은 완전한 EVM 호환성을 제공합니다. 이더리움에서 포팅할 때 변경되지 않는 사항, 변경되는 사항, 주의해야 할 사항을 설명합니다."
 diataxis: "explanation"
 ---
 
-# Ethereum 비교
+# 이더리움 비교
 
-Stable은 완전히 EVM과 호환되므로 대부분의 Ethereum 도구, 라이브러리, 컨트랙트 패턴이 수정 없이 작동합니다. 아래 섹션에서는 Ethereum에서 Stable로 옮길 때 동일하게 유지되는 것과 변경되는 것을 살펴봅니다.
+Stable은 완전한 EVM 호환성을 제공하므로 대부분의 이더리움 도구, 라이브러리 및 계약 패턴은 수정 없이 작동합니다. 다음 섹션에서는 이더리움에서 Stable로 전환할 때 변경되지 않는 사항과 변경되는 사항을 설명합니다.
 
-## 동일하게 유지되는 것
+## 변경되지 않는 사항
 
-Stable은 Ethereum 개발 생태계와 완전한 호환성을 유지합니다:
+Stable은 이더리움 개발 생태계와 완벽한 호환성을 유지합니다.
 
 | **영역** | **호환성** |
 | :--- | :--- |
 | 언어 | Solidity, Vyper |
-| 도구 | Hardhat, Foundry |
+| 툴링 | Hardhat, Foundry |
 | 라이브러리 | ethers.js, web3.js |
-| 컨트랙트 패턴 | 모든 표준 EVM 규약 (ERC-20, ERC-721, ERC-1155, 프록시 등) |
-| RPC 인터페이스 | 대부분의 `eth_*` 메서드 지원 (`eth_call`, `eth_sendRawTransaction`, `eth_getBalance`, `eth_getLogs`, `eth_estimateGas` 등). 전체 목록은 [JSON-RPC API](/ko/reference/json-rpc-api)를 참조하세요 |
+| 계약 패턴 | 모든 표준 EVM 컨벤션 (ERC-20, ERC-721, ERC-1155, 프록시 등) |
+| RPC 인터페이스 | 대부분의 `eth_*` 메서드 지원 (`eth_call`, `eth_sendRawTransaction`, `eth_getBalance`, `eth_getLogs`, `eth_estimateGas` 등). 전체 목록은 [JSON-RPC API](/ko/reference/json-rpc-api) 참조 |
 
-기존 스마트 컨트랙트, 배포 스크립트, 프론트엔드 통합은 RPC 엔드포인트와 체인 ID를 변경하여 Stable을 대상으로 설정할 수 있습니다.
+기존 스마트 계약, 배포 스크립트 및 프론트엔드 통합은 RPC 엔드포인트와 체인 ID를 변경하여 Stable을 대상으로 합니다.
 
 ## 다른 점
 
-네 가지 동작이 Ethereum과 다릅니다.
+이더리움과 네 가지 동작이 다릅니다.
 
-### 1. 단일 슬롯 완결성(Single-slot finality)
+### 1. 단일 슬롯 완결성
 
-Ethereum은 트랜잭션이 최종으로 간주되기 전에 여러 블록 확인을 요구합니다. Stable은 단일 슬롯 완결성을 제공합니다: 트랜잭션은 블록에 포함되는 즉시 최종 확정됩니다.
+이더리움은 트랜잭션이 최종으로 간주되기 전에 여러 블록 확인이 필요합니다. Stable은 단일 슬롯 완결성을 제공합니다. 즉, 트랜잭션은 블록에 포함되는 즉시 최종이 됩니다.
 
-개발자에게 이는 다음을 의미합니다:
+개발자를 위한 의미는 다음과 같습니다.
 
-- 트랜잭션이 확정된 블록에 나타나면, 그 상태 변경은 최종적이며 되돌릴 수 없습니다.
-- 애플리케이션은 블록 포함을 정산 확인으로 안전하게 신뢰할 수 있습니다.
+- 트랜잭션이 확인된 블록에 나타나면 해당 상태 변경은 최종적이며 되돌릴 수 없습니다.
+- 애플리케이션은 결제 확인 수단으로 블록 포함에 안전하게 의존할 수 있습니다.
 
-결정론적 완결성에도 불구하고, 금융적으로 민감한 흐름을 처리하는 애플리케이션은 다음을 수행해야 합니다:
+확정적 완결성을 갖추고 있음에도 불구하고, 재정적으로 민감한 흐름을 처리하는 애플리케이션은 다음을 수행해야 합니다.
 
-- 종속 작업(예: 잠금 해제, 상환)을 진행하기 전에 RPC 또는 발생한 이벤트를 통해 트랜잭션 성공을 확인하세요.
-- 일시적인 제출 또는 RPC 오류를 처리하기 위해 자동화 및 배치 작업에 재시도 및 조정 로직을 구현하세요.
+- 종속 작업(예: 잠금 해제, 상환)을 진행하기 전에 RPC 또는 발생한 이벤트를 통해 트랜잭션 성공을 확인합니다.
+- 자동화 및 배치 작업을 위해 재시도 및 조정 로직을 구현하여 일시적인 제출 또는 RPC 오류를 처리합니다.
 
 ### 2. 가스 토큰: USDT0
 
-Stable에서는 트랜잭션 수수료가 변동성이 큰 네이티브 토큰이 아닌 USDT0로 지불됩니다. 이는 USDT로 표시되는 예측 가능한 낮은 가스 비용을 제공합니다.
+Stable에서는 이더리움 블록체인에서 ETH로 가스를 결제하는 방식과 유사하게, USDT0로 거래 수수료를 지불합니다. 이는 USDT 단위로 예측 가능한 낮은 가스 비용을 제공합니다.
 
-- 사용자는 트랜잭션을 제출하기 위해 지갑에 USDT0가 필요합니다.
-- 트랜잭션의 `value` 필드는 Ethereum에서 ETH를 보내는 것과 유사하게 USDT0를 보내는 데 여전히 작동합니다.
-- 자세한 내용은 [가스로서의 USDT](/ko/explanation/usdt-as-gas-token)를 참조하세요.
+- 사용자는 거래를 제출하려면 지갑에 USDT0를 보유해야 합니다.
+- 거래의 `value` 필드는 이더리움에서 ETH를 보내는 방식과 유사하게 USDT0를 보내는 데 계속 작동합니다.
+- 자세한 내용은 [가스 지불 수단으로서의 USDT](/ko/explanation/usdt-as-gas-token)를 참조하십시오.
 
 ### 3. 우선순위 팁 없음
 
-Stable은 단일 구성 요소 가스 모델을 사용합니다. 팁 기반 트랜잭션 순서 지정이 없습니다.
+Stable은 단일 구성 요소 가스 모델을 사용합니다. 팁 기반 트랜잭션 순서 지정은 없습니다.
 
 - `maxPriorityFeePerGas`는 무시됩니다(항상 0).
 - 트랜잭션 순서는 수수료 입찰의 영향을 받지 않습니다.
 - 지갑은 우선순위 팁 입력 필드를 숨기거나 비활성화해야 합니다.
-- 자세한 내용은 [가스 가격 책정](/ko/explanation/gas-pricing)을 참조하세요.
+- 자세한 내용은 [가스 가격 책정](/ko/explanation/gas-pricing)을 참조하십시오.
 
 ### 4. USDT0 이중 역할 동작
 
-USDT0는 네이티브 가스 토큰과 ERC-20 토큰 두 가지 모두로 기능합니다. 이로 인해 잔액 의미론, 허용량 안전성, 특정 opcode 가정과 관련된 동작 차이가 발생합니다. 자세한 내용은 [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참조하세요.
+USDT0는 네이티브 가스 토큰이자 ERC-20 토큰으로 기능합니다. 이로 인해 잔액 의미론, 허용 안전성 및 특정 opcode 가정에 대한 행동 차이가 발생합니다. 자세한 내용은 [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참조하십시오.
 
 ## 빠른 비교
 
-| **매개변수** | **Stable** | **Ethereum** |
+| **매개변수** | **Stable** | **이더리움** |
 | :--- | :--- | :--- |
 | 가스 토큰 | USDT0 | ETH |
 | 완결성 | 단일 슬롯 | 다중 블록 확인 |
-| 블록 시간 | ~0.7초 | ~12초 |
-| 우선순위 팁 (`maxPriorityFeePerGas`) | 무시됨(항상 0) | 순서 지정에 사용 |
+| 블록 타임 | ~0.7 초 | ~12 초 |
+| 우선순위 팁 (`maxPriorityFeePerGas`) | 무시됨 (항상 0) | 순서 지정을 위해 사용됨 |
 | EIP-1559 트랜잭션 형식 | 지원됨 | 지원됨 |
-| EVM 호환성 | 완전 | 해당 없음 |
+| EVM 호환성 | 완전 | N/A |
 
 ## 다음 권장 사항
 
-- [**가스로서의 USDT**](/ko/explanation/usdt-as-gas-token) — 가스를 위해 ETH를 대체하는 자산 모델을 이해하세요.
-- [**가스 가격 책정**](/ko/explanation/gas-pricing) — 단일 구성 요소 수수료 모델을 자세히 검토하세요.
-- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior) — 이중 역할 자산 의미론, 허용량 안전성, `EXTCODEHASH` 동작에 대해 컨트랙트를 감사하세요.
+- [**가스 지불 수단으로서의 USDT**](/ko/explanation/usdt-as-gas-token): 이더리움을 대체하는 자산 모델을 이해하세요.
+- [**가스 가격 책정**](/ko/explanation/gas-pricing): 단일 구성 요소 수수료 모델을 자세히 검토하세요.
+- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior): 이중 역할 자산 의미론, 허용 안전성 및 `EXTCODEHASH` 동작에 대해 계약을 감사하세요.

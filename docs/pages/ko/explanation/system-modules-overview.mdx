@@ -1,39 +1,39 @@
 ---
 source_path: explanation/system-modules-overview.mdx
-source_sha: 9fceb608b81d160096165cf2420612413f756df2
+source_sha: e9d156bb03d4413c1981f308ba7c076759d9baa8
 title: "시스템 모듈"
-description: "Stable은 Cosmos-SDK 프로토콜 모듈을 사전 컴파일된 컨트랙트를 통해 EVM에 노출하므로, dApp이 staking, distribution, bank 작업을 다시 작성하지 않고도 호출할 수 있습니다."
+description: "EVM에서 스테이킹, 분배, 뱅크 작업을 호출합니다. Stable은 Cosmos-SDK 프로토콜 모듈을 재작성 없이 사전 컴파일된 컨트랙트로 노출합니다."
 diataxis: "explanation"
 ---
 
 # 시스템 모듈
 
-Stable의 핵심 프로토콜 동작은 SDK 모듈인 `x/bank`, `x/distribution`, `x/staking`에 존재합니다. 이 동작을 EVM에서 접근 가능하게 하기 위해, Stable은 각 모듈을 고정된 주소의 **사전 컴파일된 컨트랙트(precompiled contract)**로 노출합니다. Solidity로 작성된 컨트랙트는 precompile을 직접 호출하고, EVM은 그 호출을 네이티브 SDK 핸들러로 라우팅합니다. Precompile은 프로토콜 수준에서 구현되므로 동등한 Solidity 재구현보다 훨씬 가스 효율적입니다.
+Stable의 핵심 프로토콜 동작은 `x/bank`, `x/distribution`, `x/staking`과 같은 SDK 모듈에 있습니다. 이 동작을 EVM에서 접근 가능하도록 Stable은 각 모듈을 고정 주소의 **사전 컴파일된 컨트랙트**로 노출합니다. Solidity로 작성된 컨트랙트는 사전 컴파일을 직접 호출하며, EVM은 이 호출을 네이티브 SDK 핸들러로 라우팅합니다. 사전 컴파일은 프로토콜 수준에서 구현되므로, 동등한 Solidity 재구현보다 훨씬 더 가스 효율적입니다.
 
 ## 세 가지 모듈
 
-| 모듈 | Precompile 주소 | 목적 |
+| 모듈 | 사전 컴파일 주소 | 목적 |
 | :--- | :--- | :--- |
-| [Bank](/ko/explanation/bank-module) | `0x0000…1003` (STABLE) | 토큰 전송, 잔액 회계, allowance 관리, 권한이 부여된 컨트랙트를 위한 mint/burn. |
-| [Distribution](/ko/explanation/distribution-module) | `0x0000…0801` | 스테이킹 보상 청구, 보상 조회, 출금 주소 관리. |
-| [Staking](/ko/explanation/staking-module) | `0x0000…0800` | 위임, 위임 해제, 재위임, 검증자 조회. |
-| [System transactions](/ko/explanation/system-transactions) | `0x0000…9999` | SDK 계층 작업(예: 언본딩 완료)을 위한 프로토콜에서 발생하는 EVM 이벤트. |
+| [뱅크](/ko/explanation/bank-module) | `0x0000…1003` (STABLE) | 토큰 전송, 잔액 회계, 허용치 관리, 승인된 컨트랙트에 대한 mint/burn. |
+| [분배](/ko/explanation/distribution-module) | `0x0000…0801` | 스테이킹 보상 청구, 보상 쿼리, 인출 주소 관리. |
+| [스테이킹](/ko/explanation/staking-module) | `0x0000…0800` | 위임, 위임 해제, 재위임, 검증인 쿼리. |
+| [시스템 트랜잭션](/ko/explanation/system-transactions) | `0x0000…9999` | SDK 계층 작업(예: 언본딩 완료)에 대해 프로토콜에서 발행하는 EVM 이벤트. |
 
-위의 각 페이지는 해당 모듈이 무엇을 하는지, 언제 사용하는지, 그리고 ABI를 어디에서 찾을 수 있는지 설명합니다.
+위 각 페이지는 모듈이 무엇을 하는지, 언제 사용해야 하는지, 그리고 해당 ABI를 어디서 찾을 수 있는지 설명합니다.
 
-## 왜 Solidity가 아닌 precompile인가
+## Solidity가 아닌 사전 컴파일인 이유
 
 두 가지 이유가 있습니다:
 
-- **가스 효율성.** Precompile은 프로토콜의 네이티브 실행 경로에서 실행됩니다. 동등한 Solidity 컨트랙트는 동일한 로직을 훨씬 높은 가스 비용으로 재구현하게 됩니다.
-- **단일 진실 공급원(Single source of truth).** Staking, distribution, 토큰 공급량은 프로토콜 수준의 상태입니다. 이를 precompile을 통해 노출하면 SDK와 어긋날 수 있는 중복된 Solidity 구현을 유지할 필요가 없어집니다.
+- **가스 효율성.** 사전 컴파일은 프로토콜의 네이티브 실행 경로에서 실행됩니다. 동등한 Solidity 컨트랙트는 훨씬 더 높은 가스 비용으로 동일한 로직을 재구현할 것입니다.
+- **단일 정보원.** 스테이킹, 분배, 토큰 공급은 프로토콜 수준의 상태입니다. 사전 컴파일을 통해 이를 노출함으로써 SDK에서 벗어날 수 있는 중복된 Solidity 구현을 유지할 필요가 없습니다.
 
 ## 권한 부여
 
-일부 precompile 메서드(`mint`, `burn`, 프로토콜 수준의 스테이킹 작업)는 호출자 권한 부여가 필요합니다. `x/precompile` 모듈은 온체인 화이트리스트를 유지하며, 등록되지 않은 컨트랙트의 호출은 revert됩니다. 이는 읽기/전송 메서드의 일반적인 EVM 사용을 막지 않으면서 권한이 필요한 작업을 거버넌스로 통제합니다.
+일부 사전 컴파일 메서드(`mint`, `burn`, 프로토콜 수준 스테이킹 작업)는 호출자 권한 부여를 요구합니다. `x/precompile` 모듈은 온체인 화이트리스트를 유지하며, 등록되지 않은 컨트랙트의 호출은 되돌려집니다. 이는 읽기/전송 메서드의 일반적인 EVM 사용을 차단하지 않으면서 특권 작업을 거버넌스 제어가 가능하게 합니다.
 
 ## 다음 권장 사항
 
-- [**Bank 모듈**](/ko/explanation/bank-module) — 토큰 전송, allowance, mint/burn 권한 부여 모델을 이해합니다.
-- [**Staking 모듈**](/ko/explanation/staking-module) — 위임과 검증자 관리가 어떻게 EVM에 도달하는지 확인합니다.
-- [**System transactions**](/ko/explanation/system-transactions) — 언본딩 완료와 같은 프로토콜 수준의 이벤트가 어떻게 EVM 로그로 표면화되는지 알아봅니다.
+- [**뱅크 모듈**](/ko/explanation/bank-module): 토큰 전송, 허용치, mint/burn 승인 모델을 이해합니다.
+- [**스테이킹 모듈**](/ko/explanation/staking-module): 위임 및 검증인 관리가 EVM에 어떻게 도달하는지 확인합니다.
+- [**시스템 트랜잭션**](/ko/explanation/system-transactions): 언본딩 완료와 같은 프로토콜 수준 이벤트가 EVM 로그로 어떻게 나타나는지 알아봅니다.

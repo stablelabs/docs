@@ -20,7 +20,7 @@ For background on why USDT0 operates this way, see [USDT as gas](/en/explanation
 
 USDT0 uses 18 decimals as the native asset and 6 decimals as an ERC-20 token. Native transfers and ERC-20 transfers operate on the same underlying balance, but the 12-digit precision gap means the system must reconcile fractional amounts when a transfer involves sub-integer precision.
 
-```
+```text
 before
   0.000001 USDT0 (ERC-20) + 0.000000000000000000 USDT0 (internal)
   // address(account).balance = 0.000001000000000000
@@ -180,6 +180,6 @@ Off-chain services and indexers should:
 
 ## Next recommended
 
-- [**USDT as gas**](/en/explanation/usdt-as-gas-token) — Understand why USDT0 operates as both the native asset and an ERC-20 token.
-- [**Send your first USDT0**](/en/tutorial/send-usdt0) — Submit a USDT0 transfer on testnet via native and ERC-20 paths.
-- [**Ethereum comparison**](/en/explanation/ethereum-comparison) — Review every behavior difference when porting from Ethereum.
+- [**USDT as gas**](/en/explanation/usdt-as-gas-token): Understand why USDT0 operates as both the native asset and an ERC-20 token.
+- [**Send your first USDT0**](/en/tutorial/send-usdt0): Submit a USDT0 transfer on testnet via native and ERC-20 paths.
+- [**Ethereum comparison**](/en/explanation/ethereum-comparison): Review every behavior difference when porting from Ethereum.

@@ -1,4 +1,4 @@
 {
-  "_comment": "en page paths (relative to docs/pages/en) intentionally left untranslated. The parity check in docs/lib/verify-i18n.mts skips these. Empty by default; add entries only with a documented reason.",
+  "_comment": "en page paths (relative to docs/pages/en) intentionally left untranslated. The parity check in docs/lib/verify-i18n.mjs skips these. Empty by default; add entries only with a documented reason.",
   "untranslated": []
 }

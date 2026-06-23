@@ -1,6 +1,8 @@
+import { createElement, Fragment } from 'react'
 import { defineConfig } from 'vocs'
 import sidebar from './docs/sidebar.json'
-import { head } from './docs/lib/structured-data'
+import { head as seoHead } from './docs/lib/structured-data'
+import { analyticsHead } from './docs/lib/analytics'
 
 export default defineConfig({
   title: 'Stable',
@@ -9,10 +11,14 @@ export default defineConfig({
   iconUrl: '/favicon.png',
   logoUrl: { light: '/logo/logo.png', dark: '/logo/logo-dark.png' },
 
-  // Per-page structured data (JSON-LD) + complementary SEO tags (canonical,
-  // og:url, og:image, hreflang), injected into <head> at static-build time.
-  // The schema strategy and page-type mapping live in docs/lib/structured-data.ts.
-  head,
+  // Everything injected into <head> at static-build time, composed into one
+  // Fragment (Vocs' `head` takes a single value):
+  //   - PostHog analytics snippet (docs/lib/analytics.ts) — migrated from the
+  //     Mintlify site so reporting into the same project continues unbroken.
+  //   - Per-page structured data (JSON-LD) + complementary SEO tags (canonical,
+  //     og:url, og:image, hreflang) — docs/lib/structured-data.ts.
+  head: (params) =>
+    createElement(Fragment, null, analyticsHead(), seoHead(params)),
 
   // Stable design language, mirrored from the Mintlify site (dev-docs/style.css,
   // docs.json). The dark column reproduces the live identity (bg #001E1E, text
@@ -113,7 +119,4 @@ export default defineConfig({
     { icon: 'x', link: 'https://x.com/stable' },
     { icon: 'discord', link: 'https://discord.gg/stablexyz' },
   ],
-
-  // PostHog parity with the Mintlify integration can be wired in a Root
-  // layout component if desired; see MIGRATION.md.
 })

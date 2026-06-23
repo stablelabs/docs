@@ -1,6 +1,6 @@
 ---
 title: "System transactions"
-description: "System transactions bridge Cosmos-SDK events to EVM logs. Protocol-level operations like unbonding completions surface as standard Transfer-style events dApps can subscribe to."
+description: "System transactions bridge Cosmos-SDK events to EVM logs, so operations like unbonding completions surface as standard events dApps can subscribe to."
 diataxis: "explanation"
 ---
 
@@ -19,7 +19,7 @@ System transactions give dApps real-time event notifications through the same We
 
 ## How the flow works
 
-```
+```text
 1. Protocol event:    An SDK-layer operation completes (e.g. staking unbonding).
 2. Detection:         The x/stable EndBlocker detects the event and queues it in state.
 3. System TX:         In the next block's PrepareProposal, the protocol generates a
@@ -53,6 +53,6 @@ The `StableSystem` interface, event signatures, and sender-authorization rules a
 
 ## Next recommended
 
-- [**System transactions reference**](/en/reference/system-transactions-api) — Review the `IStableSystem` interface, gas accounting, and authorization rules.
-- [**Staking module**](/en/explanation/staking-module) — See the SDK operations that surface as system-transaction events.
-- [**System modules overview**](/en/explanation/system-modules-overview) — Return to the precompile-exposed module list.
+- [**System transactions reference**](/en/reference/system-transactions-api): Review the `IStableSystem` interface, gas accounting, and authorization rules.
+- [**Staking module**](/en/explanation/staking-module): See the SDK operations that surface as system-transaction events.
+- [**System modules overview**](/en/explanation/system-modules-overview): Return to the precompile-exposed module list.

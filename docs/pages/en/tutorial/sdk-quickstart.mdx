@@ -9,7 +9,7 @@ diataxis: "tutorial"
 You'll install `@stablechain/sdk`, create a client signed by a private key, send a USDT0 transfer on Stable Testnet, and fetch a bridge and swap quote. Total time: about five minutes.
 
 :::note
-Stable uses USDT0 as the gas token. You only need testnet USDT0 to transact — there's no separate native asset to fund.
+Stable uses USDT0 as the gas token. You only need testnet USDT0 to transact. There's no separate native asset to fund.
 :::
 
 ## Prerequisites
@@ -88,7 +88,7 @@ Open the hash on the [testnet explorer](https://testnet.stablescan.xyz) to confi
 
 ## 4. Quote a bridge
 
-Bridge USDT0 from Ethereum Sepolia to Stable Testnet. `quoteBridge` is a read-only call — no signature, no gas:
+Bridge USDT0 from Ethereum Sepolia to Stable Testnet. `quoteBridge` is a read-only call, with no signature and no gas:
 
 ```ts
 import { Chain } from "@stablechain/sdk";
@@ -133,6 +133,6 @@ Call `stable.swap({ ...params, quote: swapQuote })` to execute. Approval for ERC
 
 ## Next recommended
 
-- [**SDK reference**](/en/reference/sdk) — Every parameter, return type, and error class.
-- [**Use with viem**](/en/how-to/sdk-with-viem) — Switch between private-key, browser-wallet, and pre-built `WalletClient` signing.
-- [**Use with wagmi**](/en/how-to/sdk-with-wagmi) — Wire the SDK into a React app using wagmi hooks.
+- [**SDK reference**](/en/reference/sdk): Every parameter, return type, and error class.
+- [**Use with viem**](/en/how-to/sdk-with-viem): Switch between private-key, browser-wallet, and pre-built `WalletClient` signing.
+- [**Use with wagmi**](/en/how-to/sdk-with-wagmi): Wire the SDK into a React app using wagmi hooks.

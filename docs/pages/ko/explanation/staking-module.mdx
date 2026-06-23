@@ -1,414 +1,48 @@
 ---
 source_path: explanation/staking-module.mdx
-source_sha: b2ec42174c8f286072288127461ab39c538fd932
-title: Staking
-description: "EVM 스마트 계약에서 검증자 참여 및 위임을 위한 x/staking 노출 Staking 프리컴파일."
+source_sha: 32af1af02985137c678f7ed6d46376607121b6bf
+title: "스테이킹 모듈"
+description: "스테이킹 사전 컴파일은 위임, 위임 해제 및 유효성 검사기 관리를 EVM 계약에 노출하며, 발신자 신원을 적용하는 권한 부여 확인을 제공합니다."
+diataxis: "explanation"
 ---
 
-# Staking
+# 스테이킹 모듈
 
-## 개요
+`x/staking` 모듈은 Stable에서 유효성 검사기 참여 및 위임을 제어합니다. 이 사전 컴파일은 이러한 작업을 Solidity에서 호출할 수 있도록 하여, 계약이 STABLE을 위임하고, 언본딩 기간 후에 위임을 해제하며, 유효성 검사기 간에 재위임하거나, EVM을 벗어나지 않고 유효성 검사기 상태를 쿼리할 수 있도록 합니다.
 
-`staking` precompile 컨트랙트는 Stable SDK의 `x/staking` 모듈 기능을 EVM 환경에서 사용할 수 있도록 브리지 역할을 합니다.
+## 제공하는 기능
 
-## 목차
+- **유효성 검사기 생성**: 설명, 수수료율 및 초기 자체 위임을 사용하여 새 유효성 검사기를 등록합니다.
+- **유효성 검사기 편집**: 유효성 검사기 메타데이터 및 수수료 매개변수를 업데이트합니다.
+- **위임**: 유효성 검사기에게 STABLE을 스테이킹합니다.
+- **위임 해제**: 유효성 검사기에서 언본딩을 시작합니다 (토큰은 언본딩 기간 후에 사용 가능해집니다).
+- **재위임**: 언본딩 없이 유효성 검사기 간에 스테이크를 이동합니다.
+- **언본딩 위임 취소**: 기간이 완료되기 전에 진행 중인 언본딩을 되돌립니다.
+- **쿼리 메서드**: 유효성 검사기 세트, 위임 기록, 언본딩 기록 및 매개변수를 읽습니다.
 
-1. **[개념](#concepts)**
-2. **[구성](#configuration)**
-3. **[메서드](#methods)**
-4. **[이벤트](#events)**
+## 권한 부여 의미론
 
-## 개념
+사전 컴파일은 두 가지 검사를 수행합니다.
 
-Stable SDK의 `x/staking` 모듈에서는 스테이킹을 위해 체인 초기화 시 bond denom이 등록되어야 합니다.
-Validator와 delegator는 bond denom 스테이킹 토큰만 사용할 수 있습니다.
-`staking` precompile 컨트랙트에서는 validator 또는 delegator가 호출자인지 확인하는 추가 검증이 수행됩니다.
+1. 본드 데놈 (스테이킹 토큰)은 체인 초기화 시 등록되어야 합니다. Stable에서는 STABLE 토큰입니다.
+2. 발신자는 수정되는 유효성 검사기 또는 위임자와 일치해야 합니다. 사전 컴파일을 직접 호출하여 다른 사람을 대신하여 위임할 수 없습니다.
 
-## 구성
+## 언본딩 완료
 
-컨트랙트 주소와 가스 비용은 사전에 정의되어 있습니다.
+언본딩 기간이 끝나면 토큰은 유동성이 되지만, SDK는 이를 조용히 처리하며 EVM은 직접적인 이벤트를 볼 수 없습니다. Stable의 [시스템 트랜잭션](/ko/explanation/system-transactions) 메커니즘은 이 간극을 메웁니다. 프로토콜은 언본딩이 해제되면 `StableSystem` 사전 컴파일을 통해 `UnbondingCompleted` 이벤트를 발생시키므로 dApp은 표준 EVM 로그를 통해 구독할 수 있습니다.
 
-### 컨트랙트 주소
+## 언제 사용해야 하는가
 
-- `0x0000000000000000000000000000000000000800`
+- 스테이킹 프로토콜이 볼트 계약에서 위임을 관리하는 경우: 사용자가 예치하고 인출할 때 `delegate` 및 `undelegate`를 호출합니다.
+- 거버넌스 대시보드에 실시간 유효성 검사기 세트가 필요한 경우: 쿼리 메서드를 사용합니다.
+- 리스테이킹 또는 유동성 스테이킹 제품이 언본딩 완료를 추적하는 경우: `UnbondingCompleted` 이벤트를 구독합니다 (가이드가 출시되면 [언본딩 추적](/ko/how-to/track-unbonding)을 참조하세요).
 
-## 메서드
+## ABI를 찾는 곳
 
-### `createValidator`
+전체 메서드 시그니처, 구조체 정의 및 발생된 이벤트는 [스테이킹 사전 컴파일 참조](/ko/reference/staking-module-api)에 있습니다.
 
-Validator가 생성됩니다.
-Validator는 운영자의 초기 delegation과 함께 생성되어야 합니다.
-잠재적인 delegator를 위해 validator는 자신의 정보와 수수료율 계획을 제공해야 합니다.
-Delegator는 시장 메커니즘의 자연스러운 규제를 통해 공개된 정보를 바탕으로 자신의 토큰을 위임할 validator를 선택할 수 있습니다.
+## 다음 권장 사항
 
-Validator가 성공적으로 등록되면 `CreateValidator` 이벤트가 발생합니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|description|Description|validator의 정보|
-|commissionRates|CommissionRates|validator가 보상받는 스테이킹 토큰의 수수료율|
-|minSelfDelegation|uint256|validator의 최소 자체 위임 금액|
-|validatorAddress|address|validator의 주소|
-|pubkey|string|validator의 공개 키|
-|value|uint256|validator에게 초기 자체 위임되는 스테이킹 토큰의 양|
-
-`Description`은 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|moniker|string|validator의 이름|
-|identity|string|validator의 신원|
-|website|string|validator 웹사이트의 URL|
-|securityContact|string|보안 연락처 정보|
-|details|string|validator의 추가 설명|
-
-`CommissionRates`는 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|rate|uint256|validator가 받는 현재 수수료율|
-|maxRate|uint256|최대 수수료율 (이보다 높게 설정할 수 없음)|
-|maxChangeRate|uint256|validator가 하루에 변경할 수 있는 최대 수수료율|
-
-`rate`는 시장에서 수용 가능한 적절한 값으로 설정해야 합니다.
-
-- Validator의 수수료율이 높으면 delegator의 수익이 낮아집니다.
-- Validator의 수수료율이 낮으면 validator의 수익이 낮아지고 운영이 어려워집니다.
-
-높은 `maxRate`는 validator의 예상치 못한 높은 수수료율에 대한 delegator의 우려를 야기할 수 있으므로 `maxRate`는 신중하게 설정해야 합니다. `maxChangeRate`는 초기화 후 변경할 수 없습니다.
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|success|bool|validator가 성공적으로 등록되면 true|
-
-### `editValidator`
-
-Validator가 정보를 업데이트합니다.
-Validator는 `CommissionRates` 구조체의 `maxRate` 및 `maxChangeRate`와 같이 변경 불가능한 필드를 제외한 정보만 업데이트할 수 있습니다.
-
-Validator가 성공적으로 업데이트되면 `EditValidator` 이벤트가 발생합니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|description|Description|validator의 정보|
-|validatorAddress|address|validator의 주소|
-|commissionRate|int256|validator가 보상받는 스테이킹 토큰의 수수료율|
-|minSelfDelegation|int256|validator의 최소 자체 위임 금액|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|success|bool|validator가 성공적으로 업데이트되면 true|
-
-### `delegate`
-
-Delegator가 validator에게 위임할 토큰의 양을 설정합니다.
-
-Delegation이 성공적으로 완료되면 `Delegate` 이벤트가 발생합니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|validatorAddress|address|validator의 주소|
-|amount|uint256|validator에게 위임되는 스테이킹 토큰의 양|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|success|bool|delegation이 성공적으로 완료되면 true|
-
-#### Events
-
-`newShares`는 delegator의 소유 비율을 나타냅니다.
-동일한 양의 토큰이 위임되더라도 시간에 따라 계산되는 shares는 달라질 수 있습니다.
-
-### `undelegate`
-
-Delegator가 validator에게 위임한 토큰의 양을 인출합니다.
-
-언델리게이션이 성공적으로 완료되면 `Unbond` 이벤트가 발생합니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|validatorAddress|address|validator의 주소|
-|amount|uint256|validator로부터 언델리게이트하려는 스테이킹 토큰의 양|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|success|bool|언델리게이션이 성공적으로 완료되면 true|
-
-### `redelegate`
-
-Delegator가 validator에게 위임한 토큰의 양을 다른 validator에게 재위임합니다.
-
-재위임이 성공적으로 완료되면 `Redelegate` 이벤트가 발생합니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|validatorSrc|string|출발지 validator의 주소|
-|validatorDst|string|목적지 validator의 주소|
-|amount|uint256|재위임할 스테이킹 토큰의 양|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|success|bool|재위임이 성공적으로 완료되면 true|
-
-### `delegation`
-
-Delegator와 validator 간의 delegation 정보를 반환합니다.
-Delegation을 찾을 수 없으면 `shares`와 `balance`는 `0`이 됩니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|validatorAddress|address|validator의 주소|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|shares|uint256|위임된 shares|
-|balance|Coin|위임된 토큰의 양과 denom|
-
-`Coin`은 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|denom|string|보상의 denom|
-|amount|uint256|보상의 양|
-
-### `unbondingDelegation`
-
-Delegator와 validator 간의 언본딩 delegation 정보를 반환합니다.
-언본딩 delegation을 찾을 수 없으면 빈 `UnbondingDelegationOutput`이 반환됩니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|validatorAddress|address|validator의 주소|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|unbondingDelegation|UnbondingDelegationOutput|언본딩 delegation의 정보|
-
-`UnbondingDelegationOutput`은 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|validatorAddress|address|validator의 주소|
-|delegatorAddress|address|delegator의 주소|
-|entries|UnbondingDelegationEntry[]|언본딩 delegation의 항목들|
-
-`UnbondingDelegationEntry`는 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|creationHeight|uint64|항목의 생성 높이|
-|completionTime|uint64|항목의 완료 시간|
-|initialBalance|Coin|항목의 초기 잔액|
-|balance|Coin|항목의 잔액|
-
-### `validator`
-
-Validator 정보를 반환합니다.
-Validator를 찾을 수 없으면 빈 `ValidatorOutput`이 반환됩니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|validatorAddress|address|validator의 주소|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|validator|Validator|validator의 정보|
-
-`Validator`는 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|operatorAddress|address|validator의 주소|
-|consensusPubkey|string|validator의 공개 키|
-|jailed|bool|validator가 jailed 상태인지 여부|
-|status|int32|validator의 상태|
-|tokens|uint256|validator에게 위임된 스테이킹 토큰의 양|
-|delegatorShares|uint256|delegation shares의 양|
-|description|string|validator의 설명|
-|unbondingHeight|int64|validator가 언본딩 중인 높이|
-|unbondingTime|int64|validator가 언본딩 중인 시간|
-|commission|uint256|validator가 보상받는 스테이킹 토큰의 수수료율|
-|minSelfDelegation|uint256|validator의 최소 자체 위임 금액|
-
-### `validators`
-
-상태와 일치하는 모든 validator를 반환합니다.
-Validator를 찾을 수 없으면 빈 `ValidatorsOutput`이 반환됩니다.
-
-`x/staking` 모듈에서 선언된 상태는 다음 중 하나일 수 있습니다:
-
-- 0 : "BOND_STATUS_UNSPECIFIED", 지정되지 않은 상태
-- 1 : "BOND_STATUS_UNBONDING", validator가 언본딩 중
-- 2 : "BOND_STATUS_UNBONDED", validator가 언본딩됨
-- 3 : "BOND_STATUS_BONDED", validator가 본딩됨
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|status|string|validator의 상태|
-|pageRequest|PageReq|페이지네이션 요청|
-
-`PageReq`는 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|key|bytes|페이지의 키|
-|offset|int64|페이지의 오프셋|
-|limit|int64|페이지의 제한|
-|countTotal|bool|결과의 총 개수를 세어야 하는지 여부|
-|reverse|bool|결과를 역순으로 정렬할지 여부|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|validators|Validator[]|validator들의 배열|
-|pageResponse|PageResp|페이지네이션 응답
-
-`PageResp`는 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|nextKey|bytes|다음 페이지의 키|
-|total|uint64|결과의 총 개수|
-
-### `redelegation`
-
-Delegator, 출발지 validator, 목적지 validator의 재위임 정보를 반환합니다.
-재위임을 찾을 수 없으면 빈 `RedelegationOutput`이 반환됩니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|srcValidatorAddress|address|출발지 validator의 주소|
-|dstValidatorAddress|address|목적지 validator의 주소|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|redelegation|RedelegationOutput|재위임의 정보|
-
-`RedelegationOutput`은 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|validatorSrcAddress|address|출발지 validator의 주소|
-|validatorDstAddress|address|목적지 validator의 주소|
-|entries|RedelegationEntry[]|재위임의 항목들|
-
-`RedelegationEntry`는 다음 필드를 가진 구조체입니다:
-
-|Name|Type|Description|
-|---|---|---|
-|creationHeight|uint64|항목의 생성 높이|
-|completionTime|uint64|항목의 완료 시간|
-|initialBalance|Coin|항목의 초기 잔액|
-|balance|Coin|항목의 잔액|
-
-### `redelegations`
-
-Delegator, 출발지 validator, 목적지 validator의 모든 재위임을 반환합니다.
-재위임을 찾을 수 없으면 빈 `RedelegationResponse`와 `PageResp`가 반환됩니다.
-
-#### Inputs
-
-|Name|Type|Description|
-|---|---|---|
-|delegatorAddress|address|delegator의 주소|
-|srcValidatorAddress|address|출발지 validator의 주소|
-|dstValidatorAddress|address|목적지 validator의 주소|
-|pageRequest|PageReq|페이지네이션 요청|
-
-#### Outputs
-
-|Name|Type|Description|
-|---|---|---|
-|response|RedelegationResponse[]|재위임들의 정보|
-|pageResponse|PageResp|페이지네이션 응답|
-
-## 이벤트
-
-### CreateValidator
-
-|Name|Type|Indexed|Description|
-|---|---|---|---|
-|valiAddr|address|Y|validator의 주소|
-|value|uint256|N|validator에게 초기 자체 위임되는 스테이킹 토큰의 양|
-
-### EditValidator
-
-|Name|Type|Indexed|Description|
-|---|---|---|---|
-|valiAddr|address|Y|validator의 주소|
-|commissionRate|int256|N|validator가 보상받는 스테이킹 토큰의 업데이트된 수수료율|
-|minSelfDelegation|int256|N|validator의 업데이트된 최소 자체 위임 금액|
-
-### Delegate
-
-|Name|Type|Indexed|Description|
-|---|---|---|---|
-|delegatorAddr|address|Y|delegator의 주소|
-|validatorAddr|string|Y|validator의 주소|
-|amount|uint256|N|validator에게 위임되는 스테이킹 토큰의 양|
-|newShares|uint256|N|delegation 이후의 delegation shares의 양|
-
-### Unbond
-
-|Name|Type|Indexed|Description|
-|---|---|---|---|
-|delegatorAddr|address|Y|delegator의 주소|
-|validatorAddr|string|Y|validator의 주소|
-|amount|uint256|N|validator로부터 언델리게이트된 스테이킹 토큰의 양|
-|completionTime|uint256|N|언델리게이션의 완료 시간|
-
-### Redelegate
-
-|Name|Type|Indexed|Description|
-|---|---|---|---|
-|delegatorAddr|address|Y|delegator의 주소|
-|validatorSrcAddress|address|Y|출발지 validator의 주소|
-|validatorDstAddress|address|Y|목적지 validator의 주소|
-|amount|uint256|N|재위임할 스테이킹 토큰의 양|
-|completionTime|uint256|N|재위임의 완료 시간|
+- [**스테이킹 사전 컴파일 참조**](/ko/reference/staking-module-api): `delegate`, `undelegate`, `redelegate`를 호출하고 유효성 검사기 상태를 읽습니다.
+- [**시스템 트랜잭션**](/ko/explanation/system-transactions): 언본딩 완료가 이벤트로 EVM에 도달하는 방법을 알아봅니다.
+- [**분배 모듈**](/ko/explanation/distribution-module): 여기서 관리되는 위임으로 얻은 보상을 인출합니다.

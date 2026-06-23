@@ -1,25 +1,25 @@
 ---
 source_path: how-to/integrate-gas-waiver.mdx
-source_sha: 95a46a35ec56b9f823fb443aeb2693a9b0248e18
-title: "启用免 Gas 交易"
-description: "集成 Stable Gas Waiver，通过向 Waiver Server API 提交已签名的 InnerTx 载荷来启用免 Gas 交易。"
+source_sha: eaaf45d02173e1ce6279849d803d73014dbb7696
+title: "启用免Gas交易"
+description: "通过向豁免服务器 API 提交已签名的 InnerTx 有效负载来集成 Stable Gas Waiver，以启用免 Gas 交易。"
 diataxis: "how-to"
 ---
 
-# 启用免 Gas 交易
+# 启用免Gas交易
 
-Gas Waiver 可在 Stable 上实现免 Gas 交易。借助 Gas Waiver，应用程序代表用户支付 Gas 费用，因此用户无需持有 USDT0 即可与合约进行交互。
+Gas Waiver 可以在 Stable 上启用免 Gas 交易。通过 Gas Waiver，应用程序可以代表用户支付 Gas 费用，因此用户无需持有 USDT0 即可与合约进行交互。
 
-本指南介绍如何通过 Waiver Server API 进行集成。
+本指南涵盖了通过豁免服务器 API 进行的集成。
 
 :::note
-**概念：** 关于 Gas Waiver 是什么、为何存在以及治理授权的豁免如何运作，请参阅 [Gas 豁免](/cn/explanation/gas-waiver)。关于完整的协议规范（包装交易格式、标记地址、执行语义、安全模型），请参阅 [Gas 豁免协议](/cn/reference/gas-waiver-api)。
+**概念：** 有关 Gas Waiver 是什么、它为何存在以及治理授权豁免如何运作的信息，请参阅[Gas waiver](/cn/explanation/gas-waiver)。有关完整的协议规范（包装器交易格式、标记地址、执行语义、安全模型），请参阅[Gas waiver protocol](/cn/reference/gas-waiver-api)。
 :::
 
-## 前置条件
+## 前提条件
 
-- 由 Stable 团队签发的 Waiver Server API 密钥
-- 目标合约地址必须已在豁免的 `AllowedTarget` 策略中注册
+- 由 Stable 团队颁发的 Waiver Server API 密钥
+- 目标合约地址必须在豁免的 `AllowedTarget` 策略中注册
 
 ## Waiver Server
 
@@ -34,13 +34,13 @@ Gas Waiver 可在 Stable 上实现免 Gas 交易。借助 Gas Waiver，应用程
 
 集成流程分为三个步骤：
 
-1. **构建 InnerTx**：用户签署一笔 `gasPrice = 0` 的交易。
+1. **构建 InnerTx**：用户使用 `gasPrice = 0` 签署交易。
 2. **提交到 Waiver Server**：将已签名的交易提交到 Waiver Server API。
-3. **处理响应**：waiver server 包装并广播交易。处理流式返回的结果，并向用户展示交易哈希。
+3. **处理响应**：豁免服务器封装并广播交易。处理流式结果并将交易哈希显示给用户。
 
 ## 步骤 1：创建用户的 InnerTx
 
-用户签署一笔 `gasPrice = 0` 的标准交易。`to` 地址和方法选择器必须被豁免的 `AllowedTarget` 策略所允许。
+用户使用 `gasPrice = 0` 签署标准交易。`to` 地址和方法选择器必须得到豁免的 `AllowedTarget` 策略的允许。
 
 ```typescript
 // config.ts
@@ -88,7 +88,7 @@ const signedInnerTx = await userWallet.signTransaction(innerTx);
 ```
 
 :::warning
-`gasPrice` 必须为 `0`。如果非零，waiver server 将拒绝该交易。
+`gasPrice` 必须为 `0`。如果它不为零，豁免服务器将拒绝该交易。
 :::
 
 ## 步骤 2：提交到 Waiver Server
@@ -112,7 +112,7 @@ const response = await fetch(`${CONFIG.WAIVER_SERVER}/v1/submit`, {
 
 ### 批量提交
 
-你可以在单次请求中提交多笔已签名的交易：
+您可以在单个请求中提交多个已签名的交易：
 
 ```typescript
 body: JSON.stringify({
@@ -120,11 +120,11 @@ body: JSON.stringify({
 })
 ```
 
-每个结果行都包含一个 `index` 字段，对应交易在数组中的位置。
+每个结果行都包含一个 `index` 字段，对应于交易在数组中的位置。
 
 ## 步骤 3：处理响应
 
-响应以 NDJSON（以换行符分隔的 JSON）形式流式返回。每一行对应一笔已提交的交易。
+响应以 NDJSON（换行符分隔的 JSON）流式传输。每行对应一个已提交的交易。
 
 ```typescript
 const reader = response.body.getReader();
@@ -160,28 +160,28 @@ while (true) {
 
 ## 错误代码
 
-| **代码** | **说明** |
+| **代码** | **描述** |
 | :--- | :--- |
-| `PARSE_ERROR` | 解析交易失败 |
-| `INVALID_REQUEST` | 请求体格式错误 |
+| `PARSE_ERROR` | 无法解析交易 |
+| `INVALID_REQUEST` | 请求正文格式错误 |
 | `BATCH_SIZE_EXCEEDED` | 批量大小超出允许的最大值 |
-| `VALIDATION_FAILED` | 交易验证失败（例如：签名无效、目标不被允许） |
-| `BROADCAST_FAILED` | 广播到链上失败 |
+| `VALIDATION_FAILED` | 交易验证失败（例如，签名无效，不允许的目标） |
+| `BROADCAST_FAILED` | 无法广播到链上 |
 | `RATE_LIMITED` | 超出速率限制 |
 | `QUEUE_FULL` | 服务器队列已满 |
 | `TIMEOUT` | 请求超时 |
 
-## API 参考
+## API参考
 
 ### GET `/v1/health`
 
-健康检查端点。认证：无需。
+健康检查端点。认证：无。
 
 ### POST `/v1/submit`
 
 提交一批已签名的内部交易。认证：必需（Bearer）。
 
-**请求体：**
+**请求正文：**
 
 ```json
 {
@@ -189,21 +189,21 @@ while (true) {
 }
 ```
 
-响应以 NDJSON 形式流式返回。每一行对应一笔已提交交易的索引。
+响应以 NDJSON 形式流式传输。每行对应一个已提交的交易索引。
 
 ### GET `/v1/submit`
 
 用于流式提交的 WebSocket 接口。认证：必需（Bearer）。
 
-## 关键要点
+## 主要收获
 
-- Gas Waiver 是一种服务端集成：你的后端将已签名的用户交易提交到 Waiver Server。用户从不直接与 Waiver Server 交互。
-- 用户始终签署 InnerTx，从而保持签名的完整性。豁免方无法修改用户的交易。
-- 目标合约必须位于豁免的 `AllowedTarget` 列表中。
+- Gas Waiver 是一种服务器端集成：您的后端将已签名的用户交易提交到 Waiver Server。用户从不直接与 Waiver Server 交互。
+- 用户始终签署 InnerTx，以保持签名的完整性。豁免无法修改用户的交易。
+- 目标合约必须在豁免的 `AllowedTarget` 列表中。
 
-## 后续推荐
+## 下一步建议
 
-- [**零 Gas 交易**](/cn/how-to/zero-gas-transactions) — 查看以演示为核心的流程，以及如何在收据中验证零 Gas。
-- [**自托管 Gas Waiver**](/cn/how-to/self-hosted-gas-waiver) — 在不使用托管 API 的情况下运行你自己的豁免服务。
-- [**Gas 豁免协议**](/cn/reference/gas-waiver-api) — 完整的包装交易规范和治理模型。
-- [**Stable SDK**](/cn/explanation/sdk-overview) — 使用类型化客户端来签署用户交易，随后将其提交到 Waiver Server。
+- [**零 Gas 交易**](/cn/how-to/zero-gas-transactions)：查看以演示为中心的流程以及如何验证收据上的零 Gas。
+- [**自托管 Gas Waiver**](/cn/how-to/self-hosted-gas-waiver)：运行您自己的豁免，无需托管 API。
+- [**Gas Waiver 协议**](/cn/reference/gas-waiver-api)：完整的包装器交易规范和治理模型。
+- [**Stable SDK**](/cn/explanation/sdk-overview)：使用类型化客户端签署用户交易，然后将其提交到 Waiver Server。

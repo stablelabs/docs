@@ -1,22 +1,22 @@
 ---
 source_path: how-to/subscribe-and-collect.mdx
-source_sha: c1fe3d6efad8671b22584ae67ffc3cdbf929337d
+source_sha: a381dc34ff14359750a205ac7aca9d960486455a
 title: "订阅与收款"
-description: "使用 EIP-7702 委托在 Stable 上构建基于拉取的订阅支付。设置订阅者授权并自动执行计费周期的收款。"
+description: "使用 EIP-7702 委托在 Stable 上构建拉式订阅支付。设置订阅者授权并自动化账单周期收款。"
 diataxis: "how-to"
 ---
 
 # 订阅与收款
 
-本指南将引导你构建一个订阅支付系统，订阅者只需授权一次，服务提供方便可在每个计费周期通过 EIP-7702 账户抽象自动收款。
+本指南将介绍如何构建一个订阅支付系统，其中订阅者只需授权一次，服务提供商即可通过 EIP-7702 账户抽象在每个账单周期自动收款。
 
 :::note
-**概念：** 关于订阅模型、权衡取舍以及与卡片预存计费的比较，请参阅[订阅计费](/cn/reference/subscriptions)。
+**概念：** 有关订阅模式、权衡以及与持卡计费的比较，请参阅[订阅计费](/cn/reference/subscriptions)。
 :::
 
-## 你将构建的内容
+## 您将构建什么
 
-一个完整的订阅生命周期：订阅者委托并订阅一次，提供方按计划收款（展示第二个周期以证明重复行为），订阅者取消订阅。
+一个完整的订阅生命周期：订阅者委托并订阅一次，提供商按计划收款（显示第二个周期以证明重复行为），然后订阅者取消。
 
 ### 演示
 
@@ -46,7 +46,7 @@ step 5. Subscriber cancels
 
 **订阅者：**
 
-```
+```text
 ─── Subscriber ───────────────────────────────────────
 // One-time setup: delegate EOA to the subscription contract
 signAuthorization(delegateContract)
@@ -59,9 +59,9 @@ sendTransaction({ to: self, data: subscribe(subscriptionId, provider, amount, in
 sendTransaction({ to: self, data: cancelSubscription(subscriptionId) })
 ```
 
-**服务提供方：**
+**服务提供商：**
 
-```
+```text
 ─── Service Provider ────────────────────────────────
 // Each billing cycle: collect payment from subscriber's EOA
 // The delegate contract verifies caller, billing schedule, and amount
@@ -73,13 +73,13 @@ sendTransaction({ to: subscriberEOA, data: collect(subscriptionId) })
 
 ## 委托合约
 
-订阅计费的工作原理是将订阅者的 EOA 委托给一个执行计费条款的合约。通过 EIP-7702，订阅者的账户临时获得合约逻辑，使得服务提供方能够在每个计费周期收款，而无需订阅者每次都签名。
+订阅计费通过将订阅者的 EOA 委托给一个强制执行计费条款的合约来工作。通过 EIP-7702，订阅者的账户暂时获得合约逻辑，允许服务提供商在每个计费周期收款，而无需订阅者每次都签名。
 
-你可以使用现有的已部署合约，也可以部署自己的合约。下面的示例是一个最小化的 `SubscriptionManager` 合约，支持三种操作：
+您可以使用已部署的现有合约或部署您自己的合约。下面的示例是一个最小的 `SubscriptionManager` 合约，它支持三种操作：
 
-- `subscribe`：为某个 `subscriptionId` 注册计费条款。
-- `collect`：提供方为该 `subscriptionId` 拉取下一笔计划付款。
-- `cancelSubscription`：订阅者撤销某个特定订阅。
+- `subscribe`：为 `subscriptionId` 注册计费条款。
+- `collect`：提供商为该 `subscriptionId` 拉取下一个预定付款。
+- `cancelSubscription`：订阅者撤销特定订阅。
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -180,7 +180,7 @@ contract SubscriptionManager {
 ```
 
 :::note
-此合约作为参考实现提供，仅用于测试目的。委托合约对订阅者的 EOA 拥有完全的执行权限，因此在生产环境中，请使用经过审计和验证的合约。有关 EIP-7702 委托和安全性的更多背景信息，请参阅 [EIP-7702](/cn/explanation/eip-7702)。
+此合约作为测试参考实现提供。委托合约对订阅者的 EOA 拥有完全执行权限，因此在生产环境中，请使用经过审计和验证的合约。有关 EIP-7702 委托和安全性的更多背景信息，请参阅 [EIP-7702](/cn/explanation/eip-7702)。
 :::
 
 ## 配置
@@ -198,9 +198,9 @@ export const provider = new ethers.JsonRpcProvider(STABLE_TESTNET_RPC);
 export const subscriberWallet = new ethers.Wallet(process.env.SUBSCRIBER_KEY!, provider);
 ```
 
-## 步骤 1：委托订阅者的 EOA（EIP-7702）
+## 步骤 1：委托订阅者的 EOA (EIP-7702)
 
-订阅者签署一个 EIP-7702 授权，将其 EOA 委托给 `SubscriptionManager`。此后，订阅者的 EOA 将执行委托合约的逻辑。
+订阅者签署 EIP-7702 授权，将其 EOA 委托给 `SubscriptionManager`。在此之后，订阅者的 EOA 将执行委托合约的逻辑。
 
 ```typescript
 // delegate.ts
@@ -235,7 +235,7 @@ Delegation tx: 0x7702...aaaa
 
 ## 步骤 2：注册订阅（订阅者）
 
-订阅者在自己的 EOA 上调用 `subscribe()`。由于 EOA 已被委托，此操作将执行 `SubscriptionManager.subscribe`。
+订阅者在其自己的 EOA 上调用 `subscribe()`。由于 EOA 已被委托，这将执行 `SubscriptionManager.subscribe`。
 
 ```typescript
 // subscribe.ts
@@ -281,9 +281,9 @@ Subscription registered, tx: 0xabcd...1234
 Subscription ID: 0xfedc...9876
 ```
 
-## 步骤 3：收取付款（服务提供方）
+## 步骤 3：收款（服务提供商）
 
-每个计费周期，服务提供方在订阅者的 EOA 上调用 `collect(subscriptionId)`。委托逻辑在转移 USDT0 之前会验证调用者、计费计划和金额。
+每个账单周期，服务提供商在订阅者的 EOA 上调用 `collect(subscriptionId)`。委托逻辑在转账 USDT0 之前验证调用者、计费计划和金额。
 
 ```typescript
 // collect.ts
@@ -322,11 +322,11 @@ Payment collected, tx: 0x8f3a...2d41
 Gas used: 52000
 ```
 
-在 Stable 上，一次 `collect()` 调用大约消耗 **50k-55k gas**（21k 基础 + 7702 委托开销 + ERC-20 `transfer`）。按 1 gwei 基础费用计算，提供方每个计费周期支付的费用约为 `0.000050 USDT0`。
+`collect()` 调用在 Stable 上大约需要 **50k-55k gas**（21k 基础 gas + 7702 委托开销 + ERC-20 `transfer`）。在 1 gwei 的基础费用下，每个计费周期提供商支付的费用约为 `0.000050 USDT0`。
 
 ## 步骤 4：取消订阅（订阅者）
 
-订阅者在自己的 EOA 上调用 `cancelSubscription(subscriptionId)`，以撤销该特定订阅的计费权限。
+订阅者在其自己的 EOA 上调用 `cancelSubscription(subscriptionId)` 以撤销该特定订阅的计费访问权限。
 
 ```typescript
 // cancel.ts
@@ -359,33 +359,33 @@ Subscription cancelled, tx: 0xdef0...5678
 
 ## 安全模型
 
-订阅者授权委托合约从其 EOA 中拉取资金。请准确了解该授权涵盖的范围以及如何限制风险敞口。
+订阅者正在授权委托合约从其 EOA 中提取资金。精确了解该授权涵盖的内容以及如何限制风险敞口。
 
-**订阅者授权的内容。** 通过委托给 `SubscriptionManager`，订阅者授予该合约逻辑对其 EOA 的完全执行权限。委托方只能在其代码所设定的条件下转移资金：调用者是已注册的提供方、间隔时间已过、金额与已存储的订阅相匹配。它无法转移到其他地址或绕过间隔检查，因为合约代码不允许这些操作。
+**订阅者正在授权什么。** 通过委托给 `SubscriptionManager`，订阅者授予合约逻辑对其 EOA 的完全执行权限。委托只能在符合编码条件的情况下转移资金：调用者是注册的提供商，间隔已过，金额与存储的订阅匹配。它不能转移到其他地址或绕过间隔检查，因为合约代码不允许这些操作。
 
-**需要缓解的失败模式。**
+**需要缓解的故障模式。**
 
-- **恶意委托升级**：如果 `SubscriptionManager` 是一个其实现可被管理员更改的代理合约，那么该授权实际上信任了该管理员。仅委托给不可变的合约或具有透明、时间锁定升级的代理合约。
-- **提供方被攻破**：如果提供方的密钥泄露，攻击者可在每个周期金额的上限内提前收款。订阅者应为每个订阅设置 `spendingLimit`，并监控未经授权的 `SubscriptionCollected` 事件。
-- **委托替换**：使用不同的委托方再次订阅会清除订阅状态。请使用模块化委托方，在单一委托下支持多种功能（订阅、批量支付、支出限额），而不是每个功能使用一个委托方。
-- **可重放签名**：所有签名都使用与订阅者 EOA 绑定的 EIP-7702 nonce，因此它们无法跨链或跨委托重放。
+- **恶意委托合约升级**：如果 `SubscriptionManager` 是一个代理，其实现可以通过管理员更改，那么授权实际上信任该管理员。只委托给不可变合约或具有透明、时间锁定升级的代理。
+- **提供商泄露**：如果提供商的密钥泄露，攻击者可以提前收取费用，最高可达每个周期的金额。订阅者应为每个订阅设置 `spendingLimit` 并监控未经授权的 `SubscriptionCollected` 事件。
+- **委托替换**：使用不同的委托再次订阅会清除订阅状态。使用支持多个功能（订阅、批量支付、支出限制）的模块化委托，而不是每个功能使用一个委托。
+- **可重放签名**：所有签名都使用绑定到订阅者 EOA 的 EIP-7702 随机数，因此它们不能跨链或跨委托重放。
 
 **推荐的防护措施。**
 
-- 在生产环境使用前审计委托合约。
-- 相对于订阅者的余额，保持每个订阅的金额较小。
-- 监控 `SubscriptionCreated` / `SubscriptionCollected` 事件并向订阅者展示。
-- 为订阅者提供清晰的"取消"界面，在其自己的 EOA 上调用 `cancelSubscription(subscriptionId)`。
+- 在生产使用前审计委托合约。
+- 将每个订阅的金额保持在订阅者余额的较小比例。
+- 监控 `SubscriptionCreated` / `SubscriptionCollected` 事件并将其显示给订阅者。
+- 提供订阅者清晰的“取消”UI，在其自己的 EOA 上调用 `cancelSubscription(subscriptionId)`。
 
-## 重要注意事项
+## 重要考虑事项
 
-- **持久委托**：EIP-7702 委托会持续存在，直到订阅者明确更改或清除它。无需每个计费周期重新委托。
-- **每个 EOA 单一委托**：如果订阅者之后委托给不同的合约，订阅委托逻辑将被替换，收款将失败。请使用模块化委托合约，在单一委托下支持多种功能（订阅、批量支付、支出限额、会话密钥）。
-- **计划行为**：此示例在每次成功收款时将 `nextChargeAt` 推进一个间隔。如果已经过去了多个计费周期，重复的 `collect()` 调用可以逐个周期追赶。如果你的产品需要不同的策略，请扩展该逻辑。
-- **使用经过审计的委托方**：仅委托给已经过审计的合约。
+- **持久委托**：EIP-7702 委托将一直存在，直到订阅者明确更改或清除它。每个计费周期无需重新委托。
+- **每个 EOA 的单一委托**：如果订阅者以后委托给不同的合约，订阅委托逻辑将被替换，并且收款将失败。使用支持多个功能（订阅、批量支付、支出限制、会话密钥）的模块化委托合约，所有这些功能都在一个委托下。
+- **计划行为**：此示例在每次成功收款时将 `nextChargeAt` 增加一个间隔。如果已经过去不止一个计费周期，则重复的 `collect()` 调用可以一次赶上一个周期。如果您的产品需要不同的策略，请扩展逻辑。
+- **使用经过审计的委托合约**：仅委托给经过审计的合约。
 
-## 下一步推荐
+## 接下来推荐
 
-- [**订阅计费概念**](/cn/reference/subscriptions) — 了解基于拉取的计费模型。
-- [**账户抽象**](/cn/how-to/account-abstraction) — 了解批量支付、支出限额和会话密钥如何在单一委托下组合。
-- [**EIP-7702 概念**](/cn/explanation/eip-7702) — 回顾使这一切成为可能的委托模型。
+- [**订阅计费概念**](/cn/reference/subscriptions)：了解拉式计费模型。
+- [**账户抽象**](/cn/how-to/account-abstraction)：了解批量支付、支出限制和会话密钥如何在单个委托下结合使用。
+- [**EIP-7702 概念**](/cn/explanation/eip-7702)：回顾使这成为可能的委托模型。

@@ -1,36 +1,36 @@
 ---
 source_path: explanation/contracts-overview.mdx
-source_sha: e9d40ccc5abb2839ea1f7689ed0a06df4be5064c
+source_sha: d004e6f88f0f2db9748b4114627eabb27e41c94c
 title: "Stable 上的合约"
-description: "在 Stable 上部署、验证和索引智能合约。完整的 EVM 兼容性，以及面向 Bank、Distribution 和 Staking 模块的预编译合约。"
+description: "在 Stable 上部署、验证和索引智能合约。完整的 EVM 兼容性以及银行、分发和质押模块的预编译。"
 diataxis: "explanation"
 ---
 
 # Stable 上的合约
 
-Stable 完全兼容 EVM。Solidity、Vyper、Hardhat、Foundry、ethers.js 和 viem 都无需修改即可使用。只要将工具指向 Stable 的 RPC，现有合约即可原样部署。在标准 EVM 之上，Stable 将协议级模块（Bank、Distribution、Staking）以预编译合约的形式暴露在固定地址上，因此你的 Solidity 可以直接调用质押和奖励分发功能，而无需重新实现它们。
+Stable 完全兼容 EVM。Solidity、Vyper、Hardhat、Foundry、ethers.js 和 viem 都可以原样使用。一旦您将工具指向 Stable 的 RPC，现有合约就可以按原样部署。在标准 EVM 的基础上，Stable 将协议级模块（银行、分发、质押）作为预编译合约暴露在固定地址，因此您的 Solidity 可以调用质押和奖励分发，而无需重新实现它们。
 
-## 你可以构建什么
+## 您可以构建什么
 
-- **标准应用合约**（ERC-20、ERC-721、托管、AMM），使用任意 EVM 工具链。
-- **经过验证、已索引的合约**，在 Stablescan 上通过 ethers.js 提供实时事件流。
-- **协议集成合约**，可从 Solidity 调用 Bank / Distribution / Staking 预编译合约。
-- **系统交易监听器**，通过标准的 `eth_getLogs` 监视协议发出的事件（例如解绑完成）。
+- **标准应用合约** (ERC-20, ERC-721, 托管, AMM)，使用任何 EVM 工具链。
+- 通过 ethers.js 在 Stablescan 上**已验证、已索引的合约**，带有实时事件流。
+- **协议集成合约**，从 Solidity 调用银行/分发/质押预编译。
+- **系统交易监听器**，通过标准的 `eth_getLogs` 监听协议发出的事件（例如，解除绑定完成）。
 
 ## Stable 的不同之处
 
-- **USDT0 是 gas 代币。** `maxPriorityFeePerGas` 必须为 `0`。原生转账中的 `value` 字段携带的是 USDT0，而不是 ETH。参见[使用 USDT0 作为 gas](/cn/how-to/work-with-usdt-gas)。
-- **USDT0 具有双重角色。** 持有原生 USDT0 的合约，其余额可能因 ERC-20 的 `transferFrom` 或 `permit` 而发生变化——切勿在 `uint256` 中镜像原生余额。参见 [Stable 上的 USDT0 行为](/cn/explanation/usdt0-behavior)。
-- **预编译地址在测试网和主网中是固定的。** 将它们作为常量固化到你的合约中。
+- **USDT0 是 Gas 代币。** `maxPriorityFeePerGas` 必须为 `0`。原生转账中的 `value` 字段承载的是 USDT0，而不是 ETH。请参阅[使用 USDT0 作为 Gas](/cn/how-to/work-with-usdt-gas)。
+- **USDT0 具有双重身份。** 持有原生 USDT0 的合约可以通过 ERC-20 `transferFrom` 或 `permit` 更改其余额。切勿在 `uint256` 中镜像原生余额。请参阅[Stable 上的 USDT0 行为](/cn/explanation/usdt0-behavior)。
+- **预编译地址在测试网和主网中是固定的。** 将它们作为常量烧录到您的合约中。
 
 ## 从这里开始
 
-- [**部署**](/cn/tutorial/smart-contract) — 搭建 Foundry，配置 Stable，并部署 Counter。
-- [**验证**](/cn/how-to/verify-contract) — 使用 forge verify-contract 将源码上传到 Stablescan。
-- [**索引**](/cn/how-to/index-contract) — 使用 ethers.js 订阅事件并回填历史日志。
+- [**部署**](/cn/tutorial/smart-contract)：搭建 Foundry，配置 Stable，并部署 Counter。
+- [**验证**](/cn/how-to/verify-contract)：使用 forge verify-contract 将源代码上传到 Stablescan。
+- [**索引**](/cn/how-to/index-contract)：使用 ethers.js 订阅事件并回填历史日志。
 
-## 推荐下一步
+## 下一步建议
 
-- [**合约指南索引**](/cn/explanation/contracts-guides) — 合约指南、预编译参考和系统模块 ABI 的完整列表。
-- [**使用系统模块**](/cn/how-to/use-system-modules) — 从 Solidity 和 ethers.js 调用 Bank / Distribution / Staking。
-- [**JSON-RPC 参考**](/cn/reference/json-rpc-api) — Stable 支持哪些 `eth_*` 和 `debug_*` 方法。
+- [**合约指南索引**](/cn/explanation/contracts-guides)：合约指南、预编译参考和系统模块 ABI 的完整列表。
+- [**使用系统模块**](/cn/how-to/use-system-modules)：从 Solidity 和 ethers.js 调用银行/分发/质押。
+- [**JSON-RPC 参考**](/cn/reference/json-rpc-api)：Stable 支持哪些 `eth_*` 和 `debug_*` 方法。

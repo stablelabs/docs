@@ -1,355 +1,60 @@
 ---
 source_path: explanation/system-transactions.mdx
-source_sha: 59aa5ae83041e3012bd580b2771601277b1ddf1c
-title: System Transactions
-description: "将 SDK 层质押事件桥接为 EVM 日志以实现 dApp 全面可见性的系统交易机制。"
+source_sha: 0ca908e75feea70023fe71db75e2068f4c824b90
+title: "系统交易"
+description: "系统交易将 Cosmos-SDK 事件桥接到 EVM 日志，因此像解除绑定的完成等操作会以 dApp 可以订阅的标准事件形式出现。"
+diataxis: "explanation"
 ---
 
-# System Transactions
+# 系统交易
 
-## 摘要
+EVM 应用程序通过 `eth_getLogs` 等标准接口订阅链上活动。但是，在 Stable 上，一些最重要的操作（例如抵押完成解除绑定）发生在 SDK 模块内部，这些模块不会自然地发出 EVM 事件。**系统交易**弥补了这一可见性差距：协议本身提交 EVM 交易，这些交易为 SDK 层操作发出事件，使它们可以通过 dApp 已经使用的同一日志流进行索引。
 
-系统交易为 Stable 协议提供了一种为 Stable SDK 操作发出 EVM 事件的方式。当质押事件（如解绑完成）在 SDK 层发生时，协议会自动生成发出相应事件的 EVM 交易，使这些操作对 EVM 工具和应用程序完全可见。
+## 为什么这很重要
 
-## 动机
+考虑跟踪用户的代币何时完成解除绑定。如果没有系统交易，dApp 将需要：
 
-Stable 上的 EVM 用户和应用程序期望通过标准 EVM 接口（如 `eth_getLogs`）监控区块链事件。但关键操作发生在 Stable SDK 模块中，这些模块不会自然地发出 EVM 事件。这造成了可见性差距：EVM dapps 无法轻松跟踪用户的代币何时完成解绑。
+- 运行一个单独的索引器，它会监视 SDK 事件并将其存储在自己的数据库中。这增加了操作开销并引入了一个新的故障点。
+- 定期轮询 REST 端点。这会导致 5-10 秒的延迟，更高的 RPC 负载，并且需要维护两个客户端堆栈（web3 + REST）。
 
-系统交易弥合了这一差距。当质押模块完成解绑操作时，Stable 的 x/stable 模块会检测到该事件并生成一个调用 StableSystem 预编译合约（`0x0000000000000000000000000000000000009999`）的系统交易。然后，预编译合约会发出任何 dapp 都可以订阅的适当 EVM 事件。系统交易使用特殊的发送者地址（`0x8888888888888888888888888888888888888888`）运行，只有协议才能使用该地址。这可以防止任何人伪造协议事件，同时保持事件发出在链上的无需信任和可验证性。
+系统交易通过 dApp 已经用于 EVM 日志的同一 WebSocket 连接，向 dApp 提供实时事件通知。无需单独的索引器，也无需轮询 REST。
 
-## 规范
+## 工作流程
 
-系统交易通过三个主要组件工作：x/stable 模块的 EndBlocker、PrepareProposal 处理程序和 StableSystem 预编译合约。
-
-### 架构概述
-
-<img
-  className="block"
-  src="/images/system-transaction-architecture.png"
-  alt="system-transaction-architecture"
-/>
-
-### StableSystem 预编译合约
-
-StableSystem 预编译合约位于 `0x0000000000000000000000000000000000009999`，处理需要发出 EVM 事件的协议级操作。目前它支持解绑完成通知。
-
-```solidity
-interface IStableSystem {
-    /// @notice 处理排队的解绑完成并发出 EVM 事件
-    /// @param blockHeight 处理完成的区块高度
-    /// @dev 只能由系统交易调用（from = 0x8888888888888888888888888888888888888888）
-    /// @dev 每次调用最多处理 100 个完成
-    /// @dev 自动从队列中删除已处理的完成
-    function notifyUnbondingCompletions(int64 blockHeight) external;
-
-    /// @notice 当解绑操作完成时发出
-    /// @param delegator 委托代币的地址
-    /// @param validator 代币委托给的验证者地址
-    /// @param amount 完成解绑的代币数量（以 uusdc 为单位）
-    event UnbondingCompleted(
-        address indexed delegator,
-        address indexed validator,
-        uint256 amount
-    );
-
-    /// @notice 调用者未授权（不是系统交易发送者）
-    error Unauthorized();
-}
+```text
+1. 协议事件：    SDK 层操作完成（例如，抵押解除绑定）。
+2. 检测：         x/stable EndBlocker 检测到事件并将其排队到状态中。
+3. 系统交易：         在下一个区块的 PrepareProposal 中，协议生成一个
+                      调用 StableSystem 预编译的系统交易。
+4. EVM 发出：      预编译处理排队条目并发出标准
+                      EVM 事件 — dApp 通过 eth_getLogs 和订阅看到它们。
 ```
 
-### 系统交易发送者
+系统交易由验证者在区块提议期间创建，而不是由用户创建。它位于区块的开头，在任何用户交易之前。
 
-系统交易使用 `0x8888888888888888888888888888888888888888` 作为发送者地址。该地址：
+## StableSystem 预编译
 
-- 不需要签名验证
-- 只能由 PrepareProposal 中创建的交易使用
-- 用户或合约无法伪造
-- 通过 SystemTxDecorator ante 处理程序跳过费用扣除
+事件流经 `StableSystem` 预编译，位于 `0x0000000000000000000000000000000000009999`。目前，它为质押解除绑定发出一个事件（`UnbondingCompleted`）。该协议旨在将此扩展到其他 SDK 操作（验证者佣金更改，治理执行），采用相同的模式。
 
-EVM 通过检查 `msg.sender == 0x8888888888888888888888888888888888888888` 来识别系统交易。预编译合约可以使用此功能来限制仅协议操作。
+## 安全模型
 
-### 事件驱动流程
+两个属性使事件流值得信赖：
 
-当用户的解绑期完成时，会发生以下情况：
+- **仅限协议发送者。** 系统交易使用 `0x8888888888888888888888888888888888888888` 作为其发送者。EVM 状态转换规则只允许从该地址发送到 `StableSystem` 预编译的交易跳过签名验证。用户无法伪造事件或从自己的交易中调用受限的预编译函数。
+- **确定性事件发送。** 每个诚实的验证者都会为相同的协议事件生成相同的系统交易。除了标准共识之外，没有额外的信任假设。
 
-1. **Stable SDK 层：** 质押模块的 EndBlocker 完成解绑并发出 EventTypeCompleteUnbonding，包含委托者地址、验证者地址和金额。
-2. **检测：** x/stable 模块的 EndBlocker 在质押之后运行，并扫描区块事件日志中的解绑事件。每当有代币完成解绑，该模块都将在队列中添加一条记录，包含委托者地址、验证者地址、金额和区块高度。
-3. **系统交易生成**：在下一个区块的 PrepareProposal 中，应用程序查询所有排队的完成。如果存在任何完成，它会创建一个调用 StableSystem.notifyUnbondingCompletions(blockHeight) 的系统交易，使用当前区块高度。此交易放在区块前面，在任何用户交易之前。
-4. **执行：** 在区块执行期间，系统交易首先运行。预编译合约查询该区块高度排队的完成状态，为每个完成发出一个 UnbondingCompleted 事件（最多 100 个），并从队列中删除它们。
-5. **EVM 可见性：** 事件出现在交易收据和日志中，对 eth_getLogs 查询、区块浏览器和任何监控 StableSystem 预编译合约的应用程序可见。
+## 批处理
 
-### 批处理
+为了限制区块大小，每个区块最多处理 100 个解除绑定完成。在 Stable 大约 700 毫秒的区块时间内，这大约是每分钟 9,000 个解除绑定完成，远高于典型的质押活动。如果爆发超出每个区块的限制，解除绑定完成将以 FIFO 顺序排队，并在后续区块中处理。
 
-为防止区块变得过大，系统每个区块最多处理 100 个解绑完成。如果队列中存在 150 条记录：
+SDK 事件与 EVM 事件发出之间存在一个区块（约 700 毫秒）的延迟，这相对于 7 天的解除绑定期本身可以忽略不计。
 
-- 区块 N：创建处理完成 0-99 的系统交易
-- 区块 N+1：创建处理完成 100-149 的系统交易
+## ABI 查找位置
 
-预编译合约直接查询状态，而不是在 calldata 中接收完成数据。这使交易大小可预测，并将数据从昂贵的 calldata 移动到更便宜的状态读取。
+`StableSystem` 接口、事件签名和发送者授权规则位于 [系统交易参考](/cn/reference/system-transactions-api) 中。
 
-## 使用示例
+## 下一步建议
 
-最常见的用例是需要在解绑期完成时通知用户的质押仪表板。以下是如何设置解绑完成监听器。
-
-```javascript
-import { ethers } from 'ethers';
-
-// StableSystem 预编译合约地址
-const STABLE_SYSTEM_ADDRESS = '0x0000000000000000000000000000000000009999';
-
-// UnbondingCompleted 事件的 ABI
-const STABLE_SYSTEM_ABI = [
-  'event UnbondingCompleted(address indexed delegator, address indexed validator, uint256 amount)'
-];
-
-// 连接到 Stable 网络
-const provider = new ethers.JsonRpcProvider('https://rpc.testnet.stable.xyz');
-const stableSystem = new ethers.Contract(
-  STABLE_SYSTEM_ADDRESS,
-  STABLE_SYSTEM_ABI,
-  provider
-);
-
-// 订阅所有解绑完成
-stableSystem.on('UnbondingCompleted', (delegator, validator, amount, event) => {
-  console.log('解绑完成！');
-  console.log('委托者：', delegator);
-  console.log('验证者：', validator);
-  console.log('金额：', ethers.formatEther(amount), '代币');
-  console.log('区块：', event.log.blockNumber);
-  console.log('交易哈希：', event.log.transactionHash);
-});
-
-```
-
-此监听器将在任何用户的解绑完成时触发。在生产环境中部署 dApp 时需要过滤特定用户的事件。
-
-### 过滤特定用户的事件
-
-要仅接收特定委托者地址的事件，请使用索引事件参数创建过滤器：
-
-```javascript
-// 仅监视特定用户的解绑
-const userAddress = '0xabcd...';
-
-const filter = stableSystem.filters.UnbondingCompleted(userAddress);
-
-stableSystem.on(filter, (delegator, validator, amount, event) => {
-  // 这仅针对指定用户的解绑触发
-  showNotification(`您的 ${ethers.formatEther(amount)} 代币解绑完成！`);
-  refreshUserBalance(userAddress);
-});
-```
-
-如果您正在构建特定于验证者的仪表板，您还可以按验证者过滤：
-
-```javascript
-// 监视来自特定验证者的所有解绑
-const validatorAddress = '0x1234...';
-
-const validatorFilter = stableSystem.filters.UnbondingCompleted(null, validatorAddress);
-
-stableSystem.on(validatorFilter, (delegator, validator, amount) => {
-  updateValidatorStats(validator, amount);
-});
-```
-
-### 查询历史事件
-
-如果您的 dApp 需要显示过去解绑完成的历史记录，您可以使用带有区块范围的事件过滤器查询历史事件：
-
-```javascript
-// 获取用户在最近 1000 个区块中的所有解绑
-const currentBlock = await provider.getBlockNumber();
-const filter = stableSystem.filters.UnbondingCompleted(userAddress);
-
-const events = await stableSystem.queryFilter(
-  filter,
-  currentBlock - 1000,
-  currentBlock
-);
-
-const unbondingHistory = events.map(event => ({
-  delegator: event.args.delegator,
-  validator: event.args.validator,
-  amount: ethers.formatEther(event.args.amount),
-  blockNumber: event.blockNumber,
-  txHash: event.transactionHash
-}));
-
-console.log('最近的解绑：', unbondingHistory);
-
-```
-
-## 集成指南
-
-### 步骤 1：添加 Stable System 合约接口
-
-首先，将 StableSystem 预编译合约接口添加到您的项目中。如果您使用 Foundry 或 Hardhat，请创建一个新的接口文件：
-
-```solidity
-interface IStableSystem {
-    event UnbondingCompleted(
-        address indexed delegator,
-        address indexed validator,
-        uint256 amount
-    );
-}
-```
-
-如果您正在构建一个没有 Solidity 合约的纯前端 dApp，您只需要事件的 ABI 片段：
-
-```javascript
-const STABLE_SYSTEM_ABI = [
-  'event UnbondingCompleted(address indexed delegator, address indexed validator, uint256 amount)'
-];
-```
-
-### 步骤 2：设置事件监听器
-
-初始化您的 ethers.js provider 并创建指向 StableSystem 预编译合约地址的合约实例。预编译合约始终部署在 Stable 测试网和主网的 `0x00000000000....0000009999`。
-
-*注意：预编译合约尚未部署在 Stable 主网上，将在 v1.2.0 升级后提供。*
-
-```javascript
-const provider = new ethers.JsonRpcProvider(RPC_URL);
-const stableSystem = new ethers.Contract(
-  '0x0000000000000000000000000000000000009999',
-  STABLE_SYSTEM_ABI,
-  provider
-);
-```
-
-### 步骤 3：在应用程序逻辑中处理事件
-
-订阅事件并相应地更新应用程序状态。常见模式包括：
-
-- **余额更新**：当解绑完成时，刷新用户的代币余额
-- **通知系统**：在用户的解绑完成时显示 toast 通知
-- **仪表板统计**：实时更新质押指标和图表
-- **交易历史**：将已完成的解绑添加到用户的活动源
-
-### 步骤 4：处理连接问题
-
-由于事件订阅依赖于持久的 websocket 连接，因此为生产 dApp 实现重新连接逻辑：
-
-```javascript
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 5;
-
-function setupEventListener() {
-  const provider = new ethers.WebSocketProvider('wss://rpc.testnet.stable.xyz');
-
-  provider.on('error', (error) => {
-    console.error('Provider 错误：', error);
-    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      reconnectAttempts++;
-      setTimeout(() => setupEventListener(), 5000);
-    }
-  });
-
-  const stableSystem = new ethers.Contract(
-    '0x0000000000000000000000000000000000009999',
-    STABLE_SYSTEM_ABI,
-    provider
-  );
-
-  stableSystem.on('UnbondingCompleted', handleUnbonding);
-}
-```
-
-## 为什么采用这种方法？
-
-### 与自定义索引器相比
-
-以前，Stable SDK 要求 dApp 开发人员运行自定义索引器，监视 SDK 事件并将它们存储在数据库中。这增加了操作开销并引入了潜在的故障点。
-
-使用系统交易，无需单独的索引器基础设施。EVM 的日志系统原生支持这类事件，每个 RPC 节点都已经索引和提供。任何标准 web3 库都可以订阅这些事件，无需额外工具。
-
-### 与轮询 SDK 端点相比
-
-没有系统交易，EVM dApps 需要定期调用 Stable SDK REST 端点来检查解绑期是否已完成。这会产生几个问题：
-
-- **延迟增加**：5-10 秒的轮询间隔意味着用户可能需要等待那么长时间才能看到更新
-- **更高的负载**：每个 dApp 实例轮询端点都会增加 RPC 基础设施的负载
-- **复杂性**：dApps 需要同时处理 web3 提供程序（用于 EVM 交互）和 Stable SDK REST 客户端（用于 SDK 查询）
-- **无实时更新**：轮询本质上无法提供即时通知
-
-系统交易通过 dApps 已经用于 EVM 交互的相同 websocket 连接提供实时事件通知。这简化了开发人员体验并降低了基础设施成本。
-
-## 安全保证
-
-### 无需信任的事件发出
-
-系统交易在 `PrepareProposal` ABCI 阶段创建，只有验证者才能执行。用户提交的交易无法伪造系统发送者地址（`0x8888888888888888888888888888888888888888`），因为 EVM 的状态转换逻辑强制只有到 StableSystem 预编译合约地址的交易才能跳过签名验证。
-
-这意味着：
-
-- 用户无法伪造解绑完成事件
-- 用户无法从自己的交易中调用 `notifyUnbondingCompletions`
-- 发出 `UnbondingCompleted` 事件的唯一方法是在 Stable SDK 质押模块中实际完成解绑
-
-### 无额外信任假设
-
-系统交易不会引入超出区块链共识已经需要的新安全假设。如果您相信验证者正确执行区块，您就可以相信系统交易事件准确反映了 Stable SDK 状态变化。
-
-事件发出过程是确定性的：给定 `EndBlock` 中相同的 SDK 事件，所有诚实的验证者将在 `PrepareProposal` 期间产生相同的系统交易。共识机制确保验证者就包含哪些系统交易达成一致。
-
-### 区块最终性
-
-Stable 区块链通过 StableBFT 的共识机制使用快速最终性。一旦提交了一个区块，它就会立即最终化，无法重组。这意味着一旦您收到 `UnbondingCompleted` 事件，您就可以相信它是永久的。
-
-不需要像在概率最终性链上那样等待多个确认。dApps 可以在收到事件后立即更新用户余额并显示通知。
-
-## 性能和限制
-
-### 批处理大小约束
-
-每个区块通过系统交易最多处理 100 个解绑完成。此限制存在是为了防止在解绑活动高峰期间区块大小无限制。
-
-在实践中，假设平均区块时间为 0.7 秒，每个区块 100 个完成提供了约 9000 个完成/分钟的吞吐量。正常的质押活动很少达到此限制。在特殊情况下，完成可能会在完全处理之前排队几个区块。
-
-### Gas 消耗
-
-系统交易在执行期间消耗 gas，这在区块的 gas 限制中计算。gas 成本与正在处理的完成数量成线性比例：
-
-- 基本函数调用：约 21,000 gas
-- 每个事件发出：约 3,000 gas
-- 读取状态：每个完成约 2,000 gas
-
-100 个完成的完整批次消耗大约 521,000 gas。由于 Stable 的区块 gas 限制为 100,000,000，这代表不到 0.6% 的可用区块空间。
-
-### 通知延迟
-
-当解绑期在区块 N 期间完成时：
-
-1. Stable 模块的 `EndBlock` 在区块 N 的状态中排队完成
-2. 区块 N+1 的 `PrepareProposal` 创建系统交易
-3. 系统交易在区块 N+1 期间执行，发出事件
-
-这意味着解绑完成和发出 EVM 事件之间存在一个区块的延迟（大约 0.7 秒）。对于大多数用例，此延迟是可以接受的，因为解绑期本身为 7 天。
-
-### 高负载场景
-
-如果解绑完成的到达速度快于每个区块 100 个，它们会在队列中累积。队列按 FIFO 顺序处理，因此最旧的完成始终首先通知。
-
-在持续的高负载期间，队列可能会暂时增长。但是，一旦高峰消退，完成较少的后续区块将逐渐排空队列。该系统旨在处理突发而不丢失事件。
-
-## 未来扩展
-
-系统交易机制为将任何 Stable SDK 操作桥接到 EVM 事件空间提供了通用模式。虽然目前仅用于解绑完成，但该架构可以扩展以涵盖其他用例：
-
-### 质押操作
-
-除了解绑之外，其他质押事件可以发出 EVM 通知：
-
-- 验证者的佣金率变化
-- 验证者入狱和出狱
-
-### 治理执行
-
-当治理提案通过并执行时，系统交易可以发出带有提案 ID 和执行结果的事件。这将允许 dApps 对参数变化或升级做出反应，而无需轮询治理模块。
-
-### 通用事件桥
-
-该模式可以推广为可配置的事件桥，其中每个模块注册哪些 SDK 事件应该镜像到 EVM。这将提供对所有 Stable SDK 操作的全面可见性，而无需每个模块的自定义逻辑。关键架构原则是系统交易仍然是协议级功能，仅由验证者在区块提案期间创建。
+- [**系统交易参考**](/cn/reference/system-transactions-api): 了解 `IStableSystem` 接口、Gas 核算和授权规则。
+- [**质押模块**](/cn/explanation/staking-module): 查看以系统交易事件形式出现的 SDK 操作。
+- [**系统模块概述**](/cn/explanation/system-modules-overview): 返回到预编译暴露的模块列表。

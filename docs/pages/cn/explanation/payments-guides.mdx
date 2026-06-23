@@ -1,35 +1,35 @@
 ---
 source_path: explanation/payments-guides.mdx
-source_sha: 11c29bc514f62bd2d382c961ee76bd928b60daf7
+source_sha: 0454891901e0f1fe522a9dd1a91c5d73fd7519d7
 title: "支付指南"
-description: "所有支付指南、概念和参考：发送 USDT0、P2P、订阅、发票、按次付费、跨链桥接和零 Gas。"
+description: "所有支付指南、概念和参考：发送 USDT0、P2P、订阅、发票、按次付费、桥接和零手续费。"
 diataxis: "explanation"
 ---
 
 # 支付指南
 
-“支付”标签下的每个指南、概念和参考，按你想要完成的任务分组。
+支付选项卡下的所有指南、概念和参考，按您要执行的操作分组。
 
 ## 发送和转账
 
-- [**发送你的第一笔 USDT0**](/cn/tutorial/send-usdt0) — 在同一余额上进行原生和 ERC-20 转账。
-- [**零 Gas 交易**](/cn/how-to/zero-gas-transactions) — 通过 Gas Waiver 支付费用来转账 USDT0。
-- [**将 USDT0 用作 Gas**](/cn/how-to/work-with-usdt-gas) — 正确构造交易：优先小费为 0，`value` 以 USDT0 计。
-- [**将 USDT0 桥接到 Stable**](/cn/tutorial/bridge-usdt0) — 使用 LayerZero OFT 从 Ethereum Sepolia 桥接。
+- [**发送您的第一个 USDT0**](/cn/tutorial/send-usdt0)：在同一账户上的原生和 ERC-20 转账。
+- [**零手续费交易**](/cn/how-to/zero-gas-transactions)：使用 Gas Waiver 支付的 USDT0 转账。
+- [**使用 USDT0 作为手续费**](/cn/how-to/work-with-usdt-gas)：正确构建交易：优先级费用为 0，`value` 为 USDT0。
+- [**将 USDT0 桥接到 Stable**](/cn/tutorial/bridge-usdt0)：使用 LayerZero OFT 从 Ethereum Sepolia 桥接。
 
 ## 构建支付流程
 
-- [**了解 P2P 支付**](/cn/how-to/build-p2p-payments) — 在一个应用中实现钱包 + 发送 + 接收 + 历史记录。
-- [**订阅和收款**](/cn/how-to/subscribe-and-collect) — 通过 EIP-7702 实现基于拉取的循环计费。
-- [**使用发票付款**](/cn/how-to/pay-with-invoice) — 使用带确定性 nonce 的 ERC-3009 进行发票结算。
-- [**构建按次付费 API**](/cn/how-to/build-pay-per-call) — 使用 x402 中间件将 HTTP 端点货币化。
+- [**了解 P2P 支付**](/cn/how-to/build-p2p-payments)：钱包 + 发送 + 接收 + 历史记录，全部集成在一个应用程序中。
+- [**订阅和收款**](/cn/how-to/subscribe-and-collect)：通过 EIP-7702 实现基于拉取的定期计费。
+- [**使用发票付款**](/cn/how-to/pay-with-invoice)：ERC-3009 具有确定性随机数，用于发票结算。
+- [**构建按次付费 API**](/cn/how-to/build-pay-per-call)：使用 x402 中间件将 HTTP 端点货币化。
 
 ## 协议和参考
 
-- [**ERC-3009**](/cn/explanation/erc-3009) — Transfer With Authorization：签名结算原语。
-- [**x402（HTTP 原生支付）**](/cn/explanation/x402) — 服务器返回 402，客户端签名，facilitator 在链上结算。
-- [**P2P 支付参考**](/cn/reference/p2p-payments) — 模型概述以及与传统支付通道的比较。
-- [**订阅参考**](/cn/reference/subscriptions) — 基于拉取的计费模型及其权衡。
-- [**发票参考**](/cn/reference/invoices) — 确定性 nonce 结算模型。
-- [**按次付费参考**](/cn/reference/pay-per-call) — x402 定价和端点发现模型。
-- [**即将推出的用例**](/cn/explanation/upcoming-use-cases) — 保证结算、机密支付、代理对代理。
+- [**ERC-3009**](/cn/explanation/erc-3009)：带授权的转账：签名结算原语。
+- [**x402（HTTP 原生支付）**](/cn/explanation/x402)：服务器响应 402，客户端签名，协调器在链上结算。
+- [**P2P 支付参考**](/cn/reference/p2p-payments)：模型概述以及与传统方式的比较。
+- [**订阅参考**](/cn/reference/subscriptions)：基于拉取的计费模型和权衡。
+- [**发票参考**](/cn/reference/invoices)：确定性随机数结算模型。
+- [**按次付费参考**](/cn/reference/pay-per-call)：x402 定价和端点发现模型。
+- [**即将推出的用例**](/cn/explanation/upcoming-use-cases)：保证结算、保密支付、代理间支付。

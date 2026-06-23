@@ -79,7 +79,7 @@ Stable denominates all transaction fees in USDT0. Gas pricing follows an EIP-155
 
 The transaction fee is defined as:
 
-```
+```text
 fee = gasUsed × baseFee
 ```
 Transactions may specify `maxFeePerGas` using standard EIP-1559 parameters.
@@ -140,7 +140,7 @@ During `ApplyTransaction`:
 After execution:
 
 1. The protocol computes the unused portion of the pre-charged fee:
-    ```
+    ```text
     refund = (gasWanted − gasUsed) × baseFee
     ```
 2. The unused fee is refunded:
@@ -294,6 +294,6 @@ Correct. After the upgrade, DEXs should use `0x779Ded0c9e1022225f8E0630b35a9b54b
 
 ## Next recommended
 
-- [**Send your first USDT0**](/en/tutorial/send-usdt0) — Submit a USDT0 transfer on testnet using standard EVM tooling.
-- [**Gas pricing**](/en/reference/gas-pricing-api) — Build transactions against Stable's single-component fee model.
-- [**USDT0 behavior on Stable**](/en/explanation/usdt0-behavior) — Audit contracts for dual-role asset semantics, balance reconciliation, and `EXTCODEHASH` behavior.
+- [**Send your first USDT0**](/en/tutorial/send-usdt0): Submit a USDT0 transfer on testnet using standard EVM tooling.
+- [**Gas pricing**](/en/reference/gas-pricing-api): Build transactions against Stable's single-component fee model.
+- [**USDT0 behavior on Stable**](/en/explanation/usdt0-behavior): Audit contracts for dual-role asset semantics, balance reconciliation, and `EXTCODEHASH` behavior.

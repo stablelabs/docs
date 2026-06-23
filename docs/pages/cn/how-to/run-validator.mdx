@@ -1,25 +1,25 @@
 ---
 source_path: how-to/run-validator.mdx
-source_sha: 2ce47d3b037076ab9550319f91845149a6b98f83
-title: "创建验证者"
-description: "将已同步的 Stable 节点提升为活跃验证者：准备密钥、通过质押预编译合约注册、验证并进行自委托。"
+source_sha: d00aabfde18ce379eb65d00c6fc12306a7c631a5
+title: "创建验证人"
+description: "将同步的 Stable 节点提升为活跃验证人：准备密钥，在质押预编译中注册，验证，并自委托。"
 diataxis: "how-to"
 ---
 
-验证者是已在链上注册并绑定了质押的同步全节点。你需要先安装并同步节点，然后通过在质押预编译合约（`0x0000000000000000000000000000000000000800`）上调用 `createValidator` 来注册它。本页介绍注册步骤。关于节点本身，请参阅[安装节点](/cn/how-to/install-node)和[节点配置](/cn/reference/node-configuration)。
+验证人是一个已同步的全节点，它已经在链上注册并绑定了质押。您首先安装并同步节点，然后通过调用质押预编译 (`0x0000000000000000000000000000000000000800`) 上的 `createValidator` 来注册它。本页介绍注册步骤。有关节点本身的信息，请参阅[安装节点](/cn/how-to/install-node)和[节点配置](/cn/reference/node-configuration)。
 
 :::warning
-请在节点完全同步后再进行注册。验证者在尚未追上进度时就签名，可能会双重签名并被永久移出验证者集合（被 tombstone）。在开始前，请在 `config.toml` 中将 `double_sign_check_height` 设置为 `2` 或更高（参见[节点配置](/cn/reference/node-configuration#consensus-configuration)）。将其设置为 `1` 不会执行任何检查。
+仅在您的节点完全同步后才注册。如果验证人在未赶上之前签名，可能会导致双重签名并被永久地从集合中删除（石碑化）。在开始之前，在 `config.toml` 中将 `double_sign_check_height = 2` 或更高（参阅[节点配置](/cn/reference/node-configuration#consensus-configuration)）。将其设置为 `1` 不执行检查。
 :::
 
-## 前置条件
+## 先决条件
 
-- 主网（Chain ID `988`）上一个完全同步的全节点。参见[安装节点](/cn/how-to/install-node)。
-- 在 `~/.stabled/config/config.toml` 中将 `double_sign_check_height` 设置为 `2` 或更高。
-- 已安装 [Foundry](https://book.getfoundry.sh/)，用于 `cast`，以调用预编译合约。
-- 你的验证者 EVM 地址上已存入质押金额（以 USDT0 计）。
+- 主网（链 ID `988`）上一个完全同步的全节点。参阅[安装节点](/cn/how-to/install-node)。
+- `~/.stabled/config/config.toml` 中 `double_sign_check_height` 设置为 `2` 或更高。
+- 已安装 [Foundry](https://book.getfoundry.sh/) 以使用 `cast` 调用预编译。
+- 您的验证人的 EVM 地址上已存入质押金额，以 USDT0 计。
 
-在继续之前，请确认节点已追上进度。`catching_up` 必须为 `false`。
+在继续之前，请确认节点已赶上。`catching_up` 必须为 `false`。
 
 ```bash
 curl -s localhost:26657/status | jq '.result.sync_info.catching_up'
@@ -29,54 +29,54 @@ curl -s localhost:26657/status | jq '.result.sync_info.catching_up'
 false
 ```
 
-## 步骤 1：准备验证者密钥
+## 步骤 1：准备验证人密钥
 
-创建操作员账户，然后读取 `createValidator` 所需的两个值：共识公钥（base64）和验证者的 EVM 地址。
+创建操作员账户，然后读取 `createValidator` 所需的两个值：共识公钥（base64）和验证人的 EVM 地址。
 
 ```bash
-# Create the validator operator account
+# 创建验证人操作员账户
 stabled keys add validator
 
-# Consensus public key (base64) — save this
+# 共识公钥 (base64) — 保存此值
 stabled comet show-validator | jq .key
 
-# Derive the validator's EVM address (0x form)
+# 派生验证人的 EVM 地址 (0x 形式)
 stabled keys parse $(stabled keys show validator -a)
 ```
 
 ```text
 "AbCd...base64PubKey...=="
 # ...
-# then, evm address is 0xCAEA59C7476C87D0FF6BE6F04DA207601D5BE7D0
+# 然后，evm 地址是 0xCAEA59C7476C87D0FF6BE6F04DA207601D5BE7D0
 ```
 
 :::warning
-将 `~/.stabled/config/priv_validator_key.json` 离线备份，并且绝不要用同一密钥运行两个节点。两个实例用同一密钥签名即为双重签名，会导致永久性削减（slash）。
+将 `~/.stabled/config/priv_validator_key.json` 离线备份，切勿使用相同的密钥运行两个节点。两个实例使用一个密钥进行签名会导致双重签名，并导致永久削减。
 :::
 
 ## 步骤 2：设置环境
 
 ```bash
-# Staking precompile contract address
+# 质押预编译合约地址
 export STAKING_ADDRESS="0x0000000000000000000000000000000000000800"
 
-# Mainnet EVM RPC
+# 主网 EVM RPC
 export RPC_URL="https://rpc.stable.xyz"
 
-# Your operator private key and validator EVM address
+# 您的操作员私钥和验证人 EVM 地址
 export PRIVATE_KEY="your_private_key_here"
 export VALIDATOR_ADDRESS="0xYourValidatorAddress"
 
-# Consensus pubkey from Step 1
+# 步骤 1 中的共识公钥
 export PUBKEY="AbCd...base64PubKey...=="
 
-# Self-delegation amount in wei (18 decimals). 1000000000000000000 = 1 token
+# 自委托金额，以 wei 为单位（18 位小数）。1000000000000000000 = 1 token
 export AMOUNT="1000000000000000000"
 ```
 
-## 步骤 3：创建验证者
+## 步骤 3：创建验证人
 
-在质押预编译合约上调用 `createValidator`。该函数接受一个 `description` 元组、一个 `commissionRates` 元组、最小自委托额、验证者地址、共识公钥以及绑定金额。使用 `cast` 进行编码并发送。
+调用质押预编译上的 `createValidator`。该函数接受一个 `description` 元组，一个 `commissionRates` 元组，最小自委托，验证人地址，共识公钥和绑定金额。使用 `cast` 对其进行编码和发送。
 
 ```bash
 # createValidator(
@@ -101,30 +101,30 @@ transactionHash   0x4f...c2
 status            1 (success)
 ```
 
-佣金元组为 `(rate, maxRate, maxChangeRate)`，每个值均缩放为 18 位小数。该示例设置了 10% 的费率（`100000000000000000`）、20% 的上限以及 1% 的每日最大变动幅度。`maxRate` 和 `maxChangeRate` 在创建时即固定，之后无法修改。调用成功会发出一个 `CreateValidator` 事件。每个字段的详情请参阅[质押预编译参考](/cn/reference/staking-module-api#createvalidator)。
+佣金元组是 `(rate, maxRate, maxChangeRate)`，每个都按 18 位小数缩放。示例设置 10% 的费率 (`100000000000000000`)，20% 的上限和 1% 的每日最大变化。`maxRate` 和 `maxChangeRate` 在创建时固定，以后无法编辑。成功的调用会发出 `CreateValidator` 事件。有关每个字段的详细信息，请参阅[质押预编译参考](/cn/reference/staking-module-api#createvalidator)。
 
 ## 步骤 4：验证
 
-通过从质押预编译合约读回验证者记录，确认验证者已注册并绑定，然后检查它是否正在签名区块。
+通过从质押预编译中读取您的验证人，然后检查它是否正在签名区块，来确认验证人已注册并绑定。
 
 ```bash
-# Read your validator's on-chain record
+# 读取您的验证人链上记录
 cast call "$STAKING_ADDRESS" \
   "validator(address)" "$VALIDATOR_ADDRESS" \
   --rpc-url "$RPC_URL"
 
-# Confirm the node reports validator info
+# 确认节点报告验证人信息
 curl -s localhost:26657/status | jq '.result.validator_info'
 ```
 
 ```text
-# validator() returns the moniker, tokens, commission, and a bonded status (3)
-# validator_info shows your consensus address with non-zero voting power
+# validator() 返回标识、代币、佣金和绑定状态 (3)
+# validator_info 显示您的共识地址和非零投票权
 ```
 
 ## 添加自委托
 
-要在创建后向自己的验证者绑定更多质押，请在同一个预编译合约上调用 `delegate`。
+要在创建后向您自己的验证人绑定更多质押，请在相同的预编译上调用 `delegate`。
 
 ```bash
 cast send "$STAKING_ADDRESS" \
@@ -138,17 +138,17 @@ cast send "$STAKING_ADDRESS" \
 status            1 (success)
 ```
 
-## 注册之后
+## 注册后
 
-保持验证者健康并为网络升级做好准备：
+保持验证人健康并为网络升级做好准备：
 
-- **使用 Prometheus 和 Grafana 监控栈监控签名和漏块情况**，详见[监控节点](/cn/how-to/monitor-node)。
-- **自动化升级**，这样你就不会错过升级高度。参见[安装节点](/cn/how-to/install-node#cosmovisor-setup-recommended-for-automatic-upgrades)中的 Cosmovisor 设置和[升级节点](/cn/how-to/upgrade-node)。
-- **诊断问题**（不同步、不签名），参见[节点故障排查](/cn/how-to/troubleshoot-node)。
+- 使用 [监控节点](/cn/how-to/monitor-node) 中的 Prometheus 和 Grafana 堆栈**监控签名和未出块**。
+- **自动化升级**，以免错过升级高度。请参阅 [安装节点](/cn/how-to/install-node#cosmovisor-setup-recommended-for-automatic-upgrades) 中的 Cosmovisor 设置和 [升级节点](/cn/how-to/upgrade-node)。
+- 使用 [故障排除节点](/cn/how-to/troubleshoot-node) **诊断问题**（未同步，未签名）。
 
-## 推荐的后续步骤
+## 接下来推荐
 
-- [**质押预编译参考**](/cn/reference/staking-module-api) — 查阅完整的 createValidator、delegate 和 editValidator 签名及结构体。
-- [**节点配置**](/cn/reference/node-configuration) — 在注册前设置 double_sign_check_height 及其他对验证者至关重要的配置。
-- [**监控节点**](/cn/how-to/monitor-node) — 跟踪签名、漏块和资源使用情况，以便在削减发生前发现问题。
-- [**索引验证者数据**](/cn/how-to/index-validator-data) — 在验证者上线后，从链上读取其质押、在线率和投票历史。
+- [**质押预编译参考**](/cn/reference/staking-module-api)：查找完整的 createValidator、delegate 和 editValidator 签名和结构。
+- [**节点配置**](/cn/reference/node-configuration)：在注册之前设置 double_sign_check_height 和其他对验证人至关重要的配置。
+- [**监控节点**](/cn/how-to/monitor-node)：跟踪签名、未出块和资源使用情况，以便在削减之前发现问题。
+- [**索引验证人数据**](/cn/how-to/index-validator-data)：一旦验证人上线，在链上读取其质押、正常运行时间和投票历史。

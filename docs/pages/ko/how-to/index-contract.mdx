@@ -1,20 +1,20 @@
 ---
 source_path: how-to/index-contract.mdx
-source_sha: 5293e991b87b99d0da868102a910d03d70bde96b
+source_sha: b32b9a67615217f86bfd96c7ff8bb192ee87454b
 title: "컨트랙트 이벤트 인덱싱"
-description: "ethers.js watchContractEvent로 Stable의 스마트 컨트랙트 이벤트를 구독하고 실시간 이벤트 스트림을 구축합니다."
+description: "ethers.js watchContractEvent를 사용하여 Stable에서 스마트 컨트랙트 이벤트를 구독하고 실시간 이벤트 스트림을 구축하세요."
 diataxis: "how-to"
 ---
 
 # 컨트랙트 이벤트 인덱싱
 
-인덱싱은 온체인 이벤트를 애플리케이션이 반응할 수 있는 데이터로 변환합니다: 잔액 업데이트, 거래 내역, UI 알림 등이 그 예입니다. 이 가이드에서는 ethers.js를 사용해 배포된 Stable 컨트랙트의 이벤트를 구독하는 방법과, 서비스가 오프라인 상태일 때 발생한 이벤트를 놓치지 않도록 과거 이벤트를 백필하는 방법을 설명합니다.
+인덱싱은 온체인 이벤트를 애플리케이션이 반응할 수 있는 데이터(잔액 업데이트, 거래 내역, UI 알림)로 변환합니다. 이 가이드는 ethers.js를 사용하여 배포된 Stable 컨트랙트에서 이벤트를 구독하는 방법과 서비스가 오프라인일 때 발생한 이벤트를 놓치지 않도록 기록 이벤트를 백필하는 방법을 보여줍니다.
 
-## 사전 준비
+## 전제 조건
 
-- Stable 테스트넷 또는 메인넷에 배포된 컨트랙트. 필요하다면 [배포](/ko/tutorial/smart-contract)와 [검증](/ko/how-to/verify-contract)을 참고하세요.
+- Stable 테스트넷 또는 메인넷에 배포된 컨트랙트. 필요한 경우 [배포](/ko/tutorial/smart-contract) 및 [확인](/ko/how-to/verify-contract)을 참조하십시오.
 - Node.js 20 이상.
-- 컨트랙트 주소와 인덱싱하려는 이벤트의 ABI.
+- 컨트랙트 주소 및 인덱싱하려는 이벤트의 ABI.
 
 ## 1. 설치 및 구성
 
@@ -38,7 +38,7 @@ export const CONTRACT_ABI = [
 
 ## 2. 실시간 이벤트 구독
 
-WebSocket 프로바이더를 사용하면 검증자가 각 블록을 확정하는 즉시 이벤트를 받을 수 있습니다. WebSocket은 폴링 오버헤드를 피하고 알림 지연 시간을 블록 타임(Stable에서 약 0.7초)에 가깝게 유지합니다.
+유효성 검사기가 각 블록을 확정하자마자 이벤트를 수신할 수 있도록 WebSocket 공급자를 사용하십시오. WebSocket은 폴링 오버헤드를 방지하고 알림 대기 시간을 블록 시간(~Stable에서 0.7초)에 가깝게 유지합니다.
 
 ```typescript
 // watchLive.ts
@@ -57,7 +57,7 @@ contract.on("NumberUpdated", (caller, oldValue, newValue, event) => {
   console.log("  block:    ", event.log.blockNumber);
 });
 
-console.log("Listening for NumberUpdated events...");
+console.log("NumberUpdated 이벤트 청취 중...");
 ```
 
 ```bash
@@ -65,7 +65,7 @@ npx tsx watchLive.ts
 ```
 
 ```text
-Listening for NumberUpdated events...
+NumberUpdated 이벤트 청취 중...
 NumberUpdated:
   caller:    0x1234...abcd
   oldValue:  0
@@ -76,9 +76,9 @@ NumberUpdated:
 
 호출자가 컨트랙트를 호출하면 이벤트가 실시간으로 도착합니다.
 
-## 3. 과거 이벤트 백필
+## 3. 기록 이벤트 백필
 
-서비스가 시작될 때는 보통 오프라인 상태일 때 발생한 이벤트를 따라잡아야 합니다. 블록 범위와 함께 `queryFilter`를 사용하세요.
+서비스가 시작될 때 일반적으로 오프라인 중에 발생한 이벤트를 따라잡아야 합니다. 블록 범위를 사용하여 `queryFilter`를 사용하십시오.
 
 ```typescript
 // backfill.ts
@@ -89,7 +89,7 @@ const provider = new ethers.JsonRpcProvider(STABLE_TESTNET_RPC);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
 const latest = await provider.getBlockNumber();
-const fromBlock = Math.max(0, latest - 10_000); // last ~10k blocks
+const fromBlock = Math.max(0, latest - 10_000); // 지난 ~1만 블록
 
 const events = await contract.queryFilter(
   contract.filters.NumberUpdated(),
@@ -101,12 +101,12 @@ for (const event of events) {
   console.log(
     `[block ${event.blockNumber}]`,
     event.args.caller,
-    "set number to",
+    "숫자를 다음으로 설정:",
     event.args.newValue.toString()
   );
 }
 
-console.log(`Backfilled ${events.length} events from block ${fromBlock} to ${latest}`);
+console.log(`${fromBlock}에서 ${latest}까지 ${events.length}개의 이벤트를 백필했습니다.`);
 ```
 
 ```bash
@@ -114,19 +114,19 @@ npx tsx backfill.ts
 ```
 
 ```text
-[block 1282351] 0x1234...abcd set number to 10
-[block 1283092] 0xef01...2345 set number to 25
-[block 1284371] 0x1234...abcd set number to 42
-Backfilled 3 events from block 1282351 to 1284371
+[block 1282351] 0x1234...abcd 숫자를 10으로 설정
+[block 1283092] 0xef01...2345 숫자를 25로 설정
+[block 1284371] 0x1234...abcd 숫자를 42로 설정
+1282351에서 1284371까지 3개의 이벤트를 백필했습니다.
 ```
 
 :::warning
-넓은 블록 범위(수백만 블록)는 RPC 속도 제한을 초과하고 타임아웃이 발생할 수 있습니다. 프로덕션 인덱서의 경우 10k 블록 단위로 페이지네이션하거나, 인덱싱된 과거 쿼리를 위해 [Stablescan의 Etherscan 호환 API](/ko/how-to/build-p2p-payments#transaction-history)를 사용하세요.
+넓은 블록 범위(수백만 블록)는 RPC 속도 제한을 초과하고 시간 초과될 수 있습니다. 프로덕션 인덱서의 경우 10,000 블록 창으로 페이지 매김하거나 색인화된 기록 쿼리에 [Stablescan의 Etherscan 호환 API](/ko/how-to/build-p2p-payments#transaction-history)를 사용하십시오.
 :::
 
-## 4. 인덱싱된 인수로 이벤트 필터링
+## 4. 인덱싱된 인수에 따라 이벤트 필터링
 
-`indexed` 매개변수가 있는 이벤트(위의 `caller` 등)는 서버 측에서 필터링할 수 있습니다. 모든 이벤트를 읽고 앱에서 필터링하는 대신 필터 값을 전달하세요.
+`indexed` 매개변수(위의 `caller`와 같은)가 있는 이벤트는 서버 측에서 필터링할 수 있습니다. 모든 이벤트를 읽고 앱에서 필터링하는 대신 필터 값을 전달합니다.
 
 ```typescript
 // watchUser.ts
@@ -140,10 +140,10 @@ const userAddress = "0x1234...abcd";
 const filter = contract.filters.NumberUpdated(userAddress);
 
 contract.on(filter, (caller, oldValue, newValue, event) => {
-  console.log(`${caller} set number to ${newValue.toString()}`);
+  console.log(`${caller}가 숫자를 ${newValue.toString()}로 설정했습니다.`);
 });
 
-console.log(`Watching NumberUpdated for ${userAddress}...`);
+console.log(`${userAddress}의 NumberUpdated를 지켜보고 있습니다...`);
 ```
 
 ```bash
@@ -151,13 +151,13 @@ npx tsx watchUser.ts
 ```
 
 ```text
-Watching NumberUpdated for 0x1234...abcd...
-0x1234...abcd set number to 42
+0x1234...abcd의 NumberUpdated를 지켜보고 있습니다...
+0x1234...abcd가 숫자를 42로 설정했습니다.
 ```
 
 ## 연결 끊김 처리
 
-WebSocket 연결은 끊길 수 있습니다. 프로덕션 인덱서의 경우 이벤트를 놓치지 않도록 재연결 로직을 구현하세요.
+WebSocket 연결이 끊길 수 있습니다. 프로덕션 인덱서의 경우 이벤트를 놓치지 않도록 재연결 로직을 구현하십시오.
 
 ```typescript
 // resilientWatch.ts
@@ -172,11 +172,11 @@ function setupWatcher() {
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   contract.on("NumberUpdated", (caller, oldValue, newValue) => {
-    console.log(`${caller} set number to ${newValue.toString()}`);
+    console.log(`${caller}가 숫자를 ${newValue.toString()}로 설정했습니다.`);
   });
 
   provider.websocket.onerror = (err: any) => {
-    console.error("Provider error:", err);
+    console.error("공급자 오류:", err);
     if (reconnectAttempts < MAX_RECONNECT) {
       reconnectAttempts++;
       setTimeout(setupWatcher, 5000);
@@ -187,8 +187,8 @@ function setupWatcher() {
 setupWatcher();
 ```
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**언본딩 완료 추적**](/ko/how-to/track-unbonding) — 프로토콜에서 발생하는 시스템 트랜잭션 이벤트(언본딩 완료)를 인덱싱합니다.
-- [**P2P 결제 앱 구축**](/ko/how-to/build-p2p-payments) — USDT0 Transfer 이벤트에 인덱싱을 적용하고 결제 내역 화면을 구축합니다.
-- [**JSON-RPC 레퍼런스**](/ko/reference/json-rpc-api) — Stable이 지원하는 `eth_getLogs` 및 관련 메서드를 확인합니다.
+- [**언본딩 완료 추적**](/ko/how-to/track-unbonding): 프로토콜에서 발행한 시스템 트랜잭션 이벤트(언본딩 완료)를 인덱싱합니다.
+- [**P2P 결제 앱 구축**](/ko/how-to/build-p2p-payments): USDT0 전송 이벤트에 인덱싱을 적용하고 결제 내역 보기를 구축합니다.
+- [**JSON-RPC 참조**](/ko/reference/json-rpc-api): Stable이 지원하는 `eth_getLogs` 및 관련 메서드를 확인하십시오.

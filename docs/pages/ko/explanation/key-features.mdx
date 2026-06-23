@@ -1,20 +1,36 @@
 ---
 source_path: explanation/key-features.mdx
-source_sha: ec20a9f726140707f7ebd0cb56b921b3fc4e26b2
-title: "주요 기능"
-description: "EVM 호환성, dPoS 합의, 서브초 파이널리티, USDT 네이티브 설계 등 Stable의 핵심 기술 특성."
+source_sha: 743dbe77cee418846f01652fecf871c2ab504539
+title: '주요 기능'
+description: "Stable의 주요 사양(단일 슬롯 완결성, USDT0를 가스비로 사용, 완벽한 EVM 호환성)과 그 위에 구축된 USDT 특정 기능."
+diataxis: "explanation"
 ---
 
 # 주요 기능
 
-Stable은 USDT 기반 활동을 원활하게 지원하기 위해 설계된 고성능 블록체인입니다. **위임 지분증명 (dPoS)** 메커니즘 위에 구축된 Stable은 **완전한 EVM 호환성**을 제공하며, **1초 미만의 블록 생성 시간**을 통해 빠르고 신뢰성 높은 트랜잭션 완결성을 달성합니다. **USDT에 특화**된 네트워크인 Stable은 사용자 경험을 최적화하는 다양한 USDT 전용 기능을 제공합니다.
+Stable은 단일 슬롯 완결성, 완전한 EVM 호환성, USDT0를 기본 가스 토큰으로 사용하는 DPoS(Delegated Proof-of-Stake) 레이어 1입니다. 아래 기능들은 일상적인 통합을 형성하는 기능들입니다. 각 기능은 해당 기능을 심층적으로 다루는 페이지로 연결됩니다.
 
-### 주요 기능
+## 프로토콜 수준 기능
 
-- **1초 미만의 블록 완결성**: 단일 슬롯 완결성와 함께 1초 미만의 블록 타임을 달성합니다.
-- **100% EVM 호환성**: Ethereum의 스마트 컨트랙트 및 툴링을 완벽히 지원합니다.
-- **USDT를 가스 토큰으로 사용**: USDT0를 네이티브 가스 토큰으로 사용합니다. USDT0는 가스 결제와 가치 전송을 위한 네이티브 자산으로 동시에 기능하며, `approve`, `transfer`, `transferFrom`, `permit`을 지원하는 ERC20 토큰으로도 동작합니다.
-- **USDT0 크로스체인 브릿지**: Ethereum, Arbitrum, HyperEVM 같은 EVM 체인뿐 아니라 Tron 등 다른 체인에서도 USDT0를 Stable로 브릿지할 수 있습니다.
-- **Stable Pay을 통한 Web2.5 수준의 사용자 경험**: Stable Pay을 통해 직관적이고 원활한 사용자 경험을 제공합니다.
+| 기능 | 의미 |
+| :--- | :--- |
+| **단일 슬롯 완결성** | 트랜잭션은 블록에 포함되면 최종 확정됩니다. 여러 블록 확인을 기다릴 필요가 없습니다. |
+| **완벽한 EVM 호환성** | Solidity, Vyper, Foundry, Hardhat, ethers, viem 및 `eth_*` RPC 메서드가 변경 없이 작동합니다. |
+| **USDT0를 가스비로 사용** | 하나의 자산이 기본 잔액과 ERC-20 역할을 모두 수행합니다. 별도의 가스 토큰을 보유할 필요가 없습니다. |
+| **크로스체인 브릿징** | USDT0는 LayerZero OFT를 통해 이더리움, Arbitrum, HyperEVM, Tron 및 기타 체인에서 Stable로 이동합니다. |
 
-향후 Stable은 USDT의 활용성과 네트워크 효율을 더욱 높이기 위한 기능을 추가로 도입할 예정입니다. **USDT 전송 집계** 기능은 여러 개의 USDT 관련 트랜잭션을 하나의 번들로 묶어 처리량을 향상할 것이며, **보장된 블록스페이스**는 기관이 예측 가능하고 안정적인 환경에서 USDT를 사용할 수 있도록 지원할 것입니다. 이러한 업그레이드를 통해 Stable은 USDT의 중심지로 자리매김할 것입니다.
+## USDT 특정 기능
+
+- [**USDT를 가스비로 사용**](/ko/explanation/usdt-as-gas-token): USDT0는 동일한 잔액에서 기본 가스 토큰과 ERC-20 토큰의 역할을 모두 수행합니다.
+- [**가스비 면제**](/ko/explanation/gas-waiver): 거버넌스 승인 면제는 사용자 대신 0 가스 가격으로 실행되는 래퍼 트랜잭션을 제출합니다.
+- [**보장된 블록 공간**](/ko/explanation/guaranteed-blockspace): 엔터프라이즈 파트너는 결제 흐름을 위해 모든 블록에 예약된 용량을 확보합니다.
+- [**USDT 전송 애그리게이터**](/ko/explanation/usdt-transfer-aggregator): 대량의 USDT0 전송은 병렬화되고 내결함성이 있는 정산 번들로 일괄 처리됩니다.
+- [**기밀 전송**](/ko/explanation/confidential-transfer): 영지식 암호화는 전송 금액을 보호하면서 당사자가 감사받을 수 있도록 합니다.
+
+어떤 업그레이드가 현재 적용되고 있고 어떤 업그레이드가 로드맵에 있는지 확인하려면 [로드맵](/ko/explanation/technical-roadmap)을 참조하세요.
+
+## 다음 권장 사항
+
+- [**이더리움 비교**](/ko/explanation/ethereum-comparison): 이더리움에서 Stable로 포팅할 때 어떤 점이 동일하게 유지되고 어떤 점이 변경되는지 확인합니다.
+- [**자금 흐름**](/ko/explanation/flow-of-funds): 온램프에서 온체인 전송을 거쳐 오프램프 정산까지 USDT의 경로를 추적합니다.
+- [**아키텍처 개요**](/ko/explanation/core-optimization-overview): 이러한 기능을 제공하는 합의, 실행, 데이터베이스 및 RPC 계층을 살펴봅니다.

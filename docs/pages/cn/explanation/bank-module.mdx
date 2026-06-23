@@ -1,301 +1,44 @@
 ---
 source_path: explanation/bank-module.mdx
-source_sha: 95cf49e645e5694b709ae0b2db08735a0b0fde3a
-title: 银行模块
-description: "提供 ERC-20 兼容代币转账、授权与委托功能的 Bank 预编译合约。"
+source_sha: c19264aa3a4aa590a16f97192b30d5ffe1d88b08
+title: "银行模块"
+description: "银行预编译合约暴露了与 ERC-20 兼容的代币转账以及由 SDK x/bank 模块支持的铸造、销毁和授权方法。"
+diataxis: "explanation"
 ---
 
 # 银行模块
 
-## 概述
+Stable SDK 中的 `x/bank` 模块处理代币余额、转账和供应。其 EVM 接口（**银行预编译合约**）封装了此模块，并添加了 ERC-20 语义以及一个用于特权铸币/销毁操作的授权层。需要在 Stable 上转移代币的合约可以直接调用预编译合约，而无需部署自己的代币实现。
 
-Stable SDK 中的 `x/bank` 模块仅提供基本的代币管理功能。
-每个代币都可以无限制地转移到任何账户，用户无法委托其他账户代为转移其代币到其他账户。
-因此，`bank` 预编译合约在 Stable SDK 现有的 `x/bank` 模块基础上提供了额外的授权和委托功能。
+## 它暴露了什么
 
-## 目录
+银行预编译合约提供了标准的 ERC-20 方法：
 
-1. **[概念](#concepts)**
-2. **[配置](#configuration)**
-3. **[方法](#methods)**
-4. **[事件](#events)**
+- `transfer`、`balanceOf`、`totalSupply`
+- `approve`、`transferFrom`、`allowance`、`revoke`
 
-## 概念
+这些方法适用于任何调用者。无需注册。
 
-该预编译合约提供 ERC20 标准方法 - 如用于转账的 `transfer` 和 `balanceOf`，以及用于委托的 `transferFrom`、`approve` 和 `allowance`。这些方法可以直接调用，无需注册合约地址。
+它还提供了特权方法：
 
-然而，`mint` 和 `burn` 方法需要合约地址被列入白名单，通过 `x/precompile` 模块注册。
+- `mint`: 铸造新代币并将其转移到账户。
+- `burn`: 销毁账户持有的代币。
+- `multiTransfer`: 通过单个调用将代币从一个发送方转移到多个接收方。
 
-```go
-func (p *Precompile) mint(
-  ctx sdk.Context,
-  contract *vm.Contract,
-  denom string,
-  method *abi.Method,
-  stateDB vm.StateDB,
-  args []interface{},
-) ([]byte, error) {
-  // ...
+铸币和销毁要求调用合约通过治理提案在 `x/precompile` 允许列表中注册。治理代币的铸造被完全阻止。这使得供应通胀只受授权合约的限制。
 
-  // mint method is only allowed for the registered caller contract
-  if _, err := precompilecommon.CheckPermissions(ctx, p.precompileKeeper, contract.CallerAddress, CallerPermissions); err != nil {
-    return nil, err
-  }
-```
+## 何时使用
 
-额外的验证过程可以保证调用此预编译合约的代币合约是经过授权的。
+- DeFi 合约需要代表用户转移 STABLE 或 USDT0：直接在预编译合约上调用 `transfer` 或 `transferFrom`。
+- 协议合约根据业务逻辑铸造或销毁代币：首先通过治理注册，然后调用 `mint` / `burn`。
+- 支付合约需要一对多支付：在单个交易中调用 `multiTransfer`，而不是循环转账。
 
-需要通过治理提案来注册代币合约地址及其denomination到 `x/precompile` 模块的白名单中。
+## 在哪里找到 ABI
 
-## 配置
+完整的方法签名、事件负载和授权流程在[银行预编译合约参考](/cn/reference/bank-module-api)中。
 
-合约地址和gas费用已预定义。
+## 接下来推荐
 
-### 合约地址
-
-- `0x0000000000000000000000000000000000001003` STABLE (用于治理代币)
-
-## 方法
-
-### `mint`
-
-铸造请求数量的新代币并转移到账户。
-要铸造的代币数量必须大于零。
-
-当代币成功铸造并转移到账户时，会发出 `PrecompiledBankMint` 事件。
-
-注意：
-
-- 禁止铸造治理代币。
-- 调用铸造方法的合约必须在 x/precompile 模块中注册。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|to|address|接收铸造代币的地址|
-|amount|uint256|要铸造的代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果代币成功铸造并转移到账户，则为true|
-
-### `burn`
-
-从账户中销毁请求数量的代币。
-要销毁的代币数量必须大于零。
-
-当代币成功销毁时，会发出 `PrecompiledBankBurn` 事件。
-
-注意：
-
-- 禁止销毁治理代币。
-- 调用铸造方法的合约必须在 x/precompile 模块中注册。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|from|address|销毁代币的地址|
-|amount|uint256|要销毁的代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果代币成功销毁，则为true|
-
-### `transfer`
-
-将请求数量的代币从发送者转移给接收者。
-代币必须设置为可发送。要转移的代币数量必须大于零。
-
-当代币成功转移时，会发出 `PrecompiledBankTransfer` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|to|address|接收代币的地址|
-|amount|uint256|要转移的代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果代币成功转移，则为true|
-
-### `transferFrom`
-
-由授权的支出者在允许额度范围内将请求数量的代币从所有者转移给接收者。
-代币必须设置为可发送。
-要转移的代币数量必须大于零并且小于或等于当前允许额度。
-
-当代币成功转移时，会发出 `PrecompiledBankTransfer` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|from|address|转出代币的地址|
-|to|address|接收代币的地址|
-|amount|uint256|要转移的代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果代币成功转移，则为true|
-
-### `multiTransfer`
-
-将代币从单个账户转移到多个账户。
-代币必须设置为可发送。
-转移给每个接收者的代币数量必须大于零。
-
-当代币成功转移时，每个接收者都会发出 `PrecompiledBankTransfer` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|to|address[]|接收转移代币的地址数组|
-|amount|uint256[]|转移给每个接收者的代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果代币成功转移给每个接收者，则为true|
-
-### `approve`
-
-授权支出者从所有者账户转移代币。
-要授权的代币数量必须大于零。
-
-当授权成功设置时，会发出 `PrecompiledBankApproval` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|spender|address|要授权的地址|
-|value|uint256|要授权的代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果授权成功设置，则为true|
-
-### `revoke`
-
-撤销支出者从所有者转移代币的授权。
-
-当授权成功撤销时，会发出 `PrecompiledBankRevoke` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|spender|address|要撤销的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果授权成功撤销，则为true|
-
-### `balanceOf`
-
-返回账户的代币余额。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|account|address|要获取代币余额的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|balance|uint256|账户中的代币数量|
-
-### `totalSupply`
-
-返回代币的总供应量。
-
-#### 输入参数
-
-无
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|totalSupply|uint256|代币的总数量|
-
-### `allowance`
-
-返回支出者仍可从所有者提取的金额。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|owner|address|所有者的地址|
-|spender|address|支出者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|amount|uint256|授权的代币数量|
-
-## 事件
-
-所有从此预编译合约发出的事件都以 `PrecompiledBank` 为前缀。
-为了避免歧义，调用此预编译合约的代币合约应避免使用相同前缀的事件名称。
-
-### PrecompiledBankMint
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|from|address|Y|铸造代币的地址|
-|to|address|Y|接收铸造代币的地址|
-|amount|uint256|N|铸造的代币数量|
-
-### PrecompiledBankBurn
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|from|address|Y|销毁代币的地址|
-|to|address|Y|此方法中未使用|
-|amount|uint256|N|销毁的代币数量|
-
-### PrecompiledBankTransfer
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|from|address|Y|转移代币的地址|
-|to|address|Y|接收转移代币的地址|
-|amount|uint256|N|转移的代币数量|
-
-### PrecompiledBankApproval
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|owner|address|Y|授权代币的地址|
-|spender|address|Y|被授权的地址|
-|value|uint256|N|授权的代币数量|
-
-### PrecompiledBankRevoke
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|owner|address|Y|撤销代币授权的地址|
-|spender|address|Y|被撤销的地址|
-|value|uint256|N|授权的代币数量|
+- [**银行预编译合约参考**](/cn/reference/bank-module-api)：调用 `transfer`、`approve`、`mint`、`burn` 并读取事件。
+- [**系统模块概览**](/cn/explanation/system-modules-overview)：返回预编译合约暴露的模块完整列表。
+- [**USDT 作为 Gas**](/cn/explanation/usdt-as-gas-token)：了解银行模块管理的双重资产模型。

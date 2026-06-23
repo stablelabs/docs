@@ -14,7 +14,7 @@ Both the buyer and the vendor independently compute the same nonce from the same
 
 The nonce is derived deterministically:
 
-```
+```text
 nonce = keccak256(invoiceNumber, vendor, buyer, amount, dueDate)
 ```
 

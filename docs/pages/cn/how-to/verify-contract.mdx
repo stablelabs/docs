@@ -1,24 +1,24 @@
 ---
 source_path: how-to/verify-contract.mdx
-source_sha: 830fdc192d492e9e07e95fd6c0cf3bde9df9d2cd
+source_sha: 6cc73e10bb88685960bc61fa08f4942073bc61bc
 title: "验证智能合约"
-description: "使用 forge verify-contract 在 Stablescan 上验证你的 Stable 合约源代码，让用户可以读取并与之交互。"
+description: "使用 forge verify-contract 在 Stablescan 上验证您的 Stable 合约源代码，以便用户可以读取和与其交互。"
 diataxis: "how-to"
 ---
 
 # 验证智能合约
 
-验证会将合约的源代码上传到区块浏览器，并证明它编译后与已部署的字节码一致。一旦完成验证，用户就可以在 Stablescan 上读取状态、调用函数并审计源代码，而无需重新托管你的代码。本指南将带你完成在 Stable 上验证由 Foundry 部署的合约。
+验证会将您的合约源代码上传到区块浏览器，并证明其编译为已部署的字节码。验证后，用户无需重新托管您的代码，即可在 Stablescan 上读取状态、调用函数和审计源代码。本指南将介绍如何在 Stable 上验证 Foundry 部署的合约。
 
-## 前置条件
+## 先决条件
 
-- 一个已部署在 Stable 测试网或主网上的合约。如果你尚未部署，请参阅[部署智能合约](/cn/tutorial/smart-contract)。
-- 已安装 Foundry（PATH 中可使用 `forge`）。
+- 已在 Stable 测试网或主网上部署的合约。如果您尚未部署，请参阅[部署智能合约](/cn/tutorial/smart-contract)。
+- 已安装 Foundry（`forge` 在您的 PATH 中可用）。
 - 来自 `forge create` 输出的已部署合约地址。
 
-## 1. 确认已部署的地址
+## 1. 确认已部署地址
 
-确保你拥有之前部署时的 `Deployed to` 地址。在[部署智能合约](/cn/tutorial/smart-contract)流程中，这是 `forge create` 之后打印出的值。
+确保您拥有之前部署的“部署到”地址。在[部署智能合约](/cn/tutorial/smart-contract)流程中，这是 `forge create` 后打印的值。
 
 ```bash
 cast code 0xDeployedContractAddress --rpc-url https://rpc.testnet.stable.xyz | head -c 20
@@ -28,11 +28,11 @@ cast code 0xDeployedContractAddress --rpc-url https://rpc.testnet.stable.xyz | h
 0x6080604052600436...
 ```
 
-非空的字节码确认该合约已部署在该地址。
+非空字节码确认合约已部署在该地址。
 
 ## 2. 运行 forge verify-contract
 
-Foundry 的验证流程会将你的源代码提交给 Stablescan 验证器。
+Foundry 的验证流程将您的源代码提交给 Stablescan 验证器。
 
 ```bash
 forge verify-contract \
@@ -58,30 +58,30 @@ Details: `Pass - Verified`
 Contract successfully verified
 ```
 
-`--watch` 会阻塞直到验证完成，这样你就无需轮询。在主网上，将 chain ID 换成 `988`，验证器 URL 换成 `https://stablescan.xyz/api`。
+`--watch` 会一直阻塞直到验证完成，这样您就不需要轮询。在主网上，将链 ID 更改为 `988`，验证器 URL 更改为 `https://stablescan.xyz/api`。
 
 :::note
-**构造函数参数**：如果你的合约接受构造函数参数，请在命令中添加 `--constructor-args $(cast abi-encode "constructor(uint256,address)" 42 0xSomeAddress)`。如果没有这个标志，任何带有非空构造函数的合约都会验证失败。
+**构造函数参数**：如果您的合约接受构造函数参数，请将 `--constructor-args $(cast abi-encode "constructor(uint256,address)" 42 0xSomeAddress)` 添加到命令中。如果没有此标志，任何带有非空构造函数的合约都将验证失败。
 :::
 
 ## 3. 在 Stablescan 上确认验证
 
-在浏览器中打开合约页面。
+在浏览器上打开合约页面。
 
 ```text
 https://testnet.stablescan.xyz/address/0xDeployedContractAddress
 ```
 
-此时 **Contract** 标签页应该会显示源代码、一个绿色的 "Verified" 徽章以及完整的 ABI。用户可以在 **Read Contract** 下读取状态，并在 **Write Contract** 下发送交易。
+**合约**选项卡现在应该显示源代码，一个绿色的“已验证”徽章，以及完整的 ABI。用户可以在**读取合约**下读取状态，并在**写入合约**下发送交易。
 
-## 故障排查
+## 故障排除
 
-- **"Bytecode does not match"**：你的源代码编译出的字节码与已部署的不同。最常见的原因是 Solidity 版本或优化器设置不匹配。显式传入 `--compiler-version` 和 `--optimizer-runs` 以匹配你的 `foundry.toml`。
-- **"GUID not found"**：验证器尚未注册你的提交。使用 `--watch` 重新运行，或手动检查响应中打印的 URL。
-- **合约使用了库**：为每个链接的库添加 `--libraries src/Lib.sol:Lib:0xDeployedLibAddress`。
+- **“字节码不匹配”**：您的源代码编译成与已部署代码不同的字节码。这通常是由于 Solidity 版本或优化器设置不匹配造成的。明确传递 `--compiler-version` 和 `--optimizer-runs` 以匹配您的 `foundry.toml`。
+- **“GU ID 未找到”**：验证器尚未注册您的提交。使用 `--watch` 重新运行或手动检查响应中打印的 URL。
+- **合约使用库**：为每个链接的库添加 `--libraries src/Lib.sol:Lib:0xDeployedLibAddress`。
 
-## 推荐的后续步骤
+## 下一步推荐
 
-- [**索引合约事件**](/cn/how-to/index-contract) — 使用 ethers.js 订阅链上事件并构建实时事件流。
-- [**部署智能合约**](/cn/tutorial/smart-contract) — 搭建一个全新的 Foundry 项目并部署到 Stable 测试网。
-- [**JSON-RPC 参考**](/cn/reference/json-rpc-api) — 查看 Stable 支持哪些 `eth_*` 方法用于链上交互。
+- [**索引合约事件**](/cn/how-to/index-contract)：使用 ethers.js 订阅链上事件并构建实时事件流。
+- [**部署智能合约**](/cn/tutorial/smart-contract)：搭建一个新的 Foundry 项目并部署到 Stable 测试网。
+- [**JSON-RPC 参考**](/cn/reference/json-rpc-api)：查看 Stable 支持哪些 `eth_*` 方法用于链上交互。

@@ -1,6 +1,6 @@
 ---
 source_path: how-to/sdk-with-wagmi.mdx
-source_sha: d3266e146435bf079104ad0d84f274096f220701
+source_sha: 396745c5590db9fb3f8b0677d67b69579aeeb55a
 title: "wagmi와 함께 SDK 사용하기"
 description: "wagmi의 useWalletClient, useAccount, useChainId 훅을 사용하여 @stablechain/sdk를 React 앱에 연결합니다."
 diataxis: "how-to"
@@ -8,13 +8,13 @@ diataxis: "how-to"
 
 # wagmi와 함께 SDK 사용하기
 
-`createStable`은 viem `WalletClient`를 받는데, 이는 wagmi의 `useWalletClient`가 반환하는 것과 정확히 일치합니다. 평소처럼 wagmi를 통해 지갑을 연결한 다음, 지갑 클라이언트가 변경될 때마다 `StableClient`를 메모이즈합니다.
+`createStable`은 wagmi의 `useWalletClient`가 반환하는 것과 정확히 같은 viem `WalletClient`를 받습니다. 평소처럼 wagmi를 통해 지갑을 연결한 다음, 지갑 클라이언트가 변경될 때마다 `StableClient`를 메모이제이션합니다.
 
-이 가이드는 wagmi v2와 `@tanstack/react-query`를 전제로 합니다.
+이 가이드는 wagmi v2와 `@tanstack/react-query`를 가정합니다.
 
 ## 1. wagmi 구성하기
 
-wagmi 설정에 Stable을 추가합니다. viem은 두 네트워크 모두에 대한 체인 정의를 제공합니다.
+Stable을 wagmi 구성에 추가합니다. viem은 두 네트워크에 대한 체인 정의를 제공합니다.
 
 ```ts
 import { http, createConfig } from "wagmi";
@@ -35,9 +35,9 @@ export const wagmiConfig = createConfig({
 WagmiConfig { chains: [988, 2201], connectors: [injected] }
 ```
 
-## 2. `StableClient`를 반환하는 훅 만들기
+## 2. `StableClient`를 반환하는 훅 빌드하기
 
-현재 `WalletClient`에 대해 `StableClient`를 메모이즈합니다. 지갑 클라이언트의 식별자가 변경되면 다시 생성합니다.
+현재 `WalletClient`에 대해 `StableClient`를 메모이제이션합니다. 지갑 클라이언트 아이덴티티가 변경될 때마다 다시 생성합니다.
 
 ```tsx
 import { useMemo } from "react";
@@ -55,7 +55,7 @@ export function useStable(network: Network = Network.Mainnet): StableClient | nu
 ```
 
 :::warning
-`useWalletClient()`는 사용자가 연결하기 전에는 `undefined`를 반환합니다. SDK 메서드를 호출하기 전에 항상 가드를 두어야 합니다. 그렇지 않으면 구조 분해된 `walletClient`가 falsy가 되어 `createStable`이 서명자를 갖지 못합니다.
+`useWalletClient()`는 사용자가 연결하기 전에는 `undefined`를 반환합니다. SDK 메서드를 호출하기 전에 항상 보호 장치를 두어야 합니다. 그렇지 않으면 구조 분해된 `walletClient`가 거짓이 되고 `createStable`에 서명자가 없게 됩니다.
 :::
 
 ## 3. 컴포넌트에서 사용하기
@@ -92,9 +92,9 @@ export function PayButton() {
 Sent: 0x8f3a...2d41
 ```
 
-## 4. React에서 브리지와 스왑하기
+## 4. React에서 브릿지 및 스왑하기
 
-동일한 `stable` 인스턴스가 브리지와 스왑을 처리합니다. effect나 `useQuery`에서 견적을 가져온 다음, 클릭 시 실행합니다.
+동일한 `stable` 인스턴스가 브릿지 및 스왑을 처리합니다. effect 또는 `useQuery`에서 견적을 가져온 다음 클릭 시 실행합니다.
 
 ```tsx
 const stable = useStable(Network.Mainnet);
@@ -123,11 +123,11 @@ const onSwap = async () => {
 ```
 
 :::note
-`useQuery`로 견적을 캐싱하는 것이 잘 작동합니다. `quoteSwap` / `quoteBridge`를 쿼리 함수로 전달하고 캐시된 `quote`를 `swap` / `bridge`로 전달하세요. SDK는 견적이 제공되면 내부 견적 호출을 건너뜁니다.
+`useQuery`로 견적을 캐싱하는 것은 잘 작동합니다. `quoteSwap` / `quoteBridge`를 쿼리 함수로 전달하고 캐시된 `quote`를 `swap` / `bridge`에 전달합니다. SDK는 견적이 제공되면 내부 견적 호출을 건너뜁니다.
 :::
 
 ## 다음 권장 사항
 
-- [**SDK 레퍼런스**](/ko/reference/sdk) — 모든 메서드, 설정 필드, 오류 클래스.
-- [**viem과 함께 사용하기**](/ko/how-to/sdk-with-viem) — 세 가지 서명 모드를 나란히 비교합니다.
-- [**SDK 빠른 시작**](/ko/tutorial/sdk-quickstart) — 테스트넷에서 첫 전송, 브리지, 스왑을 실행해 보세요.
+- [**SDK 참조**](/ko/reference/sdk): 모든 메서드, 구성 필드 및 오류 클래스.
+- [**viem과 함께 사용하기**](/ko/how-to/sdk-with-viem): 세 가지 서명 모드를 나란히 비교합니다.
+- [**SDK 퀵스타트**](/ko/tutorial/sdk-quickstart): 테스트넷에서 첫 번째 전송, 브릿지 및 스왑을 실행합니다.

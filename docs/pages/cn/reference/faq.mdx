@@ -1,50 +1,75 @@
 ---
 source_path: reference/faq.mdx
-source_sha: 8bc0e6b7823c072b4f7c5dd26e280584966f7493
+source_sha: 348b72ccef22f764866c7d7b5395ae60c4e9f159
 title: "常见问题"
-description: "关于 Stable 设计、USDT 集成、可扩展性方案与技术特性的常见问题解答。"
+description: "快速解答常见的入门问题：Stable 是什么、如何开始、与以太坊有何不同，以及在哪里可以找到更深入的文档。"
+diataxis: "reference"
 ---
 
 # 常见问题
 
-## 常规问题
+## 入门
 
-**什么是 Stable？**
+**Stable 是什么？**
 
-Stable 是一个高性能区块链，致力于成为 USDT 的专属区块链，重新定义 USDT 在全球范围内的流通方式。
+一个 Layer 1，其中 USDT0 是原生的 gas 代币和结算资产。标准的 EVM 工具可以不变地工作。
 
-**Stable 与其他区块链有何不同？**
+**Stable 适合谁？**
 
-Stable 专为 USDT 打造的高性能网络，具备多种 USDT 专属功能，包括使用 USDT 作为原生 gas、为企业级应用预留专属区块空间和聚合转账功能，所有这些都建立在高度可扩展的架构之上。
+三种开发者画像：转移 USDT0 的支付和钱包团队、部署到 EVM 的智能合约开发者，以及运行节点或 RPC 的基础设施团队。[学习概述](/cn/explanation/learn-overview)为每条路径提供了一个卡片。
 
-## 技术特性
+**我应该从哪里开始：支付、合约、AI/代理，还是基础设施？**
 
-**Stable 采用什么方法来提升可扩展性？**
+- 转移 USDT0 或构建支付流程 → [支付](/cn/explanation/payments-overview)。
+- 部署合约 → [合约](/cn/explanation/contracts-overview)。
+- 连接 AI 编辑器或构建代理支付服务 → [代理结算](/cn/explanation/agent-settlement)。
+- 运行节点或为用户支付 gas → [基础设施](/cn/explanation/integrate-overview)。
 
-Stable 采用全栈式优化方案，从状态数据库、执行层、共识机制到 针对 USDT 的特定优化，对区块链上的交易的生命周期的每个阶段都进行了优化。
+如果您还没有连接到测试网，请从[快速开始](/cn/tutorial/quick-start)入手。
 
-**Stable 是否可以通过未来的共识升级至 DAG 共识机制？**
+## 技术方面
 
-可以。与 Narwhal 和 Tusk 不同，它们无法与 StableBFT 直接兼容，而 Autobahn 提供了 PBFT-on-DAG 架构，可以与 Stable 的共识层更自然地集成。
+**Stable 是否兼容 EVM？**
 
-**Stable 是否兼容 EVM？其他 EVM 生态的 dApp 能否迁移到Stable？**
+是的。Solidity、Vyper、Foundry、Hardhat、ethers、viem，以及 `eth_*` JSON-RPC 方法都可以不变地工作。有四种行为与以太坊不同。请参阅[与以太坊的区别](/cn/explanation/ethereum-comparison)。
 
-Stable 完全兼容 EVM，用户和开发者可以无缝使用现有的以太坊合约、工具和钱包与Stable进行交互。
+**为什么 USDT0 是 gas 代币？**
 
-## USDT 特性
+这样您就可以用您正在交易的资产支付费用。无需资助第二种代币，并且费用始终以稳定币计价。该协议还通过保证区块空间和传输聚合来优化 USDT0 密集型工作负载；请参阅[核心概念](/cn/explanation/core-concepts)。
 
-**如何在 Stable 上获取 USDT0？**
+**如何获取 USDT0？**
 
-得益于 USDT0 的 OFT 标准，用户可以通过 LayerZero 轻松地将其他网络的 USDT0 跨链转移到 Stable。
+- **测试网：** 使用 [faucet.stable.xyz](https://faucet.stable.xyz) 上的水龙头，或从以太坊 Sepolia 桥接测试 USDT。请参阅[获取测试网 USDT0](/cn/how-to/use-faucet) 中的演练。
+- **主网：** 通过 LayerZero 从其他链桥接 USDT0，或通过交易所或托管人获取。
 
-**Stable 还有哪些 USDT 专属的独特功能？**
+**我从以太坊移植合约时会有哪些变化？**
 
-即将上线的功能包括：
+大多数合约部署时不需要更改。如果适用，有三件事需要修复：
 
-- **企业专用区块空间**：允许机构用户在网络拥堵时依然获得可预测的延迟和成本。
-- **USDT 转账聚合器**：可高效地打包多个 USDT0 转账交易，提高吞吐量并降低成本。
-- **保密转账**：在符合监管要求的前提下保护交易金额隐私的功能。
+- 不要在内部变量中镜像原生余额。`transferFrom` 可以在不调用合约的情况下耗尽原生余额。
+- 不要转移到 `address(0)`。原生和 ERC-20 转移到零地址都会回滚。
+- 不要依赖 `EXTCODEHASH` 进行地址重用检测。基于许可的批准会改变原生余额而不增加 nonce。
 
-**什么是 Stable Pay？**
+完整检查表：[Stable 上的 USDT0 行为](/cn/explanation/usdt0-behavior)。
 
-Stable Pay为用户提供简洁、友好的使用体验，并具备 DeFi 的强大能力。它既适合初学者，也适合有经验的加密用户。新用户可通过社交登录轻松上手，而现有传统区块链钱包的用户也可使用原有方式使用Stable。Stable Pay支持网页与移动端使用，确保用户随时随地安全访问其数字资产。
+## 资源
+
+**我在哪里可以找到代币经济学、路线图和架构？**
+
+- [代币经济学](/cn/reference/tokenomics)：STABLE 供应、分配和归属。
+- [技术路线图](/cn/explanation/technical-roadmap)：分阶段优化计划。
+- [技术概述](/cn/explanation/tech-overview)：StableBFT、Stable EVM、StableDB 和 RPC 设计。
+- [USDT 特定功能](/cn/explanation/usdt-features-overview)：关于 gas、区块空间、聚合和机密传输的详细信息。
+
+**我可以在哪里获得帮助？**
+
+- [开发者协助](/cn/reference/developer-assistance)：常见问题和参考指针。
+- [Discord](https://discord.gg/stablexyz)：社区支持和协议更新。
+- `bizdev@stable.xyz`：合作和集成咨询。
+
+## 下一步建议
+
+- [**快速开始**](/cn/tutorial/quick-start)：在测试网发送第一笔交易。
+- [**核心概念**](/cn/explanation/core-concepts)：在构建之前学习你需要了解的四个核心概念。
+- [**学习概述**](/cn/explanation/learn-overview)：选择适合您正在构建的文档路径。
+- [**生产就绪**](/cn/how-to/production-readiness)：在发布到主网之前验证集成。

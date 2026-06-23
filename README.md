@@ -32,11 +32,21 @@ choice so the rationale survives beyond the conversation that produced it.
 Requires Node `>=22` (see `.nvmrc`).
 
 ```bash
+nvm use
 npm install
 npm run docs:dev      # local dev server
 npm run docs:build    # static build (outputs to docs/dist)
 npm run docs:preview  # preview the production build
+npm run check         # full local verification gate
 ```
+
+## Before editing
+
+- Run `nvm use` so Node 22 is active.
+- Edit source content in `docs/pages/en/` only.
+- If pages are added, moved, renamed, or deleted, update only the `/en` section
+  of `docs/sidebar.json`.
+- Run `npm run check` before opening or handing off a PR.
 
 ## Structure
 
@@ -49,3 +59,12 @@ npm run docs:preview  # preview the production build
 | `docs/components/`, `docs/layout.tsx`, `docs/styles.css` | Theme and layout |
 | `vocs.config.ts` | Site config, theme, nav, socials |
 | `ADRs/` | Architectural Design Records |
+
+## Repo Map
+
+- **Content:** `docs/pages/en/`
+- **Generated translations:** `docs/pages/cn/`, `docs/pages/ko/`
+- **Navigation:** `docs/sidebar.json`
+- **Runtime customization:** `vocs.config.ts`, `docs/layout.tsx`, `docs/styles.css`
+- **SEO and analytics:** `docs/lib/structured-data.ts`, `docs/lib/analytics.ts`
+- **Automation:** `docs/lib/*.mjs`, `.github/workflows/*`

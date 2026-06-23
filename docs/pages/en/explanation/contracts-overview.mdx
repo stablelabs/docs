@@ -18,17 +18,17 @@ Stable is fully EVM-compatible. Solidity, Vyper, Hardhat, Foundry, ethers.js, an
 ## How Stable differs
 
 - **USDT0 is the gas token.** `maxPriorityFeePerGas` must be `0`. The `value` field in native transfers carries USDT0, not ETH. See [Work with USDT0 as gas](/en/how-to/work-with-usdt-gas).
-- **USDT0 has a dual role.** Contracts that hold native USDT0 can have their balance changed by ERC-20 `transferFrom` or `permit` — never mirror native balance in a `uint256`. See [USDT0 behavior on Stable](/en/explanation/usdt0-behavior).
+- **USDT0 has a dual role.** Contracts that hold native USDT0 can have their balance changed by ERC-20 `transferFrom` or `permit`. Never mirror native balance in a `uint256`. See [USDT0 behavior on Stable](/en/explanation/usdt0-behavior).
 - **Precompile addresses are fixed across testnet and mainnet.** Burn them into your contract as constants.
 
 ## Start here
 
-- [**Deploy**](/en/tutorial/smart-contract) — Scaffold Foundry, configure Stable, and deploy Counter.
-- [**Verify**](/en/how-to/verify-contract) — Upload source to Stablescan with forge verify-contract.
-- [**Index**](/en/how-to/index-contract) — Subscribe to events with ethers.js and backfill historical logs.
+- [**Deploy**](/en/tutorial/smart-contract): Scaffold Foundry, configure Stable, and deploy Counter.
+- [**Verify**](/en/how-to/verify-contract): Upload source to Stablescan with forge verify-contract.
+- [**Index**](/en/how-to/index-contract): Subscribe to events with ethers.js and backfill historical logs.
 
 ## Next recommended
 
-- [**Contracts guide index**](/en/explanation/contracts-guides) — Full list of contract guides, precompile references, and system module ABIs.
-- [**Use system modules**](/en/how-to/use-system-modules) — Call Bank / Distribution / Staking from Solidity and ethers.js.
-- [**JSON-RPC reference**](/en/reference/json-rpc-api) — Which `eth_*` and `debug_*` methods Stable supports.
+- [**Contracts guide index**](/en/explanation/contracts-guides): Full list of contract guides, precompile references, and system module ABIs.
+- [**Use system modules**](/en/how-to/use-system-modules): Call Bank / Distribution / Staking from Solidity and ethers.js.
+- [**JSON-RPC reference**](/en/reference/json-rpc-api): Which `eth_*` and `debug_*` methods Stable supports.

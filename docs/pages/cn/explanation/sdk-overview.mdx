@@ -1,14 +1,14 @@
 ---
 source_path: explanation/sdk-overview.mdx
-source_sha: db4361dfdc3233c02ea6e871850e34e477964a67
+source_sha: efcb1b7d8aaf0782573a67c4964ac01904c220ae
 title: "Stable SDK"
-description: "使用类型化的 TypeScript SDK，只需几行代码即可转账 USDT0、跨链桥接以及在 Stable 上兑换代币。"
+description: "使用类型化的 TypeScript SDK，只需几行代码即可在 Stable 上传输 USDT0、跨链桥接和兑换代币。"
 diataxis: "explanation"
 ---
 
 # Stable SDK
 
-`@stablechain/sdk` 是 Stable 的官方 TypeScript 客户端。它对 viem 进行了封装，为你最常用的操作提供了精简的类型化 API：转账 USDT0、在链之间桥接以及在 Stable 上兑换代币。路由、授权、小数位数和链切换都已为你处理好。
+`@stablechain/sdk` 是 Stable 官方的 TypeScript 客户端。它封装了 Viem，提供了一个小巧、类型化的 API，用于处理你最常使用的操作：传输 USDT0、在链之间进行桥接以及在 Stable 上兑换代币。路由、授权、小数位和链切换都已为你处理好。
 
 ```ts
 import { createStable, Network } from "@stablechain/sdk";
@@ -30,31 +30,31 @@ const { txHash } = await stable.transfer({
 txHash: 0x8f3a...2d41
 ```
 
-## SDK 的功能
+## SDK 功能
 
-- **`transfer`** — 在 Stable 上发送原生 USDT0 或任意 ERC-20 代币。Gas 会自动以 USDT0 支付。
-- **`quoteBridge` / `bridge`** — 跨链转账。USDT0 → USDT0 使用 LayerZero，其他情况使用 LI.FI。路由会自动为你选择。
-- **`quoteSwap` / `swap`** — 通过 LI.FI 进行同链代币兑换，内部已处理 ERC-20 授权。
+- **`transfer`**：发送原生 USDT0 或 Stable 上的任何 ERC-20 代币。Gas 费会自动以 USDT0 支付。
+- **`quoteBridge` / `bridge`**：跨链传输。USDT0 → USDT0 使用 LayerZero，其他所有代币使用 LI.FI。系统会自动为你选择路由。
+- **`quoteSwap` / `swap`**：通过 LI.FI 进行同链代币兑换，ERC-20 授权在内部处理。
 
-该 SDK 以 [`@stablechain/sdk`](https://www.npmjs.com/package/@stablechain/sdk) 发布在 npm 上，并需要 `viem >= 2.0.0` 作为对等依赖。
+SDK 已发布到 npm，名称为 [`@stablechain/sdk`](https://www.npmjs.com/package/@stablechain/sdk)，并要求 `viem >= 2.0.0` 作为 peer dependency。
 
-## 何时使用（以及何时不使用）
+## 何时使用（何时不使用）
 
-当你想要一个类型化的、有既定约定的客户端来隐藏路由和授权样板代码时，请使用该 SDK。当你需要直接控制交易构造、自定义 gas 策略，或进行 transfer / bridge / swap 之外的合约调用时，请使用原生 viem 或 ethers。
+当你想要一个类型化、规范化的客户端，并隐藏路由和授权样板文件时，请使用 SDK。当你需要直接控制交易构建、自定义 gas 策略或进行 transfer/bridge/swap 之外的合约调用时，请降级到原始的 Viem 或 Ethers。
 
 :::note
-该 SDK 支持使用任何兼容 viem 的签名器进行签名：私钥 `Account`、像 `custom(window.ethereum)` 这样的浏览器 `Transport`，或者预先构建的 `WalletClient`（例如 wagmi 的 `useWalletClient` 返回的那个）。
+SDK 使用任何兼容 Viem 的签名器进行签名：私钥 `Account`、浏览器 `Transport`（如 `custom(window.ethereum)`）或预构建的 `WalletClient`（例如，wagmi 的 `useWalletClient` 返回的客户端）。
 :::
 
 ## 从这里开始
 
-- [**快速开始**](/cn/tutorial/sdk-quickstart) — 安装 SDK 并在测试网上运行你的第一次转账、桥接和兑换。
-- [**SDK 参考**](/cn/reference/sdk) — 每个方法、配置选项、枚举和错误类。
-- [**与 viem 一起使用**](/cn/how-to/sdk-with-viem) — 服务端账户、浏览器钱包，以及自带的 `WalletClient`。
-- [**与 wagmi 一起使用**](/cn/how-to/sdk-with-wagmi) — 使用 `useWalletClient` 和 hooks 将 SDK 接入 React 应用。
+- [**快速入门**](/cn/tutorial/sdk-quickstart)：安装 SDK 并在测试网上运行你的首次转账、桥接和兑换。
+- [**SDK 参考**](/cn/reference/sdk)：所有方法、配置选项、枚举和错误类。
+- [**与 viem 一起使用**](/cn/how-to/sdk-with-viem)：服务器端账户、浏览器钱包以及自带的 `WalletClient`。
+- [**与 wagmi 一起使用**](/cn/how-to/sdk-with-wagmi)：使用 `useWalletClient` 和 hooks 将 SDK 连接到 React 应用程序。
 
-## 推荐的下一步
+## 下一步推荐
 
-- [**从 npm 安装**](https://www.npmjs.com/package/@stablechain/sdk) — 在 npmjs.com 上查看该包并检查最新版本。
-- [**连接到 Stable**](/cn/reference/connect) — 主网和测试网的链 ID、RPC 端点和浏览器。
-- [**为测试网钱包充值**](/cn/how-to/use-faucet) — 在运行快速开始之前，从水龙头获取测试网 USDT0。
+- [**从 npm 安装**](https://www.npmjs.com/package/@stablechain/sdk)：在 npmjs.com 上查看软件包并检查最新版本。
+- [**连接到 Stable**](/cn/reference/connect)：主网和测试网的链 ID、RPC 端点和浏览器。
+- [**资助测试网钱包**](/cn/how-to/use-faucet)：在运行快速入门之前，从水龙头获取测试网 USDT0。

@@ -1,37 +1,37 @@
 ---
 source_path: explanation/accounts-overview.mdx
-source_sha: e216ff05dc7df6363bf8c91d905bf03ed4436e50
+source_sha: a61b4059ba015ad3e32ff09134ed6df69381096e
 title: "Stable 上的账户"
-description: "Stable 上用户和代理账户的钱包、EIP-7702 委托、会话密钥和支出限额。"
+description: "Stable 上的用户和代理账户的钱包、EIP-7702 委托、会话密钥和支出限额。"
 diataxis: "explanation"
 ---
 
 # Stable 上的账户
 
-Stable 上的账户是标准的以太坊 EOA，可以通过 [EIP-7702 委托](/cn/explanation/eip-7702)选择性地执行智能合约逻辑。用户在钱包、批量支付、定期订阅和会话密钥中始终保持一个地址和一个私钥。代理使用相同的账户模型运行，无需任何托管中间件。
+Stable 上的账户是一个标准的以太坊 EOA，它可以通过 [EIP-7702 委托](/cn/explanation/eip-7702) 可选择地执行智能合约逻辑。用户在钱包、批处理支付、循环订阅和会话密钥中保留一个地址和一个私钥。代理运行相同的账户模型，无需任何托管中间件。
 
-## 你可以构建什么
+## 您可以构建什么
 
-- **钱包**：从助记词创建，支持原生 USDT0 余额查询和签名交易。
-- **批量支付**：通过委托的 EOA 在一笔原子交易中执行多次转账。
-- **支出限额**：通过委托逻辑在 EOA 本身上强制实施每笔交易或每日上限。
-- **会话密钥**：向 dApp 授予一个范围受限、时间受限、预算受限的密钥，使用户无需为每个操作重新签名。
-- **代理钱包**：用自托管密钥为 AI 代理注资，让其自主支付 x402 服务费用。有关提供商和集成模式，请参阅[代理钱包](/cn/reference/agentic-wallets)。
+- **钱包**：通过助记词，进行原生的 USDT0 余额查询和签名交易。
+- **批处理支付**：通过委托型 EOA 在一个原子交易中执行多笔转账。
+- **支出限额**：通过委托逻辑在 EOA 本身强制执行每笔交易或每日上限。
+- **会话密钥**：授予 dApp 一个有范围、有时间限制、有预算限制的密钥，以便用户无需重新签署每个操作。
+- **代理钱包**：为 AI 代理提供自托管密钥，并让它自主支付 x402 服务。有关提供商和集成模式，请参阅[代理钱包](/cn/reference/agentic-wallets)。
 
 ## Stable 的不同之处
 
-- **一个地址搞定一切。** 无需账户迁移即可解锁智能合约功能。EIP-7702 将代码委托*到*现有 EOA 上。
-- **仅用 USDT0 支付 Gas。** 用户无需单独的原生代币。新账户用 USDT0 注资后即可立即交易。
-- **多功能委托模式。** 单个委托可以组合批量、支出限额、会话密钥和订阅功能，因此一次委托即可覆盖你交付的所有功能。
+- **一个地址，包罗万象。** 无需账户迁移即可解锁智能合约功能。EIP-7702 将代码委托给现有的 EOA。
+- **仅限 USDT0 Gas。** 用户不需要单独的原生代币。新账户用 USDT0 充值后即可立即交易。
+- **多功能委托模式。** 一个委托可以结合批处理、支出限额、会话密钥和订阅，因此一个委托涵盖您提供的所有功能。
 
 ## 从这里开始
 
-- [**创建钱包**](/cn/how-to/create-wallet) — 使用 ethers.js 或 Tether WDK 生成或恢复钱包。
-- [**使用 EIP-7702 委托**](/cn/how-to/account-abstraction) — 将批量支付、支出限额和会话密钥应用于现有 EOA。
-- [**Stable SDK**](/cn/explanation/sdk-overview) — 使用类型化客户端从任何账户签名并发送交易。
+- [**创建钱包**](/cn/how-to/create-wallet)：使用 ethers.js 或 Tether WDK 生成或恢复钱包。
+- [**使用 EIP-7702 进行委托**](/cn/how-to/account-abstraction)：将批处理支付、支出限额和会话密钥应用于现有 EOA。
+- [**Stable SDK**](/cn/explanation/sdk-overview)：使用类型化客户端从任何账户签名和发送交易。
 
-## 接下来推荐
+## 下一步建议
 
-- [**账户指南索引**](/cn/explanation/accounts-guides) — 跳转到账户指南和参考的完整列表。
-- [**EIP-7702 概念**](/cn/explanation/eip-7702) — 为什么委托无需账户迁移即可工作。
-- [**订阅与收款**](/cn/how-to/subscribe-and-collect) — 将账户模型应用于定期支付流程。
+- [**账户指南索引**](/cn/explanation/accounts-guides)：跳转到账户指南和参考的完整列表。
+- [**EIP-7702 概念**](/cn/explanation/eip-7702)：为什么委托无需账户迁移即可工作。
+- [**订阅和收款**](/cn/how-to/subscribe-and-collect)：将账户模型应用于循环支付流程。

@@ -1,12 +1,12 @@
 ---
 source_path: how-to/troubleshoot-node.mdx
-source_sha: f4b7701fdfef056c1aa8bd46ae494c7f6d73d775
-title: 故障排查指南
-description: "针对常见 Stable 节点连接、同步和性能问题的诊断脚本与解决方案。"
+source_sha: 138c5c2eb1a61666718ce625d0553a298a454c03
+title: 故障排除指南
+description: "用于解决 Stable 节点常见连接、同步和性能问题的诊断脚本和解决方案。"
 diataxis: "how-to"
 ---
 
-本综合指南帮助诊断和解决 Stable 节点的常见问题。
+本综合指南旨在帮助诊断和解决 Stable 节点常见问题。
 
 ## 快速诊断
 
@@ -19,56 +19,56 @@ diataxis: "how-to"
 # Set service name (default: stable)
 export SERVICE_NAME=stable
 
-echo "=== Stable Node Diagnostics ==="
-echo "Timestamp: $(date)"
+echo "=== Stable 节点诊断 ==="
+echo "时间戳: $(date)"
 echo ""
 
-# 1. Service Status
-echo "1. SERVICE STATUS:"
+# 1. 服务状态
+echo "1. 服务状态:"
 systemctl status ${SERVICE_NAME} --no-pager | head -10
 
-# 2. Sync Status
-echo -e "\n2. SYNC STATUS:"
-curl -s localhost:26657/status | jq '.result.sync_info' 2>/dev/null || echo "RPC not responding"
+# 2. 同步状态
+echo -e "\n2. 同步状态:"
+curl -s localhost:26657/status | jq '.result.sync_info' 2>/dev/null || echo "RPC 未响应"
 
-# 3. Peer Connections
-echo -e "\n3. PEER COUNT:"
-curl -s localhost:26657/net_info | jq '.result.n_peers' 2>/dev/null || echo "Cannot get peer info"
+# 3. 对等连接
+echo -e "\n3. 对等节点数量:"
+curl -s localhost:26657/net_info | jq '.result.n_peers' 2>/dev/null || echo "无法获取对等节点信息"
 
-# 4. Recent Errors
-echo -e "\n4. RECENT ERRORS (last 20):"
+# 4. 最近错误
+echo -e "\n4. 最近错误 (最近 20 条):"
 sudo journalctl -u ${SERVICE_NAME} --since "1 hour ago" | grep -i error | tail -20
 
-# 5. System Resources
-echo -e "\n5. SYSTEM RESOURCES:"
+# 5. 系统资源
+echo -e "\n5. 系统资源:"
 df -h / | grep -v Filesystem
 free -h | grep Mem
 top -bn1 | grep "load average"
 
-# 6. Port Status
-echo -e "\n6. PORT STATUS:"
-ss -tulpn | grep ${SERVICE_NAME} || echo "No ${SERVICE_NAME} ports found"
+# 6. 端口状态
+echo -e "\n6. 端口状态:"
+ss -tulpn | grep ${SERVICE_NAME} || echo "未找到 ${SERVICE_NAME} 端口"
 
-echo -e "\n=== Diagnostics Complete ==="
+echo -e "\n=== 诊断完成 ==="
 ```
 
-## 常见问题与解决方案
+## 常见问题及解决方案
 
 ### 节点无法启动
 
 #### 问题：找不到二进制文件
 
 **错误信息：**
-```
+```text
 stabled: command not found
 ```
 
 **解决方案：**
 ```bash
-# Check if binary exists
+# 检查二进制文件是否存在
 ls -la /usr/bin/stabled
 
-# If missing, reinstall (use arm64 if needed)
+# 如果缺失，重新安装 (如果需要使用 arm64)
 wget https://stable-data-dist.s3.us-east-1.amazonaws.com/testnet/binary/stabled-0.7.2-linux-amd64-testnet.tar.gz
 tar -xvzf stabled-0.7.2-linux-amd64-testnet.tar.gz
 sudo mv stabled /usr/bin/
@@ -78,16 +78,16 @@ sudo chmod +x /usr/bin/stabled
 #### 问题：权限被拒绝
 
 **错误信息：**
-```
+```text
 Error: open /home/user/.stabled/config/config.toml: permission denied
 ```
 
 **解决方案：**
 ```bash
-# Fix ownership
+# 修复所有权
 sudo chown -R $USER:$USER ~/.stabled/
 
-# Fix permissions
+# 修复权限
 chmod 700 ~/.stabled/
 chmod 600 ~/.stabled/config/*.json
 chmod 644 ~/.stabled/config/*.toml
@@ -96,19 +96,19 @@ chmod 644 ~/.stabled/config/*.toml
 #### 问题：地址已被占用
 
 **错误信息：**
-```
+```text
 Error: listen tcp 0.0.0.0:26657: bind: address already in use
 ```
 
 **解决方案：**
 ```bash
-# Find process using port
+# 查找使用端口的进程
 sudo lsof -i :26657
 
-# Kill the process
+# 终止该进程
 sudo kill -9 <PID>
 
-# Or change port in config
+# 或者在配置中更改端口
 sed -i 's/laddr = "tcp:\/\/0.0.0.0:26657"/laddr = "tcp:\/\/0.0.0.0:26658"/' ~/.stabled/config/config.toml
 ```
 
@@ -117,52 +117,52 @@ sed -i 's/laddr = "tcp:\/\/0.0.0.0:26657"/laddr = "tcp:\/\/0.0.0.0:26658"/' ~/.s
 #### 问题：节点卡在某个高度
 
 **症状：**
-- 区块高度不增加
-- 超过 1 分钟没有新区块
+- 块高不增加
+- 超过 1 分钟没有新块
 
 **解决方案：**
 ```bash
-# 1. Check peers
+# 1. 检查对等节点
 curl localhost:26657/net_info | jq '.result.n_peers'
 
-# If no peers, add persistent peers
+# 如果没有对等节点，添加持久对等节点
 echo "persistent_peers = \"5ed0f977a26ccf290e184e364fb04e268ef16430@37.187.147.27:26656,128accd3e8ee379bfdf54560c21345451c7048c7@37.187.147.22:26656\"" >> ~/.stabled/config/config.toml
 
-# 2. Reset and resync
+# 2. 重置并重新同步
 sudo systemctl stop ${SERVICE_NAME}
 stabled comet unsafe-reset-all --keep-addr-book
 sudo systemctl start ${SERVICE_NAME}
 
-# 3. Use snapshot (see Snapshots guide)
+# 3. 使用快照 (参见快照指南)
 ```
 
-#### 问题："wrong Block.Header.AppHash" 错误
+#### 问题："`wrong Block.Header.AppHash`" 错误
 
 **错误信息：**
-```
+```text
 panic: Wrong Block.Header.AppHash. Expected XXXX, got YYYY
 ```
 
 **解决方案：**
 ```bash
-# This indicates state corruption - rollback to previous block
+# 这表示状态损坏 - 回滚到前一个块
 sudo systemctl stop ${SERVICE_NAME}
 
-# Rollback one block
+# 回滚一个块
 stabled rollback
 
-# Restart node
+# 重启节点
 sudo systemctl start ${SERVICE_NAME}
 
-# If rollback doesn't work, restore from snapshot
-# Backup important files
+# 如果回滚无效，从快照恢复
+# 备份重要文件
 cp ~/.stabled/config/priv_validator_key.json ~/backup/
 cp ~/.stabled/config/node_key.json ~/backup/
 
-# Reset state
+# 重置状态
 stabled comet unsafe-reset-all
 
-# Restore from snapshot
+# 从快照恢复
 wget https://stable-data-dist.s3.us-east-1.amazonaws.com/testnet/snapshots/snapshot.tar.lz4
 tar -I lz4 -xf snapshot.tar.lz4 -C ~/.stabled/
 
@@ -172,15 +172,15 @@ sudo systemctl start ${SERVICE_NAME}
 #### 问题：同步速度慢
 
 **症状：**
-- 每分钟少于 100 个区块
+- 每分钟少于 100 个块
 - CPU/磁盘使用率高
 
 **解决方案：**
 ```bash
-# 1. Check disk I/O
+# 1. 检查磁盘 I/O
 iostat -x 1 5
 
-# 2. Optimize configuration
+# 2. 优化配置
 cat >> ~/.stabled/config/config.toml <<EOF
 [mempool]
 size = 10000
@@ -191,41 +191,41 @@ send_rate = 10240000
 recv_rate = 10240000
 EOF
 
-# 3. Increase file descriptors
+# 3. 增加文件描述符
 echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
 echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
 
-# 4. Restart node
+# 4. 重启节点
 sudo systemctl restart ${SERVICE_NAME}
 ```
 
-### 节点连接问题
+### 对等连接问题
 
-#### 问题：没有节点连接
+#### 问题：没有对等节点连接
 
 **症状：**
-```
+```text
 "n_peers": 0
 ```
 
 **解决方案：**
 ```bash
-# 1. Check firewall
+# 1. 检查防火墙
 sudo ufw status
 sudo ufw allow 26656/tcp
 
-# 2. Check external IP
+# 2. 检查外部 IP
 curl ifconfig.me
 
-# 3. Update external address
+# 3. 更新外部地址
 sed -i "s/external_address = .*/external_address = \"$(curl -s ifconfig.me):26656\"/" ~/.stabled/config/config.toml
 
-# 4. Add seed nodes
+# 4. 添加种子节点
 cat >> ~/.stabled/config/config.toml <<EOF
 seeds = "seed1@seed1.stable.network:26656,seed2@seed2.stable.network:26656"
 EOF
 
-# 5. Enable PEX
+# 5. 启用 PEX
 sed -i 's/pex = false/pex = true/' ~/.stabled/config/config.toml
 
 sudo systemctl restart ${SERVICE_NAME}
@@ -236,113 +236,113 @@ sudo systemctl restart ${SERVICE_NAME}
 #### 问题：升级后出现 "AppHash mismatch"
 
 **错误信息：**
-```
+```text
 panic: AppHash mismatch
 ```
 
 **解决方案：**
 ```bash
-# This usually happens after failed upgrade
-# Must restore from backup or snapshot
+# 这通常发生在升级失败之后
+# 必须从备份或快照恢复
 
-# 1. Stop node
+# 1. 停止节点
 sudo systemctl stop ${SERVICE_NAME}
 
-# 2. Restore from pre-upgrade backup
+# 2. 从升级前备份恢复
 rm -rf ~/.stabled/data
 cp -r ~/stable-backup/data ~/.stabled/
 
-# 3. Ensure correct binary version
+# 3. 确保二进制文件版本正确
 stabled version
 
-# 4. Start node
+# 4. 启动节点
 sudo systemctl start ${SERVICE_NAME}
 ```
 
 ### 数据库问题
 
-#### 问题："database corruption"
+#### 问题："数据库损坏"
 
 **错误信息：**
-```
+```text
 Error initializing database: resource temporarily unavailable
 ```
 
 **解决方案：**
 ```bash
-# 1. Stop node
+# 1. 停止节点
 sudo systemctl stop ${SERVICE_NAME}
 
-# 2. Check disk space
+# 2. 检查磁盘空间
 df -h ~/.stabled
 
-# 3. Repair database
+# 3. 修复数据库
 stabled debug kill-db ~/.stabled/data
 stabled debug dump-db ~/.stabled/data > db_dump.txt
 
-# 4. If repair fails, resync
+# 4. 如果修复失败，重新同步
 rm -rf ~/.stabled/data
-# Restore from snapshot
+# 从快照恢复
 
-# 5. Start node
+# 5. 启动节点
 sudo systemctl start ${SERVICE_NAME}
 ```
 
-#### 问题："too many open files"
+#### 问题："打开文件过多"
 
 **错误信息：**
-```
+```text
 accept: too many open files
 ```
 
 **解决方案：**
 ```bash
-# 1. Check current limits
+# 1. 检查当前限制
 ulimit -n
 
-# 2. Increase limits
+# 2. 增加限制
 echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
 echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
 
-# 3. Update systemd service
+# 3. 更新 systemd 服务
 sudo sed -i '/\[Service\]/a LimitNOFILE=65535' /etc/systemd/system/stabled.service
 
-# 4. Reload and restart
+# 4. 重新加载和重启
 sudo systemctl daemon-reload
 sudo systemctl restart ${SERVICE_NAME}
 ```
 
 ### 内存问题
 
-#### 问题：内存不足（OOM）导致进程被杀
+#### 问题：内存不足 (OOM) 终止
 
 **症状：**
-```
+```text
 stabled.service: Main process exited, code=killed, status=9/KILL
 ```
 
 **解决方案：**
 ```bash
-# 1. Check memory usage
+# 1. 检查内存使用情况
 free -h
 dmesg | grep -i "killed process"
 
-# 2. Add swap space
+# 2. 添加交换空间
 sudo fallocate -l 8G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
-# 3. Optimize memory usage
+# 3. 优化内存使用
 cat >> ~/.stabled/config/app.toml <<EOF
-iavl-cache-size = 781250  # Reduce if low memory
-inter-block-cache = false  # Disable if low memory
+iavl-cache-size = 781250  # 如果内存不足，则减少
+inter-block-cache = false  # 如果内存不足，则禁用
 EOF
 
-# 4. Set memory limits
+# 4. 设置内存限制
 sudo systemctl edit stabled
-# Add:
+# 添加:
 # [Service]
 # MemoryMax=8G
 # MemorySwapMax=2G
@@ -350,43 +350,43 @@ sudo systemctl edit stabled
 
 ### 磁盘空间问题
 
-#### 问题：设备上没有剩余空间
+#### 问题：设备上无剩余空间
 
 **错误信息：**
-```
+```text
 Error: write ~/.stabled/data/blockstore.db/001234.log: no space left on device
 ```
 
 **解决方案：**
 ```bash
-# 1. Check disk usage
+# 1. 检查磁盘使用情况
 df -h
 du -sh ~/.stabled/*
 
-# 2. Clean up logs
+# 2. 清理日志
 sudo journalctl --vacuum-time=7d
 sudo journalctl --vacuum-size=500M
 
-# 3. Prune blockchain data
+# 3. 修剪区块链数据
 sudo systemctl stop ${SERVICE_NAME}
 stabled prune
 
-# 4. Remove old snapshots
+# 4. 删除旧快照
 rm -rf ~/.stabled/data/snapshots/
 
-# 5. Move to larger disk
-# See migration section below
+# 5. 迁移到更大的磁盘
+# 请参阅下面的迁移部分
 ```
 
-## 高级故障排查
+## 高级故障排除
 
 ### 调试模式
 
 ```bash
-# Run node in debug mode
+# 以调试模式运行节点
 stabled start --log_level debug
 
-# Enable debug API
+# 启用调试 API
 sed -i 's/enable = false/enable = true/' ~/.stabled/config/app.toml
 sed -i 's/unsafe = false/unsafe = true/' ~/.stabled/config/config.toml
 ```
@@ -394,29 +394,29 @@ sed -i 's/unsafe = false/unsafe = true/' ~/.stabled/config/config.toml
 ### 性能分析
 
 ```bash
-# Enable profiling
+# 启用性能分析
 sed -i 's/prof_laddr = ""/prof_laddr = "localhost:6060"/' ~/.stabled/config/config.toml
 
-# Collect CPU profile
+# 收集 CPU 配置文件
 go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
 
-# Memory profile
+# 内存配置文件
 go tool pprof http://localhost:6060/debug/pprof/heap
 
-# Goroutine profile
+# Goroutine 配置文件
 curl http://localhost:6060/debug/pprof/goroutine?debug=1
 ```
 
 ## 错误信息参考
 
 | 错误 | 原因 | 解决方案 |
-|-------|-------|----------|
+|---|---|---|
 | `wrong Block.Header.AppHash` | 状态损坏 | 从快照重新同步 |
-| `validator set is nil` | 创世文件不匹配 | 下载正确的创世文件 |
+| `validator set is nil` | 创世块不匹配 | 下载正确的创世块 |
 | `connection refused` | 服务未运行 | 启动服务 |
-| `timeout waiting for tx to be included` | 网络拥堵 | 提高 gas 价格 |
-| `account sequence mismatch` | Nonce 错误 | 查询当前 nonce |
-| `insufficient fees` | gas 价格过低 | 提高 gas 价格 |
+| `timeout waiting for tx to be included` | 网络拥堵 | 增加 Gas 价格 |
+| `account sequence mismatch` | Nonce 错误 | 查询当前 Nonce |
+| `insufficient fees` | Gas 价格过低 | 增加 Gas 价格 |
 | `signature verification failed` | 密钥不匹配 | 检查密钥配置 |
 | `module account has not been set` | 初始化错误 | 重新初始化节点 |
 
@@ -434,34 +434,34 @@ export SERVICE_NAME=stable
 OUTPUT_DIR="stable-debug-$(date +%Y%m%d-%H%M%S)"
 mkdir -p $OUTPUT_DIR
 
-echo "Collecting debug information..."
+echo "正在收集调试信息..."
 
-# System info
+# 系统信息
 uname -a > $OUTPUT_DIR/system.txt
 df -h >> $OUTPUT_DIR/system.txt
 free -h >> $OUTPUT_DIR/system.txt
 
-# Service status
+# 服务状态
 systemctl status ${SERVICE_NAME} --no-pager > $OUTPUT_DIR/service-status.txt
 
-# Recent logs
+# 最近日志
 sudo journalctl -u ${SERVICE_NAME} --since "1 hour ago" > $OUTPUT_DIR/recent-logs.txt
 
-# Config files (remove sensitive data)
+# 配置文件 (删除敏感数据)
 grep -v "priv" ~/.stabled/config/config.toml > $OUTPUT_DIR/config.toml
 grep -v "priv" ~/.stabled/config/app.toml > $OUTPUT_DIR/app.toml
 
-# Node status
+# 节点状态
 curl -s localhost:26657/status > $OUTPUT_DIR/node-status.json 2>/dev/null
 
-# Create archive
+# 创建归档
 tar -czf $OUTPUT_DIR.tar.gz $OUTPUT_DIR/
 
-echo "Debug info collected: $OUTPUT_DIR.tar.gz"
-echo "Share this file when requesting support"
+echo "调试信息已收集: $OUTPUT_DIR.tar.gz"
+echo "请求支持时请共享此文件"
 ```
 
 ## 后续步骤
 
-- 查看[监控设置](/cn/how-to/monitor-node)以预防问题
-- 查看[升级指南](/cn/how-to/upgrade-node)了解特定版本的问题
+- 查看 [监控设置](/cn/how-to/monitor-node) 以预防问题
+- 检查 [升级指南](/cn/how-to/upgrade-node) 以了解特定版本问题

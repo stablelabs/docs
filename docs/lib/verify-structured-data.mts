@@ -25,8 +25,8 @@ const routes = [
   '/en/reference/gas-waiver-api',
   '/en/reference/faq',
   '/en/reference/testnet-version-history',
-  '/cn/introduction/faq',
-  '/ko/introduction/faq',
+  '/cn/reference/faq',
+  '/ko/reference/faq',
 ]
 
 let failures = 0

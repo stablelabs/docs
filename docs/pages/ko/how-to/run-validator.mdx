@@ -1,25 +1,25 @@
 ---
 source_path: how-to/run-validator.mdx
-source_sha: 2ce47d3b037076ab9550319f91845149a6b98f83
-title: "검증자 생성하기"
-description: "동기화된 Stable 노드를 활성 검증자로 승격하기: 키 준비, 스테이킹 프리컴파일로 등록, 검증, 그리고 자기 위임."
+source_sha: d00aabfde18ce379eb65d00c6fc12306a7c631a5
+title: "검증인 생성"
+description: "동기화된 Stable 노드를 활성 검증인으로 승격시키세요: 키 준비, 스테이킹 사전 컴파일에 등록, 확인 및 자체 위임."
 diataxis: "how-to"
 ---
 
-검증자는 온체인에 등록되고 스테이크를 본딩한 동기화된 풀 노드입니다. 먼저 노드를 설치하고 동기화한 다음, 스테이킹 프리컴파일(`0x0000000000000000000000000000000000000800`)에서 `createValidator`를 호출하여 등록합니다. 이 페이지에서는 등록 단계를 다룹니다. 노드 자체에 대해서는 [노드 설치하기](/ko/how-to/install-node)와 [노드 구성](/ko/reference/node-configuration)을 참조하세요.
+검증인은 온체인에 등록되고 스테이크를 보증한 동기화된 전체 노드입니다. 먼저 노드를 설치하고 동기화한 다음, 스테이킹 사전 컴파일(`0x0000000000000000000000000000000000000800`)에서 `createValidator`를 호출하여 등록합니다. 이 페이지에서는 등록 단계를 다룹니다. 노드 자체에 대해서는 [노드 설치](/ko/how-to/install-node) 및 [노드 구성](/ko/reference/node-configuration)을 참조하세요.
 
 :::warning
-노드가 완전히 동기화된 후에만 등록하세요. 따라잡기 전에 서명하는 검증자는 이중 서명을 하여 세트에서 영구적으로 제거(tombstone)될 수 있습니다. 시작하기 전에 `config.toml`에서 `double_sign_check_height = 2` 또는 그 이상으로 설정하세요(자세한 내용은 [노드 구성](/ko/reference/node-configuration#consensus-configuration) 참조). `1`로 설정하면 검사를 수행하지 않습니다.
+노드가 완전히 동기화된 후에만 등록하세요. 따라잡기 전에 서명하는 검증인은 이중 서명으로 인해 영구적으로 세트에서 제거될 수 있습니다(tombstoned). 시작하기 전에 `config.toml`에서 `double_sign_check_height = 2` 이상으로 설정하세요( [노드 구성](/ko/reference/node-configuration#consensus-configuration) 참조). `1`로 설정하면 확인을 수행하지 않습니다.
 :::
 
-## 사전 요구사항
+## 전제 조건
 
-- 메인넷(Chain ID `988`)에서 완전히 동기화된 풀 노드. [노드 설치하기](/ko/how-to/install-node) 참조.
-- `~/.stabled/config/config.toml`에서 `double_sign_check_height`가 `2` 또는 그 이상으로 설정됨.
-- 프리컴파일 호출에 사용되는 `cast`를 위한 [Foundry](https://book.getfoundry.sh/) 설치.
-- 검증자의 EVM 주소에 USDT0로 입금된 스테이킹 금액.
+- 메인넷(체인 ID `988`)에 완전히 동기화된 전체 노드. [노드 설치](/ko/how-to/install-node)를 참조하세요.
+- `~/.stabled/config/config.toml`에 `double_sign_check_height`가 `2` 이상으로 설정되어 있습니다.
+- `cast`에 설치된 [Foundry](https://book.getfoundry.sh/)는 사전 컴파일을 호출하는 데 사용됩니다.
+- 검증인의 EVM 주소에 USDT0으로 스테이킹 금액이 자금 지원되었습니다.
 
-진행하기 전에 노드가 따라잡았는지 확인하세요. `catching_up`은 반드시 `false`여야 합니다.
+노드가 더 진행하기 전에 따라잡았는지 확인하세요. `catching_up`은 `false`여야 합니다.
 
 ```bash
 curl -s localhost:26657/status | jq '.result.sync_info.catching_up'
@@ -29,54 +29,54 @@ curl -s localhost:26657/status | jq '.result.sync_info.catching_up'
 false
 ```
 
-## 1단계: 검증자 키 준비
+## 1단계: 검증인 키 준비
 
-오퍼레이터 계정을 생성한 다음, `createValidator`에 필요한 두 가지 값인 합의 공개 키(base64)와 검증자의 EVM 주소를 읽습니다.
+운영자 계정을 생성한 다음 `createValidator`에 필요한 두 가지 값(합의 공개 키(base64)와 검증인의 EVM 주소)을 읽습니다.
 
 ```bash
-# Create the validator operator account
+# 검증인 운영자 계정 생성
 stabled keys add validator
 
-# Consensus public key (base64) — save this
+# 합의 공개 키 (base64) — 저장하세요.
 stabled comet show-validator | jq .key
 
-# Derive the validator's EVM address (0x form)
+# 검증인의 EVM 주소 (0x 형식) 파생
 stabled keys parse $(stabled keys show validator -a)
 ```
 
 ```text
 "AbCd...base64PubKey...=="
 # ...
-# then, evm address is 0xCAEA59C7476C87D0FF6BE6F04DA207601D5BE7D0
+# 그러면 EVM 주소는 0xCAEA59C7476C87D0FF6BE6F04DA207601D5BE7D0입니다.
 ```
 
 :::warning
-`~/.stabled/config/priv_validator_key.json`을 오프라인으로 백업하고, 동일한 키로 두 개의 노드를 절대 실행하지 마세요. 하나의 키로 두 인스턴스가 서명하는 것은 이중 서명이며 영구적인 슬래시로 이어집니다.
+`~/.stabled/config/priv_validator_key.json`을 오프라인으로 백업하고 동일한 키로 두 개의 노드를 실행하지 마세요. 하나의 키로 서명하는 두 인스턴스는 이중 서명이며 영구적인 슬래시를 초래합니다.
 :::
 
 ## 2단계: 환경 설정
 
 ```bash
-# Staking precompile contract address
+# 스테이킹 사전 컴파일 계약 주소
 export STAKING_ADDRESS="0x0000000000000000000000000000000000000800"
 
-# Mainnet EVM RPC
+# 메인넷 EVM RPC
 export RPC_URL="https://rpc.stable.xyz"
 
-# Your operator private key and validator EVM address
+# 운영자 개인 키 및 검증인 EVM 주소
 export PRIVATE_KEY="your_private_key_here"
 export VALIDATOR_ADDRESS="0xYourValidatorAddress"
 
-# Consensus pubkey from Step 1
+# 1단계의 합의 공개 키
 export PUBKEY="AbCd...base64PubKey...=="
 
-# Self-delegation amount in wei (18 decimals). 1000000000000000000 = 1 token
+# wei 단위의 자체 위임 금액 (18 Decimal). 1000000000000000000 = 1 토큰
 export AMOUNT="1000000000000000000"
 ```
 
-## 3단계: 검증자 생성
+## 3단계: 검증인 생성
 
-스테이킹 프리컴파일에서 `createValidator`를 호출합니다. 이 함수는 `description` 튜플, `commissionRates` 튜플, 최소 자기 위임, 검증자 주소, 합의 공개 키, 그리고 본딩 금액을 받습니다. `cast`로 인코딩하여 전송하세요.
+스테이킹 사전 컴파일에 `createValidator`를 호출합니다. 이 함수는 `description` 튜플, `commissionRates` 튜플, 최소 자체 위임, 검증인 주소, 합의 공개 키 및 보증 금액을 사용합니다. 이를 `cast`로 인코딩하고 보냅니다.
 
 ```bash
 # createValidator(
@@ -98,33 +98,33 @@ cast send "$STAKING_ADDRESS" \
 
 ```text
 transactionHash   0x4f...c2
-status            1 (success)
+status            1 (성공)
 ```
 
-커미션 튜플은 `(rate, maxRate, maxChangeRate)`이며, 각각 18자리 소수로 스케일됩니다. 예제는 10% 비율(`100000000000000000`), 20% 상한선, 그리고 1% 최대 일일 변경률을 설정합니다. `maxRate`와 `maxChangeRate`는 생성 시 고정되며 나중에 수정할 수 없습니다. 성공적인 호출은 `CreateValidator` 이벤트를 발생시킵니다. 모든 필드에 대해서는 [스테이킹 프리컴파일 레퍼런스](/ko/reference/staking-module-api#createvalidator)를 참조하세요.
+수수료 튜플은 `(rate, maxRate, maxChangeRate)`이며, 각 18진수로 스케일링됩니다. 예제는 10%의 비율(`100000000000000000`), 20%의 상한선, 1%의 최대 일일 변경률을 설정합니다. `maxRate` 및 `maxChangeRate`는 생성 시 고정되며 나중에 편집할 수 없습니다. 성공적인 호출은 `CreateValidator` 이벤트를 발생시킵니다. 모든 필드는 [스테이킹 사전 컴파일 참조](/ko/reference/staking-module-api#createvalidator)를 참조하세요.
 
-## 4단계: 검증
+## 4단계: 확인
 
-스테이킹 프리컴파일에서 다시 읽어 검증자가 등록되고 본딩되었는지 확인한 다음, 블록에 서명하고 있는지 확인하세요.
+검증인이 등록되고 보증되었는지 확인하려면 스테이킹 사전 컴파일에서 다시 읽은 다음 블록을 서명하고 있는지 확인합니다.
 
 ```bash
-# Read your validator's on-chain record
+# 검증인의 온체인 기록 읽기
 cast call "$STAKING_ADDRESS" \
   "validator(address)" "$VALIDATOR_ADDRESS" \
   --rpc-url "$RPC_URL"
 
-# Confirm the node reports validator info
+# 노드가 검증인 정보를 보고하는지 확인
 curl -s localhost:26657/status | jq '.result.validator_info'
 ```
 
 ```text
-# validator() returns the moniker, tokens, commission, and a bonded status (3)
-# validator_info shows your consensus address with non-zero voting power
+# validator()는 모니커, 토큰, 수수료 및 보증 상태(3)를 반환합니다.
+# validator_info는 0이 아닌 투표 권한이 있는 합의 주소를 보여줍니다.
 ```
 
-## 자기 위임 추가
+## 자체 위임 추가
 
-생성 후 자신의 검증자에 더 많은 스테이크를 본딩하려면, 동일한 프리컴파일에서 `delegate`를 호출하세요.
+생성 후 자신의 검증기에 더 많은 스테이크를 보증하려면 동일한 사전 컴파일에 `delegate`를 호출합니다.
 
 ```bash
 cast send "$STAKING_ADDRESS" \
@@ -135,20 +135,20 @@ cast send "$STAKING_ADDRESS" \
 ```
 
 ```text
-status            1 (success)
+status            1 (성공)
 ```
 
 ## 등록 후
 
-검증자를 건강하게 유지하고 네트워크 업그레이드에 대비하세요:
+검증인을 건전하게 유지하고 네트워크 업그레이드에 대비합니다.
 
-- [노드 모니터링하기](/ko/how-to/monitor-node)의 Prometheus 및 Grafana 스택으로 **서명과 누락된 블록을 모니터링**하세요.
-- 업그레이드 높이를 놓치지 않도록 **업그레이드를 자동화**하세요. [노드 설치하기](/ko/how-to/install-node#cosmovisor-setup-recommended-for-automatic-upgrades)와 [노드 업그레이드하기](/ko/how-to/upgrade-node)의 Cosmovisor 설정을 참조하세요.
-- [노드 문제 해결하기](/ko/how-to/troubleshoot-node)로 **문제를 진단**하세요(동기화되지 않음, 서명하지 않음).
+- [**노드 모니터링**](/ko/how-to/monitor-node)에서 Prometheus 및 Grafana 스택으로 **서명 및 놓친 블록을 모니터링**합니다.
+- 업그레이드 높이를 놓치지 않도록 **업그레이드를 자동화**합니다. [노드 설치](/ko/how-to/install-node#cosmovisor-setup-recommended-for-automatic-upgrades) 및 [노드 업그레이드](/ko/how-to/upgrade-node)의 Cosmovisor 설정을 참조하세요.
+- [**노드 문제 해결**](/ko/how-to/troubleshoot-node)으로 **문제 진단**(동기화 안 됨, 서명 안 됨).
 
 ## 다음 권장 사항
 
-- [**스테이킹 프리컴파일 레퍼런스**](/ko/reference/staking-module-api) — 전체 createValidator, delegate, editValidator 시그니처와 구조체를 찾아보세요.
-- [**노드 구성**](/ko/reference/node-configuration) — 등록하기 전에 double_sign_check_height 및 기타 검증자 핵심 구성을 설정하세요.
-- [**노드 모니터링하기**](/ko/how-to/monitor-node) — 서명, 누락된 블록, 리소스 사용량을 추적하여 슬래시 전에 문제를 포착하세요.
-- [**검증자 데이터 인덱싱하기**](/ko/how-to/index-validator-data) — 검증자가 활성화되면 온체인에서 스테이크, 가동 시간, 투표 이력을 읽으세요.
+- [**스테이킹 사전 컴파일 참조**](/ko/reference/staking-module-api): createValidator, delegate 및 editValidator의 전체 서명 및 구조를 찾아봅니다.
+- [**노드 구성**](/ko/reference/node-configuration): 등록하기 전에 double_sign_check_height 및 기타 검증인에게 중요한 구성을 설정합니다.
+- [**노드 모니터링**](/ko/how-to/monitor-node): 문제를 슬래시하기 전에 문제를 파악할 수 있도록 서명, 놓친 블록 및 리소스 사용량을 추적합니다.
+- [**검증인 데이터 색인**](/ko/how-to/index-validator-data): 검증인이 활성화되면 온체인에서 스테이크, 가동 시간 및 투표 기록을 읽습니다.

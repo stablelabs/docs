@@ -1,30 +1,30 @@
 ---
 source_path: reference/gas-pricing-api.mdx
-source_sha: 9355a785da7466f7714460ce6e1ea80e95c4f55c
+source_sha: 54bf228a3df7b32d8dc92f632372ba1adbd7bcce
 title: "가스 가격 책정 참조"
-description: "Stable의 단일 구성 요소 수수료 모델에 맞춰 트랜잭션을 구성하고, 가스를 추정하고, 도구를 설정하세요."
+description: "Stable의 단일 구성 요소 수수료 모델에 대해 트랜잭션을 구성하고, 가스를 추정하며, 툴링을 구성합니다."
 diataxis: "reference"
 ---
 
 # 가스 가격 책정 참조
 
-Stable에서의 트랜잭션 구성, 가스 추정, 도구 설정.
+Stable을 위한 트랜잭션 구성, 가스 추정 및 툴링 구성.
 
 :::note
-**개념:** Stable이 단일 구성 요소 수수료 모델을 사용하는 이유와 이더리움과의 비교에 대해서는 [가스 가격 책정](/ko/explanation/gas-pricing)을 참조하세요.
+**개념**: Stable이 단일 구성 요소 수수료 모델을 사용하는 이유와 이더리움과 비교하는 방법은 [가스 가격 책정](/ko/explanation/gas-pricing)을 참조하세요.
 :::
 
 ## 트랜잭션 구성
 
-Stable에서 트랜잭션을 구성할 때 `maxPriorityFeePerGas`를 `0`으로 설정하세요. 클라이언트는 가장 최근 블록에서 최신 기본 수수료(base fee)를 가져와야 하며, `maxFeePerGas`를 계산할 때 안전 마진을 포함해야 합니다.
+Stable에서 트랜잭션을 구성할 때 `maxPriorityFeePerGas`를 `0`으로 설정하세요. 클라이언트는 가장 최근 블록에서 최신 기준 수수료를 가져와 `maxFeePerGas`를 계산할 때 안전 마진을 포함해야 합니다.
 
 ```javascript
 // ethers.js v6
 const block = await provider.getBlock("latest");
 const baseFee = block.baseFeePerGas;
 
-const maxPriorityFeePerGas = 0n; // always 0 on Stable
-const maxFeePerGas = baseFee * 2n + maxPriorityFeePerGas; // double the base fee as safety margin
+const maxPriorityFeePerGas = 0n; // Stable에서는 항상 0
+const maxFeePerGas = baseFee * 2n + maxPriorityFeePerGas; // 안전 마진으로 기준 수수료의 두 배
 
 const tx = await wallet.sendTransaction({
   to: "0xRecipientAddress",
@@ -35,12 +35,12 @@ const tx = await wallet.sendTransaction({
 ```
 
 ```text
-Native USDT0 transfer confirmed. Fee ≈ 0.0000021 USDT0 at baseFee = 1 gwei.
+기본 USDT0 전송 확인됨. 기준 수수료 = 1 gwei일 때 수수료 ≈ 0.0000021 USDT0.
 ```
 
 ## 가스 추정
 
-이더리움에서와 마찬가지로 `eth_estimateGas`와 `eth_gasPrice`를 사용하세요. 주요 차이점은 `eth_maxPriorityFeePerGas`가 항상 `0`을 반환한다는 것입니다.
+이더리움에서처럼 `eth_estimateGas` 및 `eth_gasPrice`를 사용하세요. 주요 차이점은 `eth_maxPriorityFeePerGas`가 항상 `0`을 반환한다는 것입니다.
 
 ```javascript
 const gasPrice = await provider.send("eth_gasPrice", []);
@@ -52,14 +52,14 @@ const gasEstimate = await provider.estimateGas({
 const estimatedFeeInUSDT0 = gasPrice * gasEstimate;
 ```
 
-## 도구 설정
+## 툴링 구성
 
-- **Hardhat / Foundry**: 특별한 설정이 필요 없습니다. 표준 EVM 설정으로 작동합니다. 설정에서 우선순위 수수료를 명시적으로 지정하는 경우 `0`으로 설정하세요.
-- **지갑**: 우선순위 팁 입력 필드를 숨기거나 비활성화하세요. 이 값은 효과가 없으므로 표시하면 사용자에게 혼란을 줄 수 있습니다.
-- **모니터링**: 수수료 분석 대시보드는 우선순위 수수료를 추적하지 않아야 합니다. 항상 0이 됩니다.
+- **Hardhat / Foundry**: 특별한 구성이 필요하지 않으며, 표준 EVM 설정이 작동합니다. 구성에서 우선순위 수수료를 명시적으로 설정하는 경우 `0`으로 설정하세요.
+- **월렛**: 우선순위 팁 입력 필드를 숨기거나 비활성화하세요. 값을 표시하면 해당 값이 효과가 없으므로 사용자가 혼란스러워할 수 있습니다.
+- **모니터링**: 수수료 분석 대시보드는 우선순위 수수료를 추적해서는 안 됩니다. 항상 0이 됩니다.
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**가스 가격 책정 개념**](/ko/explanation/gas-pricing) — Stable이 단일 구성 요소 수수료 모델을 사용하는 이유를 이해하세요.
-- [**이더리움 비교**](/ko/explanation/ethereum-comparison) — 이더리움에서 포팅할 때 마주치게 될 모든 동작 차이를 검토하세요.
-- [**JSON-RPC API**](/ko/reference/json-rpc-api) — Stable이 노출하는 `eth_*` 메서드를 참조하세요.
+- [**가스 가격 책정 개념**](/ko/explanation/gas-pricing): Stable이 단일 구성 요소 수수료 모델을 사용하는 이유를 이해하세요.
+- [**이더리움 비교**](/ko/explanation/ethereum-comparison): 이더리움에서 포팅할 때 발생할 수 있는 모든 동작 차이점을 검토하세요.
+- [**JSON-RPC API**](/ko/reference/json-rpc-api): Stable이 노출하는 `eth_*` 메서드를 참조하세요.

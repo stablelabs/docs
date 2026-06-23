@@ -1,58 +1,58 @@
 ---
 source_path: how-to/build-mpp-endpoint.mdx
-source_sha: 6aff0597391159c025c805e5a95e17a1e9373acc
-title: "在 Stable 上构建 MPP 端点"
-description: "通过针对 viem 编写三个自定义方法钩子，在 Stable 上经由 MPP 的 HTTP 402 流程接受 USDT0 付款。"
+source_sha: d7b857d878cd4ce2044c0cb7796cfe8e2a7aae29
+title: "在Stable上构建一个MPP端点"
+description: "通过针对viem编写三个自定义方法钩子，在Stable上通过MPP的HTTP 402流程接受USDT0支付。"
 diataxis: "how-to"
 ---
 
-# 在 Stable 上构建 MPP 端点
+# 在Stable上构建一个MPP端点
 
-本指南将逐步介绍如何为 Stable 上的 USDT0 编写自定义 [MPP](/cn/explanation/mpp) 支付方法，并提供一个受 MPP 保护的端点。买方签署一个 [ERC-3009](/cn/explanation/erc-3009) `transferWithAuthorization`，服务器通过 `mppx` 的 `verify()` 钩子对其进行验证，结算则在你控制的单独步骤中完成。
+本指南将指导您在Stable上为USDT0编写一个自定义的[MPP](/cn/explanation/mpp)支付方法，并提供一个MPP门控端点。买方签署一个[ERC-3009](/cn/explanation/erc-3009) `transferWithAuthorization`，服务器通过`mppx`的`verify()`钩子验证它，结算在您控制的单独步骤中进行。
 
 :::note
-**概念：** 关于什么是 MPP 以及它与 x402 的关系，请参阅 [机器支付协议（MPP）](/cn/explanation/mpp)。关于 x402 的等价实现，请参阅 [构建按次调用付费 API](/cn/how-to/build-pay-per-call)。
+**概念：** 有关MPP是什么以及它如何与x402相关的信息，请参阅[机器支付协议（MPP）](/cn/explanation/mpp)。有关x402的等效内容，请参阅[构建按次计费API](/cn/how-to/build-pay-per-call)。
 :::
 
 :::note
-该示例使用 Stable 主网。测试时请使用小额金额。
+本示例使用Stable主网。测试时请使用小额资金。
 :::
 
-## 你将构建的内容
+## 您将构建什么
 
-一个 HTTP 端点，它返回 `402 Payment Required` 以及一个 MPP `WWW-Authenticate` 挑战，接受 `Authorization` 标头中已签名的凭据，对其进行验证，在 USDT0 上结算 `transferWithAuthorization`，并返回带有 `Payment-Receipt` 标头的响应。
+一个HTTP端点，它返回 `402 Payment Required` 带有 MPP `WWW-Authenticate` 挑战，在 `Authorization` 头中接受签名凭据，验证它，在 USDT0 上结算 `transferWithAuthorization`，并返回带有 `Payment-Receipt` 头的响应。
 
 ```text
-step 1. Client: GET /weather (no Authorization header)
-        Server: 402 Payment Required
+步骤 1. 客户端：GET /weather (无Authorization头)
+        服务器：402 Payment Required
                 WWW-Authenticate: Payment realm="...", challenges="[...usdt0-stable charge for $0.001...]"
 
-step 2. Client signs an ERC-3009 authorization with their viem account
+步骤 2. 客户端使用他们的viem账户签署一个ERC-3009授权
 
-step 3. Client: GET /weather + Authorization header containing the serialized credential
-        Server: verify() validates the EIP-712 signature
-        Server: settle() submits transferWithAuthorization on Stable
-                (~700ms block confirmation)
-        Server: 200 OK { weather: "sunny" }
+步骤 3. 客户端：GET /weather + 包含序列化凭据的Authorization头
+        服务器：verify()验证EIP-712签名
+        服务器：settle()提交Stable上的transferWithAuthorization
+                (~700ms 区块确认)
+        服务器：200 OK { weather: "sunny" }
                 Payment-Receipt: reference="0x8f3a...", status="success"
 
-step 4. Verify settlement on Stablescan
+步骤 4. 在Stablescan上验证结算
         https://stablescan.xyz/tx/0x8f3a...
 ```
 
-## 前提条件
+## 先决条件
 
-- 在 Stable 上有一个已注资的 USDT0 钱包。请参阅 [使用水龙头](/cn/how-to/use-faucet) 或 [转移 USDT0](/cn/tutorial/send-usdt0)。
-- 安装了 `mppx`、`viem` 和 `zod` 的 Node 20+。
-- 在 Stable 上有一个卖方账户（一个 EOA）。在默认结算路径下，卖方以 USDT0 支付 gas；[Gas Waiver](#alternative-settle-through-the-gas-waiver) 一节展示了零 gas 的变体。
+- Stable上资金充足的USDT0钱包。请参阅[使用水龙头](/cn/how-to/use-faucet)或[移动USDT0](/cn/tutorial/send-usdt0)。
+- Node 20+，并安装了`mppx`、`viem`和`zod`。
+- Stable上的卖家账户（一个EOA）。对于默认的结算路径，卖家以USDT0支付gas；[Gas豁免](#alternative-settle-through-the-gas-waiver)部分展示了零gas变体。
 
 ```bash
 npm install mppx viem zod express
 ```
 
-## 1. 定义共享 schema
+## 1. 定义共享Dapp模式
 
-`Method.from()` 声明意图以及请求（Challenge）和凭据载荷的 schema。客户端和服务器都导入此定义。
+`Method.from()` 声明了意图以及请求（挑战）和凭据负载的 Dapp 模式。客户端和服务器都导入此定义。
 
 ```typescript
 // src/method.ts
@@ -63,7 +63,7 @@ import { parseUnits } from "viem";
 export const USDT0_STABLE = "0x779Ded0c9e1022225f8E0630b35a9b54bE713736";
 export const CHAIN_ID = 988;
 
-// Request: the Challenge payload the server sends to the client.
+// Request: The Challenge payload the server sends to the client.
 const zRequest = z.pipe(
   z.object({
     chainId: z.literal(CHAIN_ID),
@@ -120,7 +120,7 @@ usdt0Stable.intent === "charge"
 
 ## 2. 服务器：验证凭据
 
-`Method.toServer` 将 `verify()` 接入 `mppx`。该函数接收反序列化后的凭据（挑战 + 载荷），并且必须在证明无效时抛出异常，或者返回一个 `Receipt`。
+`Method.toServer` 将 `verify()` 接入到 `mppx`。该函数接收反序列化的凭据（挑战 + 负载），并且必须在无效证明时抛出错误或返回 `Receipt`。
 
 ```typescript
 // src/server-method.ts
@@ -153,9 +153,9 @@ export const usdt0StableServer = Method.toServer(usdt0Stable, {
       signature: signature as `0x${string}`,
     });
 
-    if (!valid) throw new Error("Invalid ERC-3009 signature");
+    if (!valid) throw new Error("无效的ERC-3009签名");
 
-    // The Receipt's reference is filled in with the tx hash after settle().
+    // Recipt的reference字段将在settle()后被交易哈希填充。
     return Receipt.from({
       method: usdt0Stable.name,
       reference: "pending",
@@ -176,16 +176,16 @@ export const usdt0StableServer = Method.toServer(usdt0Stable, {
 ```
 
 :::warning
-`verify()` 检查签名，但不检查 nonce 唯一性或授权是否已被花费。链在提交时强制执行这两者：`transferWithAuthorization` 在 nonce 已被使用时会回退。结算步骤会将这些回退转化为服务器可以向客户端展现的错误。
+`verify()` 检查签名，但不检查 nonce 的唯一性或授权是否已消费。链在提交时强制执行这两项：`transferWithAuthorization` 在使用过的 nonce 上将会回滚。结算步骤将这些回滚转化为服务器可以向客户端显示错误。
 :::
 
 ## 3. 结算：提交 `transferWithAuthorization`
 
-结算被有意地与 `verify()` 分离。在 `verify()` 返回后，你通过适合你运维模型的任意路径将授权提交到链上。以下是三个选项，按推荐顺序排列。
+结算有意地与 `verify()` 分离。在 `verify()` 返回后，您可以通过适合您运营模型的任何路径提交链上授权。三种选项，按推荐顺序列出。
 
 ### 默认：服务器直接提交
 
-卖方的 EOA 将带有已签名授权的 `transferWithAuthorization` 提交到 USDT0。卖方以 USDT0（Stable 的原生 gas 代币）支付 gas，因此无需管理单独的 gas 代币余额。
+卖家的 EOA 使用签名的授权将 `transferWithAuthorization` 提交给 USDT0。卖家以 USDT0（Stable 的原生 gas token）支付 gas，因此无需管理单独的 gas token 余额。
 
 ```typescript
 // src/settle.ts
@@ -253,9 +253,9 @@ export async function settleDirect(credential: {
 { txHash: "0x8f3a1b2c..." }
 ```
 
-### 替代方案：通过 Gas Waiver 结算
+### 替代方案：通过 Gas 豁免进行结算
 
-使用 Stable 的 [Gas Waiver](/cn/how-to/integrate-gas-waiver) 以 `gasPrice = 0` 提交内层交易。卖方仍然签署包装交易，但不支付 gas。需要一个 Waiver Server API 密钥。
+使用 Stable 的[Gas 豁免](/cn/how-to/integrate-gas-waiver)以 `gasPrice = 0` 提交内部交易。卖家仍然签署包装交易，但无需支付 gas 费。需要豁免服务器 API 密钥。
 
 ```typescript
 // src/settle-waiver.ts
@@ -280,7 +280,7 @@ export async function settleViaWaiver(
 
   const lines = (await res.text()).trim().split("\n");
   const result = JSON.parse(lines[0]);
-  if (!result.success) throw new Error(`Settle failed: ${result.error?.message}`);
+  if (!result.success) throw new Error(`结算失败: ${result.error?.message}`);
   return { txHash: result.txHash };
 }
 ```
@@ -289,17 +289,17 @@ export async function settleViaWaiver(
 { txHash: "0x8f3a1b2c..." }
 ```
 
-关于如何在发布前构建已签名的内层交易（`gasPrice: 0`，已编码的 `transferWithAuthorization` 调用），请参阅 [Gas waiver 协议](/cn/reference/gas-waiver-api)。
+有关如何构建已签名的内部交易（`gasPrice: 0`，编码的 `transferWithAuthorization` 调用）然后再发布的信息，请参阅[Gas 豁免协议](/cn/reference/gas-waiver-api)。
 
-### 替代方案：交给 x402 facilitator
+### 替代方案：移交给x402协调器
 
-如果你已经运行了 x402 facilitator 集成（[Semantic Pay](https://docs.semanticpay.io) 或 [Heurist](https://docs.heurist.ai/x402-products/facilitator)），你可以将其复用为结算目标。向 `/settle` POST 一个 `paymentPayload`；facilitator 会提交链上调用。
+如果您已经运行了x402协调器集成（[Semantic Pay](https://docs.semanticpay.io)或[Heurist](https://docs.heurist.ai/x402-products/facilitator)），您可以将其复用为结算目标。向 `/settle` POST 一个 `paymentPayload`；协调器会提交链上调用。
 
-`paymentPayload` 的确切结构是 x402 中间件内部的，未在线路层面指定。最简单的路径是使用 facilitator 自己的 SDK 来构建载荷，或者坚持使用上面的直接提交路径。facilitator 不需要支持 MPP；它只看到 `transferWithAuthorization` 字段。
+`paymentPayload` 的确切形状是 x402 中间件内部的，未在协议层面指定。最简单的路径是使用协调器自己的 SDK 来构建负载，或者坚持使用上述的直接提交路径。协调器不需要理解 MPP；它只看到 `transferWithAuthorization` 字段。
 
 ## 4. 客户端：签署凭据
 
-`Method.toClient` 将 `createCredential()` 接入 `mppx`。客户端读取 Challenge，使用代理的 viem 账户签署 EIP-712 授权，并序列化凭据。
+`Method.toClient` 将 `createCredential()` 接入 `mppx`。客户端读取挑战，使用代理的 viem 账户签署 EIP-712 授权，并序列化凭据。
 
 ```typescript
 // src/client-method.ts
@@ -346,9 +346,9 @@ export function createUsdt0StableClient(privateKey: `0x${string}`) {
 "eyJjaGFsbGVuZ2UiOnsi..." // base64-serialized credential, ~600 bytes
 ```
 
-## 5. 将服务器组装起来
+## 5. 将服务器连接起来
 
-使用 `mppx` 的 Express 中间件来发出 Challenge、解析传入的 `Authorization` 标头、运行 `verify()`、调用你的结算函数，并发出 `Payment-Receipt` 标头。
+使用 `mppx` 的 Express 中间件来发布挑战、解析传入的 `Authorization` 头、运行 `verify()`、调用您的结算函数并发出 `Payment-Receipt` 头。
 
 ```typescript
 // src/server.ts
@@ -392,23 +392,23 @@ app.get(
 );
 
 app.listen(PORT, () => {
-  console.log(`MPP server listening on http://localhost:${PORT}`);
+  console.log(`MPP服务器正在监听 http://localhost:${PORT}`);
 });
 ```
 
 ```text
-MPP server listening on http://localhost:4022
+MPP服务器正在监听 http://localhost:4022
 ```
 
-## 6. 端到端运行整个流程
+## 6. 端到端运行流程
 
-启动服务器，确认 Challenge，运行客户端，并确认结算。
+启动服务器，确认挑战，运行客户端，并确认结算。
 
 :::warning
-下一步将在 Stable 主网上结算一笔真实的 USDT0 付款。请使用专用钱包和小额金额。
+下一步将在 Stable 主网上结算一笔真实的 USDT0 支付。请使用专用钱包并小额支付进行测试。
 :::
 
-### 确认 Challenge
+### 确认挑战
 
 ```bash
 curl -i http://localhost:4022/weather
@@ -422,7 +422,7 @@ Content-Type: application/json
 {"error":"Payment required"}
 ```
 
-### 发送一个付费请求
+### 发送付费请求
 
 ```typescript
 // src/client.ts
@@ -451,18 +451,18 @@ npx tsx src/client.ts
 Payment-Receipt: reference="0x8f3a1b2c...", status="success", timestamp="2026-06-01T12:34:56.000Z"
 ```
 
-### 在 Stablescan 上验证
+### 在Stablescan上验证
 
-打开 `https://stablescan.xyz/tx/0x8f3a1b2c...`，确认 `transferWithAuthorization` 已结算到你的 `PAY_TO` 地址。
+打开 `https://stablescan.xyz/tx/0x8f3a1b2c...` 并确认 `transferWithAuthorization` 已结算到您的 `PAY_TO` 地址。
 
-## 你刚刚完成的内容
+## 您做了什么
 
-- 以 USDT0 付款，以美元计价，买方一侧无需管理 gas 代币余额。
-- 在客户端到服务器的跳转上使用了 MPP 的 `WWW-Authenticate` / `Authorization` / `Payment-Receipt` 线路格式。
-- 在同一个 HTTP 请求生命周期内（约 700 毫秒的出块时间）使用 `transferWithAuthorization` 在 Stable 上完成了结算。
+- 以美元计价的 USDT0 支付，买方无需管理 gas token 余额。
+- 在客户端-服务器跳跃中使用了 MPP 的 `WWW-Authenticate` / `Authorization` / `Payment-Receipt` 线路格式。
+- 在同一 HTTP 请求生命周期内（~700 毫秒区块时间）通过 Stable 上的 `transferWithAuthorization` 进行结算。
 
-## 推荐的后续内容
+## 接下来推荐
 
-- [**MPP 概念**](/cn/explanation/mpp) — 了解 MPP 如何与 x402 关联，以及其他意图是什么样的。
-- [**MPP 会话**](/cn/explanation/mpp-sessions) — 当按请求结算成本过高时，使用链下凭证流式传输微支付。
-- [**Facilitators**](/cn/reference/agentic-facilitators) — 使用 Semantic Pay 或 Heurist 作为结算目标，而不是直接提交。
+- [**MPP概念**](/cn/explanation/mpp)：阅读MPP如何与x402相关以及其他意图是什么。
+- [**MPP会话**](/cn/explanation/mpp-sessions)：当按请求结算成本过高时，使用链下凭证流式传输小额支付。
+- [**协调器**](/cn/reference/agentic-facilitators)：使用 Semantic Pay 或 Heurist 作为结算目标，而不是直接提交。

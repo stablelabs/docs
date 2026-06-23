@@ -1,98 +1,98 @@
 ---
 source_path: reference/gas-waiver-api.mdx
-source_sha: 92a2fff1dc4c0731b7b98573203aa468600dd6d8
-title: "Gas 豁免协议"
-description: "Gas 豁免的协议级规范：交易格式、标记路由、治理控制以及 Waiver Server API。"
+source_sha: 73af0a88040bca94925046ff388ccc018e9be11b
+title: "燃气费减免协议"
+description: "燃气费减免的协议级规范：交易格式、标记路由、治理控制和减免服务器 API。"
 diataxis: "reference"
 ---
 
-# Gas 豁免协议
+# 燃气费减免协议
 
-本文档规定了 Gas 豁免机制：交易格式、标记路由、治理控制以及 Waiver Server API。
+本文档详细说明了燃气费减免机制：交易格式、标记路由、治理控制和减免服务器 API。
 
 :::note
-**概念：** 关于 Gas 豁免是什么以及它为何存在，请参阅 [Gas 豁免](/cn/explanation/gas-waiver)。关于针对托管 Waiver Server 的操作集成指南，请参阅 [启用免 Gas 交易](/cn/how-to/integrate-gas-waiver)。
+**概念：** 有关燃气费减免是什么以及它存在的原因，请参阅[燃气费减免](/cn/explanation/gas-waiver)。有关与托管的减免服务器集成的操作指南，请参阅[启用免燃气费交易](/cn/how-to/integrate-gas-waiver)。
 :::
 
 ## 摘要
 
-Gas 豁免通过允许一小组经治理批准的地址（“waivers”）提交 `gasPrice = 0` 的交易，从而在 Stable 上实现面向最终用户的免 Gas 交易。Stable 目前运营一项 waiver 服务（“Waiver Server”），你可以与其集成，以在无需实现特定于协议的封装逻辑的情况下提供免 Gas 的用户体验。
+燃气费减免通过允许一小部分经治理批准的地址（“减免方”）提交 `gasPrice = 0` 的交易，从而在 Stable 上实现无燃气费的最终用户交易。Stable 目前运营着一个减免服务（“减免服务器”），您可以与之集成以提供无燃气费的用户体验，而无需实现协议特定的包装器逻辑。
 
 ## 范围
 
 本规范涵盖：
 
-- gas 豁免交易的协议级规则
-- 封装交易机制和标记地址
-- 治理控制的授权与允许的目标
-- 用于提交已签名用户交易的 Waiver Server 接口
+- 免燃气费交易的协议级规则
+- 包装器交易机制和标记地址
+- 治理控制的授权和允许的目标
+- 用于提交签名用户交易的减免服务器接口
 
 ## 定义
 
-- **Waiver**：通过验证者治理在链上注册的以太坊地址，被授权提交 gas 豁免交易。
-- **InnerTx**：最终用户签名的、`gasPrice = 0` 的交易。
-- **WrapperTx**：由 waiver 签名的交易，将用户的 `InnerTx` 传输到链上并授权执行。
-- **Marker address（标记地址）**：用于识别 waiver 封装交易的哨兵地址：`0x000000000000000000000000000000000000f333`。
-- **AllowedTarget**：将 waiver 限制为特定合约地址和方法选择器的策略。
+- **减免方（Waiver）**：通过验证者治理在链上注册的以太坊地址，被授权提交免燃气费交易。
+- **InnerTx**：最终用户签名的交易，`gasPrice = 0`。
+- **WrapperTx**：由减免方签名的一笔交易，将用户的 `InnerTx` 传输到链上并授权执行。
+- **标记地址（Marker address）**：用于识别减免包装器交易的哨兵地址：`0x000000000000000000000000000000000000f333`。
+- **允许目标（AllowedTarget）**：限制减免方到特定合约地址和方法选择器的策略。
 
 ## 概述
 
-Gas 豁免使用封装交易模式：
+燃气费减免使用包装器交易模式：
 
-1. 用户签名一笔 `gasPrice = 0` 的 `InnerTx`。
-2. waiver 将 `InnerTx` 封装为 `WrapperTx` 并广播。
-3. 验证者检测标记交易，验证 waiver 授权和策略约束，然后执行内嵌的 `InnerTx`。
+1. 用户用 `gasPrice = 0` 签署一个 `InnerTx`。
+2. 减免方将 `InnerTx` 包装到 `WrapperTx` 中并广播。
+3. 验证者检测标记交易，验证减免方的授权和策略约束，然后执行嵌入的 `InnerTx`。
 
-Stable 运营一项 waiver 服务（Waiver Server），它在链上注册为经授权的 waiver。你与 Waiver Server API 集成以提交已签名的 `InnerTx` 载荷。
+Stable 运营着一个减免服务（减免服务器），该服务在链上注册为授权减免方。您可以通过减免服务器 API 提交已签名的 `InnerTx` 有效负载。
 
 ## 协议规范
 
 ### 标记地址路由
 
-当且仅当满足以下条件时，交易才被视为 waiver 封装交易：
+当且仅当发生以下情况时，交易才被视为减免包装器交易：
 
 - `to == 0x000000000000000000000000000000000000f333`。
 
-协议将交易的 `data` 字段解释为编码后的内部交易载荷，并使用下面的 waiver 验证规则对其进行处理。
+协议将交易的 `data` 字段解释为编码的内部交易有效负载，并使用下面的减免验证规则进行处理。
 
-### 授权与策略检查
+### 授权和策略检查
 
-对于每个候选封装交易，验证者必须强制执行：
+对于每个候选包装器交易，验证者必须强制执行：
 
-1. **Waiver 授权**
-   - `WrapperTx.from` 必须是通过治理在链上注册的 waiver 地址。
-2. **Gas 豁免**
+1. **减免方授权**
+   - `WrapperTx.from` 必须是通过治理在链上注册的减免地址。
+2. **燃气费减免**
    - `WrapperTx.gasPrice` 必须等于 `0`。
    - `InnerTx.gasPrice` 必须等于 `0`。
-3. **目标允许列表**
-   - `InnerTx.to` 以及从 `InnerTx.data` 中提取的方法选择器必须被 waiver 的 `AllowedTarget` 策略允许。
-4. **Value 限制**
+3. **目标白名单**
+   - `InnerTx.to` 以及从 `InnerTx.data` 中提取的方法选择器必须由减免方的 `AllowedTarget` 策略允许。
+4. **价值限制**
    - `WrapperTx.value` 必须等于 `0`。
 
-如果任何检查失败，验证者将拒绝封装交易，且不执行内部交易。
+如果任何检查失败，验证者将拒绝包装器交易，并且不执行内部交易。
 
 ### 执行语义
 
-如果所有检查均通过：
+如果所有检查都通过：
 
-1. 协议以用户身份执行 `InnerTx`，保留用户的 `from`、`nonce` 和调用语义。
-2. Gas 计费由 waiver 机制处理：用户不支付 gas，且根据该功能的定义，waiver 交易使用 `gasPrice = 0`。
-3. 封装交易必须提供足够的 `gasLimit` 以覆盖 `InnerTx` 的执行（包括解封装和验证的开销）。
+1. 协议以用户的身份执行 `InnerTx`，保留用户的 `from`、`nonce` 和调用语义。
+2. 燃气费核算由减免机制处理：用户不支付燃气费，并且根据该功能的定义，减免交易使用 `gasPrice = 0`。
+3. 包装器交易必须提供足够的 `gasLimit` 来覆盖 `InnerTx` 的执行（包括解包和验证的开销）。
 
 ## 交易格式
 
 ### WrapperTx
 
-封装交易由 waiver 签名并发送到标记地址。
+包装器交易由减免方签名并发送到标记地址。
 
 ```javascript
 WrapperTx {
   from:     waiver_address,
   to:       0x000000000000000000000000000000000000f333,
-  value:    0,                          // must be zero
-  data:     RLP(InnerTx),               // RLP-encoded inner transaction
-  gasPrice: 0,                          // must be zero
-  gasLimit: sufficient_for_inner,       // must cover inner execution + overhead
+  value:    0,                          // 必须为零
+  data:     RLP(InnerTx),               // RLP 编码的内部交易
+  gasPrice: 0,                          // 必须为零
+  gasLimit: sufficient_for_inner,       // 必须覆盖内部执行 + 开销
   nonce:    waiver_nonce
 }
 ```
@@ -107,7 +107,7 @@ InnerTx {
   to:       target_contract,
   value:    value,
   data:     call_data,
-  gasPrice: 0,                          // must be zero
+  gasPrice: 0,                          // 必须为零
   gasLimit: execution_gas,
   nonce:    user_nonce
 }
@@ -115,54 +115,54 @@ InnerTx {
 
 ## 治理控制的访问
 
-Waiver 授权由验证者治理在链上管理。
+减免授权由验证者治理在链上控制。
 
 治理控制提供：
 
-- 可审查的 waiver 地址授权
-- waiver 注册和更新的链上透明度
+- 对减免地址的可审查授权
+- 减免注册和更新的链上透明度
 - 撤销能力
-- 通过 `AllowedTarget` 进行的按 waiver 范围限定
+- 通过 `AllowedTarget` 进行的每个减免方的范围界定
 
 ## 安全模型
 
 ### 最终用户签名完整性
 
-用户签名 `InnerTx`。waiver 无法在不使签名失效的情况下修改内部交易载荷。你仍必须确保用户仅签名预期的交易载荷。
+用户签署 `InnerTx`。减免方无法修改内部交易有效负载而使其签名失效。您仍然必须确保用户仅签署预期的交易有效负载。
 
 ### 信任边界
 
-如果合作伙伴通过 Waiver Server 路由提交，则 Gas 豁免会引入一个服务依赖：
+如果合作伙伴通过减免服务器路由提交内容，燃气费减免会引入服务依赖：
 
-- 服务的可用性会影响提交免 Gas 交易的能力。
-- 授权仍保留在链上；只有已注册的 waiver 地址才能产生有效的封装提交。
+- 服务的可用性影响提交无燃气费交易的能力。
+- 授权保留在链上；只有注册的减免地址才能生成有效的包装器提交。
 
 ## 集成
 
-你通过以下方式集成：
+您可以通过以下方式集成：
 
-1. 从用户处收集已签名的 `InnerTx`（`gasPrice = 0`）。
-2. 将已签名的内部交易提交到 Waiver Server API。
-3. 处理流式返回的结果并向最终用户展示交易哈希。
+1. 从用户收集签名的 `InnerTx`（`gasPrice = 0`）。
+2. 将签名的内部交易提交给减免服务器 API。
+3. 处理流式结果并将交易哈希显示给最终用户。
 
-## Waiver server
+## 减免服务器
 
 ### 概述
 
-Waiver Server 将已签名的用户 `InnerTx` 载荷封装并广播为经 waiver 授权的封装交易。你无需构造封装交易或运营 waiver 地址。
+减免服务器将签名的用户 `InnerTx` 有效负载包装并广播为减免方授权的包装器交易。您无需构建包装器交易或操作减免地址。
 
-### 端点和基础 URL
+### 端点和基本 URL
 
-基础 URL：
+基本 URL：
 
-- 主网：TBD
+- 主网：待定
 - 测试网：`https://waiver.testnet.stable.xyz`
 
-### 认证
+### 身份验证
 
-除健康检查外，所有端点都需要 bearer token 认证：
+除健康检查外的所有端点都需要 bearer token 身份验证：
 
-```
+```text
 Authorization: Bearer <your-api-key>
 ```
 
@@ -172,13 +172,13 @@ Authorization: Bearer <your-api-key>
 
 健康检查端点。
 
-认证：无。
+身份验证：无。
 
 #### POST `/v1/submit`
 
-提交一批已签名的内部交易。
+提交一批签名的内部交易。
 
-认证：必需（`Bearer`）。
+身份验证：必需（`Bearer`）。
 
 请求体：
 
@@ -188,7 +188,7 @@ Authorization: Bearer <your-api-key>
 }
 ```
 
-响应以 NDJSON（换行分隔的 JSON）流式返回。每一行对应一个已提交交易的索引。
+响应以 NDJSON（换行符分隔的 JSON）流式传输。每行对应于一个已提交的交易索引。
 
 示例：
 
@@ -201,7 +201,7 @@ Authorization: Bearer <your-api-key>
 
 用于流式提交的 WebSocket 接口。
 
-认证：必需（`Bearer`）。
+身份验证：必需（`Bearer`）。
 
 ### 集成示例
 
@@ -238,7 +238,7 @@ async function submitGaslessTransaction(signedInnerTxHex, apiKey) {
 
 ### 创建用户 InnerTx
 
-你负责构造一个 `gasPrice = 0` 的 `InnerTx`，然后收集用户签名。
+您负责构建 `gasPrice = 0` 的 `InnerTx`，然后收集用户签名。
 
 示例：
 
@@ -250,29 +250,29 @@ async function createInnerTx(userWallet, contractAddress, callData, nonce) {
     to: contractAddress,
     data: callData,
     value: value,
-    gasPrice: 0,              // must be 0 for waiver
+    gasPrice: 0,              // 减免必须为 0
     gasLimit: 100000,
     nonce: nonce,
-    chainId: 2201,            // 988 for mainnet, 2201 for testnet
+    chainId: 2201,            // 主网为 988，测试网为 2201
   };
 
   return await userWallet.signTransaction(innerTx);
 }
 ```
 
-### 错误码
+### 错误代码
 
 - `PARSE_ERROR`：解析交易失败
 - `INVALID_REQUEST`：请求体格式错误
 - `BATCH_SIZE_EXCEEDED`：批量大小超过允许的最大值
 - `VALIDATION_FAILED`：交易验证失败
-- `BROADCAST_FAILED`：广播到链上失败
-- `RATE_LIMITED`：超出速率限制
+- `BROADCAST_FAILED`：广播到链失败
+- `RATE_LIMITED`：速率限制超出
 - `QUEUE_FULL`：服务器队列已满
 - `TIMEOUT`：请求超时
 
-## 推荐的后续内容
+## 下一步推荐
 
-- [**零 Gas 交易**](/cn/how-to/zero-gas-transactions) — 以演示为重点的操作演练，附带显示零 Gas 费用的收据。
-- [**启用免 Gas 交易**](/cn/how-to/integrate-gas-waiver) — 完整的托管 API 集成指南，包含批量提交和错误处理。
-- [**自托管 Gas 豁免**](/cn/how-to/self-hosted-gas-waiver) — 在不使用托管 API 的情况下运行你自己的 waiver 基础设施。
+- [**零燃气费交易**](/cn/how-to/zero-gas-transactions)：演示为主的演练，包含显示零燃气费的收据。
+- [**启用免燃气费交易**](/cn/how-to/integrate-gas-waiver)：完整的托管 API 集成指南，包含批量提交和错误处理。
+- [**自托管燃气费减免**](/cn/how-to/self-hosted-gas-waiver)：无需托管 API，运行您自己的燃气费减免基础设施。

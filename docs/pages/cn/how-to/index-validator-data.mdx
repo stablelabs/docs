@@ -1,46 +1,46 @@
 ---
 source_path: how-to/index-validator-data.mdx
-source_sha: c61d0583cb63d1cacdebaa8d836bd6c30e3a66eb
-title: "索引验证者数据"
-description: "直接从 Stable 预编译合约和事件日志读取验证者身份、加入日期、质押、佣金、在线率和投票历史，无需运行 stabled。"
+source_sha: 87a9f18c6cafd38834304736db22ff3c0297f2ce
+title: "索引验证器数据"
+description: "直接从 Stable 预编译和事件日志中读取验证器身份、加入日期、质押、佣金、正常运行时间和投票历史，无需运行 stabled。"
 diataxis: "how-to"
 ---
 
-# 索引验证者数据
+# 索引验证器数据
 
-验证者数据存储在链上，可通过标准 EVM JSON-RPC 读取。你通过 staking、slashing 和 governance 预编译合约查询当前状态，并从它们的事件日志重建历史。这意味着索引器或分析平台可以通过 `eth_call` 和 `eth_getLogs` 读取所需的一切，无需访问节点的 `stabled` CLI 或 Cosmos REST。
+验证器数据存储在链上，可通过标准 EVM JSON-RPC 读取。您可以通过质押、惩罚和治理预编译查询当前状态，并从其事件日志中重建历史。这意味着索引器或分析平台可以通过 `eth_call` 和 `eth_getLogs` 读取所需的一切，而无需访问节点的 `stabled` CLI 或 Cosmos REST。
 
 :::note
-**概念：** 关于 staking 模块跟踪的内容以及委托的工作原理，请参阅 [Staking 模块](/cn/explanation/staking-module)。关于每个方法的输入和输出，请参阅 [Staking 预编译参考](/cn/reference/staking-module-api)。
+**概念：** 有关质押模块跟踪的内容以及委托如何运作，请参阅[质押模块](/cn/explanation/staking-module)。有关每个方法的输入和输出，请参阅[质押预编译参考](/cn/reference/staking-module-api)。
 :::
 
 ## 每个数据点的来源
 
 | **数据点** | **来源** | **如何读取** |
 | :--- | :--- | :--- |
-| 验证者名称、身份、网站 | Staking 预编译 `validators()` | `description.moniker` 及相关字段 |
-| 质押（已绑定代币） | Staking 预编译 `validators()` | `tokens` 字段 |
-| 佣金 | Staking 预编译 `validators()` | `commission` 字段 |
-| 质押随时间的变化 | Staking 预编译事件 | `Delegate`、`Unbond`、`Redelegate` 日志 |
-| 加入日期 | Staking 预编译事件 | `CreateValidator` 日志 → 区块时间戳 |
-| 在线率 | Slashing 预编译 `getSigningInfos()` | `(signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow` |
-| 投票历史（汇总） | Gov 预编译 `getTallyResult()` | 每个提案的计票 |
-| 投票历史（按验证者） | Gov 预编译事件 | `Vote`、`VoteWeighted` 日志，voter = operator 地址 |
+| 验证器名称、身份、网站 | 质押预编译 `validators()` | `description.moniker` 和相关字段 |
+| 质押（绑定代币） | 质押预编译 `validators()` | `tokens` 字段 |
+| 佣金 | 质押预编译 `validators()` | `commission` 字段 |
+| 质押随时间变化 | 质押预编译事件 | `Delegate`, `Unbond`, `Redelegate` 日志 |
+| 加入日期 | 质押预编译事件 | `CreateValidator` 日志 → 块时间戳 |
+| 正常运行时间 | 惩罚预编译 `getSigningInfos()` | `(signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow` |
+| 投票历史（聚合） | 治理预编译 `getTallyResult()` | 每一项提案的计票结果 |
+| 投票历史（按验证器） | 治理预编译事件 | `Vote`, `VoteWeighted` 日志，投票者 = 运营者地址 |
 
 ## 预编译地址
 
 | **模块** | **地址** | **用途** |
 | :--- | :--- | :--- |
-| Staking | `0x0000000000000000000000000000000000000800` | 验证者集合、质押、佣金、委托事件 |
-| Distribution | `0x0000000000000000000000000000000000000801` | 奖励和佣金提取 |
-| Gov | `0x0000000000000000000000000000000000000805` | 提案、计票和投票日志 |
-| Slashing | `0x0000000000000000000000000000000000000806` | 签名信息和在线率 |
+| 质押 | `0x0000000000000000000000000000000000000800` | 验证器集合、质押、佣金、委托事件 |
+| 分发 | `0x0000000000000000000000000000000000000801` | 奖励和佣金提款 |
+| 治理 | `0x0000000000000000000000000000000000000805` | 提案、计票和投票日志 |
+| 惩罚 | `0x0000000000000000000000000000000000000806` | 签名信息和正常运行时间 |
 
-在 `https://rpc.stable.xyz` 连接到主网（Chain ID `988`）。关于端点和限制，请参阅 [主网信息](/cn/reference/mainnet-information)。
+连接到主网（链 ID `988`），地址为 `https://rpc.stable.xyz`。有关端点和限制，请参阅[主网信息](/cn/reference/mainnet-information)。
 
-## 验证者名称、质押和佣金
+## 验证器名称、质押和佣金
 
-在 staking 预编译上调用 `validators()` 以读取当前的验证者集合。传入绑定状态进行过滤（例如 `BOND_STATUS_BONDED`）。每个条目都暴露验证者的 `description`（包括 `moniker`）、`tokens`（已绑定质押）和 `commission`。
+调用质押预编译上的 `validators()` 来读取当前验证器集。传入绑定状态进行过滤（例如 `BOND_STATUS_BONDED`）。每个条目都显示验证器的 `description`（包括 `moniker`）、`tokens`（绑定的质押）和 `commission`。
 
 ```typescript
 // validators.ts
@@ -70,11 +70,11 @@ StableNode-01 4500000000000000000000000 50000000000000000
 StableNode-02 3900000000000000000000000 100000000000000000
 ```
 
-`tokens` 和 `commission` 值缩放为 18 位小数。将 `commission` 除以 1e18 即可得到分数形式的费率（例如 `0.05` 表示 5%）。关于完整的 `Validator` 结构体和 `BOND_STATUS_*` 值，请参阅 [Staking 预编译参考](/cn/reference/staking-module-api#validators)。
+`tokens` 和 `commission` 的值按 18 位小数进行缩放。将 `commission` 除以 1e18 可获得费率分数（例如 `0.05` 为 5%）。有关完整的 `Validator` 结构和 `BOND_STATUS_*` 值，请参阅[质押预编译参考](/cn/reference/staking-module-api#validators)。
 
-## 质押随时间的变化
+## 质押随时间变化
 
-`validators()` 返回一个快照。要跟踪质押的变动，请索引 staking 预编译的委托事件。`Delegate`、`Unbond` 和 `Redelegate` 携带索引的 `validatorAddr` 和 `amount`，因此你可以将每一次质押变化归因到某个验证者和区块。
+`validators()` 返回一个快照。要跟踪质押的变化，请索引质押预编译的委托事件。`Delegate`、`Unbond` 和 `Redelegate` 带有索引的 `validatorAddr` 和 `amount`，因此您可以将每个质押变化归因于验证器和区块。
 
 ```typescript
 // stakeChanges.ts
@@ -96,11 +96,11 @@ console.log(`${logs.length} delegations indexed`);
 1842 delegations indexed
 ```
 
-`Unbond` 和 `Redelegate` 遵循相同的结构，并额外携带 `completionTime`。关于确切的签名，请参阅 staking 参考的 [事件部分](/cn/reference/staking-module-api#events)。
+`Unbond` 和 `Redelegate` 遵循相同的结构，并且额外带有 `completionTime`。有关确切的签名，请参阅质押参考的[事件部分](/cn/reference/staking-module-api#events)。
 
 ## 加入日期
 
-验证者的加入日期是其 `CreateValidator` 事件的区块时间戳。该事件按验证者地址索引，因此你可以过滤单个验证者或扫描整个集合，然后用 `eth_getBlockByNumber` 将每个日志的 `blockNumber` 解析为时间戳。
+验证器的加入日期是其 `CreateValidator` 事件的区块时间戳。该事件按验证器地址索引，因此您可以筛选单个验证器或扫描完整集合，然后使用 `eth_getBlockByNumber` 将每个日志的 `blockNumber` 解析为时间戳。
 
 ```typescript
 // joinDate.ts
@@ -125,26 +125,26 @@ for (const log of logs) {
 ```
 
 :::warning
-创世验证者没有 `CreateValidator` 事件。它们是在创世区块中创建的，而非通过交易，因此不存在日志。将它们的加入日期视为链的创世时间：**2025-10-29**。为所有在创世后加入的验证者索引 `CreateValidator`，并从创世验证者列表回填创世集合。
+创世验证器没有 `CreateValidator` 事件。它们是在创世区块中创建的，而不是通过交易创建的，因此不存在日志。将它们的加入日期视为链的创世日期：**2025-10-29**。索引在创世之后加入的每个人的 `CreateValidator`，并从创世验证器列表中回填创世集。
 :::
 
-## 在线率
+## 正常运行时间
 
-使用 `getSigningInfos()` 从 slashing 预编译（`0x...806`）读取签名信息。每条记录报告 `signedBlocksWindow`（滑动窗口的大小）和 `missedBlocksCounter`（窗口内错过的区块）。按如下方式计算在线率：
+使用 `getSigningInfos()` 从惩罚预编译 (`0x...806`) 读取签名信息。每条记录报告 `signedBlocksWindow`（滑动窗口的大小）和 `missedBlocksCounter`（窗口内错过的区块）。计算正常运行时间为：
 
 ```text
-uptime = (signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow
+正常运行时间 = (signedBlocksWindow − missedBlocksCounter) / signedBlocksWindow
 ```
 
-`signedBlocksWindow` 为 `10000`、`missedBlocksCounter` 为 `25` 的验证者在窗口内的在线率为 99.75%。这是一个滚动数值，而非终身在线率。要跟踪在线率历史，请按固定间隔对计数器进行快照并存储每次读数。
+一个 `signedBlocksWindow` 为 `10000` 且 `missedBlocksCounter` 为 `25` 的验证器在窗口内的正常运行时间为 99.75%。这是一个滚动数字，而不是生命周期正常运行时间。要跟踪正常运行时间历史记录，请按固定间隔对计数器进行快照并存储每次读取。
 
 :::note
-slashing 预编译遵循 Cosmos EVM `x/slashing` 接口。其地址列在 [系统模块预编译表](/cn/how-to/use-system-modules#whats-exposed) 中。请从链的预编译接口生成确切的方法 ABI。
+惩罚预编译遵循 Cosmos EVM `x/slashing` 接口。其地址列在[系统模块预编译表](/cn/how-to/use-system-modules#whats-exposed)中。从链的预编译接口生成确切的方法 ABI。
 :::
 
 ## 投票历史
 
-治理数据有两层。对于提案的汇总结果，请在 gov 预编译（`0x...805`）上调用 `getTallyResult()`。对于谁投了什么票，请索引 `Vote` 和 `VoteWeighted` 事件日志。这些日志中的投票者地址是验证者的 operator 地址，因此你可以直接将投票关联到验证者。
+治理数据分为两层。对于提案的聚合结果，在治理预编译 (`0x...805`) 上调用 `getTallyResult()`。对于谁投了什么票，索引 `Vote` 和 `VoteWeighted` 事件日志。这些日志中的投票者地址是验证器的运营者地址，因此您可以直接将投票与验证器关联起来。
 
 ```typescript
 // votes.ts
@@ -168,15 +168,15 @@ console.log(`${logs.length} votes indexed across all proposals`);
 38 votes indexed across all proposals
 ```
 
-迄今为止的每个提案（提案 #1 到 #7）都已确认有实时投票日志。当你只需要每个提案的最终计数时，使用 `getTallyResult()`；当你需要每个验证者的记录时，使用事件日志。
+实时投票日志确认了迄今为止的所有提案（提案 #1 到 #7）。当您只需要每项提案的最终计票结果时，请使用 `getTallyResult()`，当您需要每个验证器的记录时，请使用事件日志。
 
 :::note
-gov 预编译遵循 Cosmos EVM `x/gov` 接口。其地址列在 [系统模块预编译表](/cn/how-to/use-system-modules#whats-exposed) 中。请从链的预编译接口生成确切的方法 ABI 和 `VoteOption` 枚举。
+治理预编译遵循 Cosmos EVM `x/gov` 接口。其地址列在[系统模块预编译表](/cn/how-to/use-system-modules#whats-exposed)中。从链的预编译接口生成确切的方法 ABI 和 `VoteOption` 枚举。
 :::
 
-## 推荐的后续步骤
+## 接下来推荐
 
-- [**Staking 预编译参考**](/cn/reference/staking-module-api) — 查找完整的 validators()、委托方法和事件签名。
-- [**创建验证者**](/cn/how-to/run-validator) — 将已同步的节点注册为验证者，使其出现在上述数据中。
-- [**索引器和分析**](/cn/reference/indexers) — 浏览已经提供标准化 Stable 数据的索引提供商。
-- [**主网信息**](/cn/reference/mainnet-information) — 在开始索引之前获取 Chain ID、RPC 端点和速率限制。
+- [**质押预编译参考**](/cn/reference/staking-module-api)：查找完整的 validators()、委托方法和事件签名。
+- [**创建验证器**](/cn/how-to/run-validator)：将同步节点注册为验证器，以便它出现在上述数据中。
+- [**索引器和分析**](/cn/reference/indexers)：浏览已经提供标准化 Stable 数据的索引提供商。
+- [**主网信息**](/cn/reference/mainnet-information)：在开始索引之前获取链 ID、RPC 端点和费率限制。

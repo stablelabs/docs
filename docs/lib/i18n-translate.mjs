@@ -9,17 +9,21 @@
  * Used by both the auto-draft CI workflow (.github/workflows/i18n-translate.yml)
  * and one-off local backfills.
  *
- *   ANTHROPIC_API_KEY=... node docs/lib/i18n-translate.mjs <locale> [--stale] [--limit N] [page ...]
+ *   LLM_API_KEY=... node docs/lib/i18n-translate.mjs <locale> [--stale] [--force] [--limit N] [page ...]
  *
  *   <locale>     cn | ko (required)
- *   --stale      also re-translate pages whose source_sha drifted (default: missing only)
+ *   --stale      in a full sweep, also re-translate pages whose source_sha drifted (default: missing only)
+ *   --force      re-translate every candidate even if its translation is in sync
  *   --limit N    translate at most N pages this run (default: all)
- *   page ...     explicit en-relative paths to translate (overrides discovery)
+ *   page ...     explicit en-relative paths to consider; in-sync ones are still
+ *                skipped (drift is always checked) unless --force is given
  *
- * Model: claude-opus-4-8, adaptive thinking, streamed (pages can be long).
+ * Provider/model are env-configurable via docs/lib/llm.mjs (LLM_BASE_URL,
+ * LLM_API_KEY, TRANSLATE_MODEL, REVIEW_MODEL). When REVIEW_MODEL is set, a
+ * second model reviews and corrects each draft before it's written.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { complete, TRANSLATE_MODEL, REVIEW_MODEL, MAX_OUTPUT_TOKENS } from './llm.mjs'
 import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, relative, dirname } from 'node:path'
@@ -31,10 +35,11 @@ const LANGUAGE = { cn: 'Simplified Chinese (zh-CN)', ko: 'Korean (ko-KR)' }
 
 const [locale, ...rest] = process.argv.slice(2)
 if (!LANGUAGE[locale]) {
-  console.error('Usage: node docs/lib/i18n-translate.mjs <cn|ko> [--stale] [--limit N] [page ...]')
+  console.error('Usage: LLM_API_KEY=... node docs/lib/i18n-translate.mjs <cn|ko> [--stale] [--force] [--limit N] [page ...]')
   process.exit(2)
 }
 const includeStale = rest.includes('--stale')
+const force = rest.includes('--force')
 const relinkOnly = rest.includes('--relink')
 const limitIdx = rest.indexOf('--limit')
 const limit = limitIdx !== -1 ? Number(rest[limitIdx + 1]) : Infinity
@@ -63,23 +68,43 @@ function frontmatterSha(file) {
 const blobSha = (file) =>
   execFileSync('git', ['hash-object', file], { encoding: 'utf8' }).trim()
 
-// en source links are absolute `/en/...`. Rewrite the markdown-link token
-// `](/en/` to the target locale so a translated page navigates within its own
-// language tree. External URLs that merely contain `/en/` start with `](http`
-// and are intentionally left alone. Idempotent.
-const localizeLinks = (body, locale) => body.replaceAll('](/en/', `](/${locale}/`)
+// Normalize internal markdown-link hrefs to the target locale tree. en source
+// links are `](/en/...)`, but translation models often "localize" the path
+// themselves — emitting the language tag (`/zh-CN/`, `/ko-KR/`), the wrong
+// locale slug, or a duplicated section. This rewrites the locale prefix of any
+// `](/<loc>/...)` link to `](/<locale>/...)` and collapses a duplicated section
+// segment. Only the locale prefix is touched, so asset paths like `/images/...`
+// and external `](http...)` links are left alone. Idempotent.
+const LOCALE_TOKENS = 'en|cn|ko|zh|zh-cn|ko-kr'
+const SECTIONS = 'tutorial|how-to|reference|explanation|resources'
+const localizeLinks = (body, locale) =>
+  body
+    .replace(new RegExp(`\\]\\(/(?:${LOCALE_TOKENS})/`, 'gi'), `](/${locale}/`)
+    .replace(new RegExp(`\\]\\(/${locale}/(${SECTIONS})/\\1/`, 'g'), `](/${locale}/$1/`)
 
-// Discover which en pages this locale needs.
+// Discover which en pages this locale actually needs translating.
+//
+// Candidates are the explicit paths if given, else every en page. A candidate
+// is only translated when its target is missing or its source drifted — so a
+// page whose translation already matches the current en `source_sha` is skipped
+// (no wasted API call). `--force` re-translates every candidate regardless.
+//
+// Drift is always checked for explicit paths: the caller named them because
+// they changed, so an in-sync one is genuinely nothing to do. For a full sweep
+// drift is gated behind `--stale` (otherwise the default is missing-only).
 function discover() {
-  if (explicit.length) return explicit
-  const enFiles = walk(join(PAGES, SOURCE))
-    .map((p) => relative(join(PAGES, SOURCE), p))
-    .sort()
+  const candidates = explicit.length
+    ? explicit
+    : walk(join(PAGES, SOURCE))
+        .map((p) => relative(join(PAGES, SOURCE), p))
+        .sort()
+  if (force) return candidates
+  const checkDrift = explicit.length > 0 || includeStale
   const needed = []
-  for (const rel of enFiles) {
+  for (const rel of candidates) {
     const target = join(PAGES, locale, rel)
     if (!existsSync(target)) needed.push(rel)
-    else if (includeStale && frontmatterSha(target) !== blobSha(join(PAGES, SOURCE, rel)))
+    else if (checkDrift && frontmatterSha(target) !== blobSha(join(PAGES, SOURCE, rel)))
       needed.push(rel)
   }
   return needed
@@ -91,29 +116,62 @@ Rules:
 - Translate prose, headings, the frontmatter "title" and "description" values, alt text, and table cell text.
 - DO NOT translate: code blocks, inline code, command output, URLs, file paths, frontmatter keys, MDX/JSX component names and props, HTML tags, or identifiers like USDT0, EVM, RPC, JSON-RPC, chain IDs, hex values, env var names.
 - Preserve the exact MDX structure: frontmatter fences, import statements, JSX components, links (translate link text, keep the href), and whitespace/indentation.
+- Internal links use \`/en/...\` paths. Keep the href EXACTLY as \`/en/...\` — do not change the \`/en/\` prefix to a language tag or locale, and do not alter the path.
 - Keep the frontmatter "diataxis" value unchanged if present.
 - Output ONLY the translated MDX file content, with no commentary, no markdown code fence around the whole file.`
 
-const client = new Anthropic()
+const REVIEW_SYSTEM = `You are a senior reviewer for ${LANGUAGE[locale]} translations of the Stable blockchain developer docs. You are given the English source MDX and a draft translation. Return a corrected version of the translation.
+
+Fix:
+- Any untranslated prose, mistranslations, or awkward phrasing.
+- Any structural drift from the source: the draft MUST keep the same frontmatter keys, the same number and content of fenced code blocks, the same inline code, URLs, file paths, JSX/MDX components and props, HTML tags, and identifiers (USDT0, EVM, RPC, etc.) — all unchanged from the English.
+- Keep the frontmatter "diataxis" value unchanged. Translate frontmatter "title"/"description" values only.
+
+Output ONLY the corrected MDX file content — no commentary, no markdown code fence around the whole file. If the draft is already correct, output it unchanged.`
+
+// Count top-level fenced code blocks (``` or ~~~) in MDX prose. Used as a cheap
+// structural check: a faithful translation keeps every code block intact.
+const fenceCount = (text) => (text.match(/^\s*(`{3,}|~{3,})/gm) || []).length
+
+// Reject a generation that lost structure rather than writing corrupt output.
+// Throwing here skips the page and surfaces it in the run (per-page try/catch).
+function validateStructure(rel, source, out) {
+  if (!out) throw new Error('empty translation')
+  if (/^\s*```/.test(out)) throw new Error('translation is wrapped in a markdown code fence')
+  if (source.startsWith('---\n') && !out.startsWith('---\n'))
+    throw new Error('translation dropped the frontmatter block')
+  const want = fenceCount(source)
+  const got = fenceCount(out)
+  if (got !== want) throw new Error(`code-fence count drifted (source ${want}, translation ${got})`)
+}
 
 async function translateOne(rel) {
   const srcPath = join(PAGES, SOURCE, rel)
   const sha = blobSha(srcPath)
   const source = readFileSync(srcPath, 'utf8')
 
-  const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
-    max_tokens: 64000,
-    thinking: { type: 'adaptive' },
-    system: SYSTEM,
-    messages: [{ role: 'user', content: `Translate this MDX file:\n\n${source}` }],
-  })
-  const final = await stream.finalMessage()
-  let body = final.content
-    .filter((b) => b.type === 'text')
-    .map((b) => b.text)
-    .join('')
-    .trim()
+  let body = (
+    await complete({
+      model: TRANSLATE_MODEL,
+      system: SYSTEM,
+      user: `Translate this MDX file:\n\n${source}`,
+      maxTokens: MAX_OUTPUT_TOKENS,
+    })
+  ).trim()
+
+  // Optional second pass: a (usually stronger) model corrects the draft.
+  if (REVIEW_MODEL) {
+    body = (
+      await complete({
+        model: REVIEW_MODEL,
+        system: REVIEW_SYSTEM,
+        user: `English source MDX:\n\n${source}\n\n---\n\nDraft translation to review and correct:\n\n${body}`,
+        maxTokens: MAX_OUTPUT_TOKENS,
+      })
+    ).trim()
+  }
+
+  validateStructure(rel, source, body)
 
   // Inject source tracking into the translated frontmatter so verify-i18n can
   // detect drift later. Assumes the model preserved the leading `---` fence.

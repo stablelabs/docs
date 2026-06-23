@@ -1,14 +1,14 @@
 ---
 source_path: reference/sdk.mdx
-source_sha: 77de6350f7056346c43e1b5ca5da572df7f4b7ae
+source_sha: 64d437cfd1ea8f5c39da592e6dfad6bb6ab8b3bf
 title: "SDK 参考"
-description: "Complete reference for @stablechain/sdk: createStable, StableClient methods, enums, chain configs, and error classes."
+description: "@stablechain/sdk 的完整参考：createStable、StableClient 方法、枚举、链配置和错误类。"
 diataxis: "reference"
 ---
 
 # SDK 参考
 
-`@stablechain/sdk` 的完整功能。如需操作指南，请参阅 [SDK 快速开始](/cn/tutorial/sdk-quickstart)。
+`@stablechain/sdk` 的完整概览。有关详细介绍，请参阅 [SDK 快速入门](/cn/tutorial/sdk-quickstart)。
 
 ## 安装
 
@@ -20,11 +20,11 @@ npm install @stablechain/sdk viem
 added 2 packages, audited 3 packages in 2s
 ```
 
-`viem >= 2.0.0` 是一个 peer dependency。
+`viem >= 2.0.0` 是对等依赖。
 
 ## `createStable(config)`
 
-构造一个 `StableClient`。返回一个对象，其方法列在 [`StableClient`](#stableclient) 下。
+构造一个 `StableClient`。返回一个包含 [`StableClient`](#stableclient) 中列出的方法的对象。
 
 ```ts
 import { createStable, Network } from "@stablechain/sdk";
@@ -42,9 +42,9 @@ StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
 | :--- | :--- | :--- | :--- |
 | `network` | `Network` | `Network.Mainnet` | 目标网络。 |
 | `rpc` | `string` | `network` 的公共 RPC | RPC 覆盖。 |
-| `account` | `viem.Account` |  | 服务端签名者（例如 `privateKeyToAccount`）。 |
-| `transport` | `viem.Transport` |  | 浏览器钱包传输（例如 `custom(window.ethereum)`）。 |
-| `walletClient` | `viem.WalletClient` |  | 预构建的钱包客户端。优先级高于 `account` 和 `transport`。 |
+| `account` | `viem.Account` | | 服务器端签名器（例如 `privateKeyToAccount`）。 |
+| `transport` | `viem.Transport` | | 浏览器钱包传输（例如 `custom(window.ethereum)`）。 |
+| `walletClient` | `viem.WalletClient` | | 预构建的钱包客户端。优先于 `account` 和 `transport`。 |
 
 请提供 `account`、`transport` 或 `walletClient` 中的一个。
 
@@ -52,7 +52,7 @@ StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
 
 ### `transfer(params)`
 
-在 Stable 上发送原生 USDT0 或任意 ERC-20。会将钱包切换到 Stable 链，在缺失时从链上获取代币精度，并等待回执。
+在 Stable 上发送原生 USDT0 或任何 ERC-20。切换钱包到 Stable 链，在缺失时链上获取代币小数位数，并等待回执。
 
 ```ts
 const { txHash } = await stable.transfer({
@@ -70,15 +70,15 @@ const { txHash } = await stable.transfer({
 | :--- | :--- | :--- |
 | `from` | `string` | 发送方地址。 |
 | `to` | `string` | 接收方地址。 |
-| `amount` | `number` | 人类可读的金额。 |
-| `token` | `string?` | ERC-20 合约地址。原生 USDT0 时省略。 |
-| `tokenDecimals` | `number?` | 精度。省略时从链上获取。 |
+| `amount` | `number` | 人类可读金额。 |
+| `token` | `string?` | ERC-20 合约地址。原生 USDT0 则省略。 |
+| `tokenDecimals` | `number?` | 小数位数。省略时从链上获取。 |
 
-返回 `OperationResult`（`{ txHash, toAmount? }`）。
+返回 `OperationResult` (`{ txHash, toAmount? }`)。
 
 ### `quoteBridge(params)`
 
-预览一次跨链桥接。只读 —— 无需签名，无需 gas。
+桥接预览。只读。无签名，无 gas。
 
 ```ts
 const quote = await stable.quoteBridge({
@@ -98,7 +98,7 @@ const quote = await stable.quoteBridge({
 
 ### `bridge(params)`
 
-跨链桥接代币。SDK 会自动选择路由：USDT0 → USDT0 使用 LayerZero，其他情况使用 LI.FI。传入预先获取的 `quote` 可跳过内部的报价调用。
+跨链桥接代币。SDK 选择路由：USDT0 → USDT0 使用 LayerZero，其他使用 LI.FI。传入预取的 `quote` 可跳过内部引用调用。
 
 ```ts
 const { txHash } = await stable.bridge({ ...bridgeParams, quote });
@@ -114,14 +114,14 @@ const { txHash } = await stable.bridge({ ...bridgeParams, quote });
 | `toChain` | `Chain` | 目标链。 |
 | `fromToken` | `string` | 源代币合约地址。 |
 | `toToken` | `string` | 目标代币合约地址。 |
-| `amount` | `number` | 人类可读的金额。 |
-| `fromDecimals` | `number?` | 源代币精度。默认为 `6`。 |
+| `amount` | `number` | 人类可读金额。 |
+| `fromDecimals` | `number?` | 源代币小数位数。默认为 `6`。 |
 | `recipient` | `string?` | 目标地址。默认为签名者。 |
-| `quote` | `BridgeQuote?` | 预先获取的报价。跳过内部报价调用。 |
+| `quote` | `BridgeQuote?` | 预取的报价。跳过内部报价调用。 |
 
 ### `quoteSwap(params)`
 
-在 Stable 上获取 LI.FI 兑换报价。返回一个预构建的交易请求和授权地址。
+获取 Stable 上的 LI.FI 交换报价。返回预构建的交易请求和批准地址。
 
 ```ts
 const quote = await stable.quoteSwap({
@@ -138,7 +138,7 @@ const quote = await stable.quoteSwap({
 
 ### `swap(params)`
 
-通过 LI.FI 在 Stable 上兑换代币。自动处理 ERC-20 授权，并在需要时切换钱包所在的链。
+通过 LI.FI 在 Stable 上交换代币。自动处理 ERC-20 批准，并在需要时切换钱包的链。
 
 ```ts
 const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
@@ -150,27 +150,27 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 | **参数** | **类型** | **默认值** | **描述** |
 | :--- | :--- | :--- | :--- |
-| `fromToken` | `string` |  | 源代币地址。 |
-| `toToken` | `string` |  | 目标代币地址。 |
-| `amount` | `number` |  | 人类可读的金额。 |
-| `fromDecimals` | `number?` | `6` | 源代币精度。 |
-| `toAddress` | `string?` | 签名者 | 接收方地址。 |
-| `quote` | `SwapQuote?` |  | 预先获取的报价。跳过 LI.FI 调用。 |
+| `fromToken` | `string` | | 源代币地址。 |
+| `toToken` | `string` | | 目标代币地址。 |
+| `amount` | `number` | | 人类可读金额。 |
+| `fromDecimals` | `number?` | `6` | 源代币小数位数。 |
+| `toAddress` | `string?` | signer | 接收方地址。 |
+| `quote` | `SwapQuote?` | | 预取的报价。跳过 LI.FI 调用。 |
 
 ## 枚举
 
 ### `Network`
 
-| **值** | **Chain ID** |
+| **值** | **链 ID** |
 | :--- | :--- |
 | `Network.Mainnet` | 988 |
 | `Network.Testnet` | 2201 |
 
 ### `Chain`
 
-由 `quoteBridge` 和 `bridge` 使用。每一项都有对应的 `CHAIN_CONFIGS` 条目。
+由 `quoteBridge` 和 `bridge` 使用。每个条目都有相应的 `CHAIN_CONFIGS` 条目。
 
-| **枚举** | **网络** | **Chain ID** |
+| **枚举** | **网络** | **链 ID** |
 | :--- | :--- | :--- |
 | `Chain.Sepolia` | Ethereum Sepolia | 11155111 |
 | `Chain.StableTestnet` | Stable Testnet | 2201 |
@@ -186,7 +186,7 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 ## `CHAIN_CONFIGS`
 
-以 `Chain` 枚举为键的 `Partial<Record<Chain, ChainConfig>>`。每一项都暴露 `id`、`rpc`、`usdt` 和 `decimals`。当你需要某条受支持链上的规范 USDT 地址而又不想硬编码时，可以使用它。
+由 `Chain` 枚举键入的 `Partial<Record<Chain, ChainConfig>>`。每个条目都公开 `id`、`rpc`、`usdt` 和 `decimals`。当您需要支持链上的规范 USDT 地址而无需硬编码时使用。
 
 ```ts
 import { CHAIN_CONFIGS, Chain } from "@stablechain/sdk";
@@ -200,13 +200,13 @@ console.log(CHAIN_CONFIGS[Chain.Stable]);
 
 ## 错误
 
-所有 SDK 错误都继承自 `StableError`，而后者继承自 viem 的 `BaseError`。错误携带结构化的元数据，因此你可以基于 `error.name` 或 `instanceof` 进行分支处理。
+所有 SDK 错误都扩展了 `StableError`，后者又扩展了 viem 的 `BaseError`。错误携带结构化元数据，因此您可以根据 `error.name` 或 `instanceof` 进行分支。
 
-| **类** | **抛出时机** | **有用的字段** |
+| **类** | **抛出条件** | **有用字段** |
 | :--- | :--- | :--- |
-| `StableValidationError` | 参数验证失败（地址错误、金额非有限值、不支持的链）。 | `field`、`value` |
-| `StableQuoteError` | 向 LI.FI 发起的报价请求失败。 | `provider`、`httpStatus`、`providerCode`、`body` |
-| `StableTransactionError` | 链上步骤失败：切换链、授权、发送或回滚。 | `phase`、`txHash`、`chainId`、`revertReason` |
+| `StableValidationError` | 参数验证失败（地址错误、非有限金额、不支持的链）。 | `field`, `value` |
+| `StableQuoteError` | 向 LI.FI 发出的报价请求失败。 | `provider`, `httpStatus`, `providerCode`, `body` |
+| `StableTransactionError` | 链上步骤失败：链切换、批准、发送或回滚。 | `phase`, `txHash`, `chainId`, `revertReason` |
 | `StableNetworkError` | 底层 HTTP/RPC 调用失败。 | `url` |
 
 ```ts
@@ -216,7 +216,7 @@ try {
   await stable.transfer({ from, to, amount: 1 });
 } catch (err) {
   if (err instanceof StableTransactionError && err.phase === "switch_chain") {
-    // user rejected the chain switch
+    // 用户拒绝了链切换
   }
   throw err;
 }
@@ -228,8 +228,8 @@ StableTransactionError: transfer: wallet rejected or failed to switch to chain 9
   Chain ID: 988
 ```
 
-## 推荐的后续步骤
+## 建议下一步
 
-- [**SDK 快速开始**](/cn/tutorial/sdk-quickstart) —— 安装 SDK 并在测试网上运行你的第一笔转账。
-- [**与 viem 一起使用**](/cn/how-to/sdk-with-viem) —— 在私钥、浏览器钱包和预构建签名者之间切换。
-- [**与 wagmi 一起使用**](/cn/how-to/sdk-with-wagmi) —— 通过 hooks 将 SDK 接入 React 应用。
+- [**SDK 快速入门**](/cn/tutorial/sdk-quickstart)：安装 SDK 并在测试网上运行您的首次传输。
+- [**与 viem 结合使用**](/cn/how-to/sdk-with-viem)：在私钥、浏览器钱包和预构建的签名器之间切换。
+- [**与 wagmi 结合使用**](/cn/how-to/sdk-with-wagmi)：使用挂钩将 SDK 连接到 React 应用程序。

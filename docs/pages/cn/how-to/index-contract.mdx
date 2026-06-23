@@ -1,22 +1,22 @@
 ---
 source_path: how-to/index-contract.mdx
-source_sha: 5293e991b87b99d0da868102a910d03d70bde96b
+source_sha: b32b9a67615217f86bfd96c7ff8bb192ee87454b
 title: "索引合约事件"
-description: "使用 ethers.js 的 watchContractEvent 订阅 Stable 上的智能合约事件，并构建实时事件流。"
+description: "使用 ethers.js watchContractEvent 在 Stable 上订阅智能合约事件，并构建实时事件流。"
 diataxis: "how-to"
 ---
 
 # 索引合约事件
 
-索引将链上事件转化为应用程序可以响应的数据：余额更新、交易历史、UI 通知。本指南展示如何使用 ethers.js 订阅已部署的 Stable 合约的事件，以及如何回填历史事件，这样你就不会遗漏服务离线期间发出的任何事件。
+索引将链上事件转换为你的应用程序可以响应的数据：余额更新、交易历史、UI 通知。本指南介绍如何使用 ethers.js 订阅已部署 Stable 合约的事件，以及如何回填历史事件，以便你的服务脱机时不会错过任何发出的事件。
 
-## 前置条件
+## 前提条件
 
-- 在 Stable 测试网或主网上部署的合约。如果你需要一个，请参阅 [部署](/cn/tutorial/smart-contract) 和 [验证](/cn/how-to/verify-contract)。
+- 在 Stable 测试网或主网上部署的合约。如果需要，请参阅[部署](/cn/tutorial/smart-contract)和[验证](/cn/how-to/verify-contract)。
 - Node.js 20 或更高版本。
-- 你想要索引的事件的合约地址和 ABI。
+- 合约地址和你想要索引的事件的 ABI。
 
-## 1. 安装与配置
+## 1. 安装和配置
 
 ```bash
 npm install ethers
@@ -30,7 +30,7 @@ export const STABLE_TESTNET_RPC = "https://rpc.testnet.stable.xyz";
 export const STABLE_TESTNET_WS = "wss://rpc.testnet.stable.xyz";
 export const CONTRACT_ADDRESS = "0xDeployedContractAddress";
 
-// Minimal ABI: only the events you want to index.
+// 最小 ABI：仅包含你想要索引的事件。
 export const CONTRACT_ABI = [
   "event NumberUpdated(address indexed caller, uint256 oldValue, uint256 newValue)",
 ];
@@ -38,7 +38,7 @@ export const CONTRACT_ABI = [
 
 ## 2. 订阅实时事件
 
-使用 WebSocket provider，这样你就能在验证者最终确认每个区块后立即收到事件。WebSocket 避免了轮询开销，并使通知延迟接近区块时间（在 Stable 上约 0.7 秒）。
+使用 WebSocket 提供程序，以便在验证者最终确定每个区块后立即接收事件。WebSocket 避免了轮询开销，并将通知延迟保持在接近区块时间（Stable 上约为 0.7 秒）。
 
 ```typescript
 // watchLive.ts
@@ -74,11 +74,11 @@ NumberUpdated:
   block:     1284371
 ```
 
-当调用者调用你的合约时，事件会实时到达。
+事件会随着调用者调用你的合约而实时到达。
 
 ## 3. 回填历史事件
 
-当服务启动时，你通常需要补上离线期间发出的事件。使用带区块范围的 `queryFilter`。
+当服务启动时，通常需要追溯其脱机期间发出的事件。使用带有块范围的 `queryFilter`。
 
 ```typescript
 // backfill.ts
@@ -89,7 +89,7 @@ const provider = new ethers.JsonRpcProvider(STABLE_TESTNET_RPC);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
 const latest = await provider.getBlockNumber();
-const fromBlock = Math.max(0, latest - 10_000); // last ~10k blocks
+const fromBlock = Math.max(0, latest - 10_000); // 最后约 1万 个区块
 
 const events = await contract.queryFilter(
   contract.filters.NumberUpdated(),
@@ -121,12 +121,12 @@ Backfilled 3 events from block 1282351 to 1284371
 ```
 
 :::warning
-过宽的区块范围（数百万个区块）可能超出 RPC 速率限制并导致超时。对于生产环境的索引器，请按 10k 区块窗口分页，或使用 [Stablescan 的 Etherscan 兼容 API](/cn/how-to/build-p2p-payments#transaction-history) 进行已索引的历史查询。
+广范围区块（数百万个区块）可能会超出 RPC 速率限制并导致超时。对于生产索引器，请按 1 万个区块的窗口进行分页，或使用 [Stablescan 兼容 Etherscan 的 API](/cn/how-to/build-p2p-payments#transaction-history) 进行索引的历史查询。
 :::
 
-## 4. 按索引参数过滤事件
+## 4. 按索引参数筛选事件
 
-带有 `indexed` 参数的事件（如上面的 `caller`）可以在服务端进行过滤。传入过滤值，而不是读取每个事件后在应用中过滤。
+带有 `indexed` 参数（如上文的 `caller`）的事件可以在服务器端进行筛选。传递筛选值，而不是读取每个事件并在你的应用程序中进行筛选。
 
 ```typescript
 // watchUser.ts
@@ -157,7 +157,7 @@ Watching NumberUpdated for 0x1234...abcd...
 
 ## 处理连接断开
 
-WebSocket 连接可能会断开。对于生产环境的索引器，请实现重连逻辑，以免遗漏事件。
+WebSocket 连接可能会断开。对于生产索引器，请实现重新连接逻辑，以免错过事件。
 
 ```typescript
 // resilientWatch.ts
@@ -187,8 +187,8 @@ function setupWatcher() {
 setupWatcher();
 ```
 
-## 后续推荐
+## 接下来建议
 
-- [**追踪解绑完成**](/cn/how-to/track-unbonding) — 索引协议发出的系统交易事件（解绑完成）。
-- [**构建 P2P 支付应用**](/cn/how-to/build-p2p-payments) — 将索引应用于 USDT0 Transfer 事件并构建支付历史视图。
-- [**JSON-RPC 参考**](/cn/reference/json-rpc-api) — 查看 Stable 支持哪些 `eth_getLogs` 及相关方法。
+- [**跟踪解绑完成情况**](/cn/how-to/track-unbonding)：索引协议发出的系统交易事件（解绑完成情况）。
+- [**构建 P2P 支付应用程序**](/cn/how-to/build-p2p-payments)：应用索引到 USDT0 Transfer 事件并构建支付历史视图。
+- [**JSON-RPC 参考**](/cn/reference/json-rpc-api)：查看 Stable 支持哪些 `eth_getLogs` 和相关方法。

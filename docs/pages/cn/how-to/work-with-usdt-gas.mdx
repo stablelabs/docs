@@ -1,34 +1,34 @@
 ---
 source_path: how-to/work-with-usdt-gas.mdx
-source_sha: 8b0a60e8fdc7a504803325125750cc39877974d5
-title: "将 USDT0 作为 gas 使用"
-description: "将以太坊交易构建迁移到 Stable：将优先费设为零，以 USDT0 读取 baseFee，并以 USDT0 计价 value。"
+source_sha: ec41da713b012d64269926acdd594bc6255cd981
+title: "将 USDT0 作为 Gas 进行操作"
+description: "将以太坊交易结构移植到 Stable：将优先费用设置为零，以 USDT0 读取基本费用，并以 USDT0 计价。"
 diataxis: "how-to"
 ---
 
-# 将 USDT0 作为 gas 使用
+# 将 USDT0 作为 Gas 进行操作
 
-在 Stable 上，USDT0 既是链的原生资产，也是一种 ERC-20 代币。gas 代币是 USDT0，而不是单独的原生资产。只要调整三件事，标准的以太坊 gas 估算就能正常工作：`maxPriorityFeePerGas` 始终为 `0`、`baseFee` 以 USDT0 计价，以及原生转账中的 `value` 字段携带的是 USDT0（而非 ETH）。
+在 Stable 上，USDT0 既是链的原生资产，也是 ERC-20 代币。Gas 代币是 USDT0，而不是单独的原生资产。标准以太坊 Gas 估算工作原理如下，但您需要调整三点：`maxPriorityFeePerGas` 始终为 `0`，`baseFee` 以 USDT0 计价，并且原生转账中的 `value` 字段承载 USDT0（而不是 ETH）。
 
-本指南展示如何在 Stable 上正确构建交易，以及在迁移以太坊代码时需要改动什么。
+本指南展示了如何在 Stable 上正确构建交易以及移植以太坊代码时需要更改的内容。
 
 ## 与以太坊相比的变化
 
 | **字段** | **以太坊** | **Stable** |
 | :--- | :--- | :--- |
 | Gas 代币 | ETH | USDT0 |
-| `maxPriorityFeePerGas` | 用于排序 | 忽略（设为 `0`） |
+| `maxPriorityFeePerGas` | 用于排序 | 忽略（设置为 `0`） |
 | `baseFeePerGas` | 以 ETH 计价 | 以 USDT0 计价 |
-| `value`（原生转账） | 转移 ETH | 转移 USDT0 |
+| `value`（原生转账） | 转账 ETH | 转账 USDT0 |
 | EIP-1559 交易格式 | 支持 | 支持 |
-| `eth_estimateGas`、`eth_gasPrice` | 支持 | 支持 |
+| `eth_estimateGas`, `eth_gasPrice` | 支持 | 支持 |
 | `eth_maxPriorityFeePerGas` | 返回小费 | 返回 `0` |
 
-由于交易格式没有变化，现有的 ethers.js、viem、Hardhat 和 Foundry 代码无需改动即可在 Stable 上运行。区别在于你如何*计算* gas 字段，而不是如何对它们进行编码。
+因为交易格式不变，所以现有的 ethers.js、viem、Hardhat 和 Foundry 代码可以在 Stable 上运行而无需更改。区别在于您如何*计算* Gas 字段，而不是如何编码它们。
 
 ## 构建交易
 
-获取 base fee，将 `maxPriorityFeePerGas` 设为 `0`，并将 base fee 翻倍作为安全余量。
+获取基本费用，将 `maxPriorityFeePerGas` 设置为 `0`，并将基本费用加倍作为安全余量。
 
 ```typescript
 // sendNative.ts
@@ -67,11 +67,11 @@ Gas used: 21000
 Effective gas price: 1000000000 (USDT0 wei-equivalent)
 ```
 
-有效 gas 价格是一个以 USDT0 计价的值。在 `1 gwei` 时，一笔 21,000 gas 的原生转账大约花费 `0.000021` USDT0。
+有效 Gas 价格是以 USDT0 计价的值。以 `1 gwei` 计算，21,000 Gas 的原生转账大约需要 `0.000021` USDT0。
 
-## 以 USDT0 估算 gas 成本
+## 估算 USDT0 中的 Gas 成本
 
-`eth_estimateGas` 和 `eth_gasPrice` 的行为与以太坊完全相同。由于 USDT0 是 gas 代币，结果已经以 USDT0 计价。
+`eth_estimateGas` 和 `eth_gasPrice` 的行为与以太坊完全相同。结果已经是 USDT0，因为它是 Gas 代币。
 
 ```typescript
 // estimate.ts
@@ -98,23 +98,23 @@ Estimated fee: 0.000021 USDT0
 ```
 
 :::warning
-`eth_maxPriorityFeePerGas` 在 Stable 上始终返回 `0`。如果你的钱包或 SDK 将 RPC 返回的优先费加在 base fee 之上，它仍然有效，但显示单独小费的费用界面将显示 `0`，应当隐藏。
+`eth_maxPriorityFeePerGas` 在 Stable 上始终返回 `0`。如果您的钱包或 SDK 在基本费用之上添加了 RPC 返回的优先费用，它仍然有效，但显示单独小费的费用界面将显示 `0`，应将其隐藏。
 :::
 
 ## 工具配置
 
-- **Hardhat / Foundry**：无需特殊配置。标准 EVM 设置即可工作。如果你的配置显式设置了优先费，请将其设为 `0`。
-- **钱包**：隐藏或禁用优先小费的输入字段。显示它会产生误导，因为该值对排序或打包没有任何影响。
-- **监控**：费用分析仪表板不应绘制优先费图表。它们在 Stable 上始终为零。
+- **Hardhat / Foundry**：无需特殊配置。标准 EVM 设置即可。如果您的配置明确设置了优先费用，请将其设置为 `0`。
+- **钱包**：隐藏或禁用优先小费输入字段。显示它具有误导性，因为该值对排序或包含没有影响。
+- **监控**：费用分析仪表板不应绘制优先费用图表。它们在 Stable 上始终为零。
 
-## 从以太坊迁移时的常见错误
+## 从以太坊移植时常见的错误
 
-- **应用以 ETH 计价的小费**：从以太坊复制优先费常量并不会带来更快的打包。Stable 仅按 base fee 对交易排序。
-- **将 `value` 当作 ETH**：原生转账的 `value` 是 USDT0。不要通过 ETH/USD 价格进行换算。
-- **硬编码费用上限**：应根据实时的 `baseFeePerGas` 设置 `maxFeePerGas`（例如 `baseFee * 2`），而不是固定值，这样当 base fee 上升时交易才不会卡住。
+- **应用以 ETH 计价的小费**：复制以太坊的优先费用常量不会导致更快的包含。Stable 仅按基本费用对交易进行排序。
+- **将 `value` 视为 ETH**：原生转账的 `value` 是 USDT0。不要通过 ETH/USD 价格进行转换。
+- **硬编码费用上限**：从实时 `baseFeePerGas`（例如 `baseFee * 2`）设置 `maxFeePerGas`，而不是固定值，这样当基本费用上涨时交易不会停滞。
 
-## 下一步推荐
+## 推荐阅读
 
-- [**Gas 定价参考**](/cn/reference/gas-pricing-api) — 完整的 base-fee 模型、EIP-1559 格式以及 `eth_*` 方法行为。
-- [**零 gas 交易**](/cn/how-to/zero-gas-transactions) — 让应用通过 Gas 豁免来承担 gas。
-- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior) — 余额对账以及针对 USDT0 双重角色的合约设计。
+- [**Gas 定价参考**](/cn/reference/gas-pricing-api)：完整的基本费用模型、EIP-1559 格式以及 `eth_*` 方法行为。
+- [**零 Gas 交易**](/cn/how-to/zero-gas-transactions)：允许应用程序通过 Gas Waivers 支付 Gas。
+- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior)：USDT0 双重角色的余额核对和合约设计。

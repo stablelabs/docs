@@ -1,25 +1,42 @@
 ---
 source_path: explanation/gas-pricing.mdx
-source_sha: 2df550135708d69fa3d4b68bf1579652c4fff68d
-title: Gas 定价机制
-description: "以 USDT0 支付、无优先费的 Stable 单一组件 Gas 定价模型。"
+source_sha: cee955370fcdfb739edadd48366ac6c984cbc9d9
+title: "Gas 费用"
+description: "Stable 采用单一组件的 Gas 费模型，没有优先级小费，以 USDT0 计价提供可预测的成本。"
+diataxis: "explanation"
 ---
 
-# Gas 定价机制
+# Gas 费用
 
-Stable 采用单一组成部分的 Gas 费模型：
+Stable 采用简化的单一组件 Gas 费模型，旨在消除费用波动并提供可预测的低交易成本。交易排序不受小费竞价的影响。有效的 Gas 价格仅由协议的基础费用决定。
 
-- **不支持优先费用（ 禁用maxPriorityFeePerGas）**
-- 费用仅基于基础的执行成本
-- 以 **USDT0** 支付
+## 为什么采用此模型
 
-设计理由：
+单一组件设计具有三个特点：
 
-- 消除 Gas 波动，保证支付可预测性
-- 简化用户体验，避免通过支付额外报酬使验证节点优先处理交易
+- **可预测的成本**：费用纯粹基于基础执行成本。小费拍卖不会引入差异。
+- **USDT 计价**：Gas 以 USDT0 定价，因此开发人员或用户在考虑美元成本时不必考虑原生代币价格波动。
+- **极低的费用**：在 1 gwei 的基础费下，原生 USDT0 转账（21,000 gas）大约花费 **0.0000021 USDT0**。即使是复杂的合约交互，费用也远低于一美分。
 
-开发者注意：
+## 与以太坊的比较
 
-- 不支持指定优先费用以加速交易
-- 钱包应隐藏或禁用优先费用的设置
-- Gas 预估需基于 Stable RPC 的定价预测
+| **参数** | **Stable** | **以太坊** |
+| :--- | :--- | :--- |
+| Gas 代币 | USDT0 | ETH |
+| 基础费用 | 是 | 是 |
+| 优先级小费 (`maxPriorityFeePerGas`) | 被忽略（始终为 0） | 用于排序 |
+| EIP-1559 交易格式 | 支持 | 支持 |
+
+Stable 接受 EIP-1559 (Type 2) 交易，但 `maxPriorityFeePerGas` 总是被忽略。交易排序不受小费竞价的影响。
+
+## 影响
+
+- **钱包**应隐藏或禁用优先级小费输入字段。显示它们可能会让用户感到困惑，因为该值无效。
+- **分析仪表盘**不应跟踪优先级费用。它们将始终为零。
+- **交易构建工具**应明确将 `maxPriorityFeePerGas` 设置为 `0`，然后从最新区块的基础费用计算 `maxFeePerGas`，并保留一个安全边际。
+
+## 接下来推荐
+
+- [**Gas 费用参考**](/cn/reference/gas-pricing-api)：根据 Stable 的费用模型构建交易、估算 Gas 并配置工具。
+- [**USDT 作为 Gas**](/cn/explanation/usdt-as-gas-token)：了解 USDT0 如何同时充当原生 Gas 和 ERC-20 余额。
+- [**以太坊比较**](/cn/explanation/ethereum-comparison)：审查从以太坊移植时将遇到的所有行为差异。

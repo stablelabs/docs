@@ -1,6 +1,6 @@
 ---
 source_path: how-to/create-wallet.mdx
-source_sha: 282b1f16baf49a0e39d7df989136218e3727fad2
+source_sha: 0735e9a5c8737cb5606dd4ea1d7406859b371377
 title: "创建钱包"
 description: "使用 ethers.js 或 Tether WDK 生成新的 Stable 钱包，或从助记词恢复钱包。"
 diataxis: "how-to"
@@ -8,19 +8,19 @@ diataxis: "how-to"
 
 # 创建钱包
 
-Stable 钱包是一个符合以太坊标准的密钥对。任何能生成 EVM 账户的钱包库都可以在 Stable 上直接使用，无需修改。本指南展示两种方式：适用于大多数应用的 ethers.js，以及面向需要为代理和支付提供开箱即用自托管层的集成场景的 Tether [WDK（钱包开发工具包）](https://github.com/tetherto/wdk)。
+Stable 钱包是一个以太坊标准的密钥对。任何生成 EVM 账户的钱包库都可以在 Stable 上运行，无需修改。本指南提供了两种路径：对于大多数应用程序使用 ethers.js，对于需要为代理和支付提供开箱即用的自托管层的集成，可以使用 Tether 的 [WDK（钱包开发工具包）](https://github.com/tetherto/wdk)。
 
 :::note
-无需注册，也无需进行 Stable 专属的账户设置。钱包可以立即从[测试网水龙头](/cn/how-to/use-faucet)或主网转账接收 USDT0。
+无需注册，无需 Stable 特定账户设置。钱包可以立即从 [测试网水龙头](/cn/how-to/use-faucet) 或主网转账接收 USDT0。
 :::
 
 ## 前提条件
 
 - Node.js 20 或更高版本。
 
-## 方式 1：ethers.js
+## 选项 1：ethers.js
 
-安装该库并生成密钥对。
+安装库并生成密钥对。
 
 ```bash
 npm install ethers
@@ -32,17 +32,17 @@ import { ethers } from "ethers";
 
 const provider = new ethers.JsonRpcProvider("https://rpc.testnet.stable.xyz");
 
-/** Create a new wallet for a new user. */
+/** 为新用户创建新钱包。*/
 export function createWallet() {
   const wallet = ethers.Wallet.createRandom(provider);
   return {
     wallet,
     address: wallet.address,
-    seedPhrase: wallet.mnemonic!.phrase, // show to the user once for backup
+    seedPhrase: wallet.mnemonic!.phrase, // 向用户展示一次以进行备份
   };
 }
 
-/** Restore a wallet from a seed phrase (returning user). */
+/** 从助记词恢复钱包（回访用户）。*/
 export function restoreWallet(seedPhrase: string) {
   const wallet = ethers.Wallet.fromPhrase(seedPhrase, provider);
   return { wallet, address: wallet.address };
@@ -65,12 +65,12 @@ Seed phrase: liberty shoot ... (12 words)
 ```
 
 :::warning
-在生产环境中，切勿以明文形式记录或存储助记词。请将其加密存储，或使用密钥管理器。`ethers.Wallet.createRandom` 每次调用只返回一次助记词——如果丢失，资金将无法找回。
+切勿在生产环境中明文记录或存储助记词。请对其进行加密存储，或使用秘密管理器。`ethers.Wallet.createRandom` 每次调用返回一次助记词。如果您丢失了助记词，资金将无法恢复。
 :::
 
-## 方式 2：Tether WDK
+## 选项 2：Tether WDK
 
-WDK 将密钥派生、签名和交易提交封装到单一接口中。当你希望实现自托管而无需重新实现常见账户流程时，它是正确的选择，并且它能直接与 [x402](/cn/how-to/build-pay-per-call) 集成以实现代理支付。
+WDK 将密钥派生、签名和交易提交包装在一个接口中。当您想要自托管而无需重新实现常见的账户流程时，它是正确的选择，并且它与 [x402](/cn/how-to/build-pay-per-call) 直接集成，用于代理支付。
 
 ```bash
 npm install @tetherto/wdk @tetherto/wdk-wallet-evm
@@ -88,7 +88,7 @@ function initWdk(seedPhrase: string) {
     });
 }
 
-/** Create a new wallet for a new user. */
+/** 为新用户创建新钱包。*/
 export async function createWallet() {
   const seedPhrase = WDK.getRandomSeedPhrase();
   const wdk = initWdk(seedPhrase);
@@ -96,11 +96,11 @@ export async function createWallet() {
   return {
     account,
     address: await account.getAddress(),
-    seedPhrase, // show to the user once for backup
+    seedPhrase, // 向用户展示一次以进行备份
   };
 }
 
-/** Restore a wallet from a seed phrase (returning user). */
+/** 从助记词恢复钱包（回访用户）。*/
 export async function restoreWallet(seedPhrase: string) {
   const wdk = initWdk(seedPhrase);
   const account = await wdk.getAccount("stable", 0);
@@ -117,19 +117,19 @@ Address:     0xAlice...1234
 Seed phrase: liberty shoot ... (12 words)
 ```
 
-## 为钱包注资
+## 钱包充值
 
-在钱包能够进行交易之前，它需要 USDT0 作为 gas。在测试网上，可从水龙头请求：
+在钱包可以进行交易之前，它需要 USDT0 作为 gas。在测试网上，可以从水龙头请求：
 
 ```bash
 open https://faucet.stable.xyz
 ```
 
-粘贴地址并选择按钮即可接收 1 个测试网 USDT0（足够进行数千次原生转账）。对于主网，可从任何受支持的交易所或桥转入 USDT0；参见[跨链桥接到 Stable](/cn/explanation/usdt0-bridging)。
+粘贴地址并选择按钮以接收 1 个测试网 USDT0（足以进行数千次原生转账）。对于主网，可以从任何受支持的交易所或网桥发送 USDT0；请参阅 [桥接到 Stable](/cn/explanation/usdt0-bridging)。
 
-## 查询余额
+## 检查余额
 
-原生 USDT0 使用 18 位小数。原生余额即为支付 gas 所用的余额。
+原生 USDT0 使用 18 位小数。原生余额是用于支付 gas 的。
 
 ```typescript
 // balance.ts
@@ -148,8 +148,8 @@ npx tsx balance.ts
 Balance: 1.0 USDT0
 ```
 
-## 推荐的后续步骤
+## 接下来推荐
 
-- [**使用 EIP-7702 进行委托**](/cn/how-to/account-abstraction) — 为该钱包添加批量支付、支出限额和会话密钥。
-- [**发送你的第一笔 USDT0**](/cn/tutorial/send-usdt0) — 在同一余额上进行原生和 ERC-20 转账。
-- [**为测试网钱包注资**](/cn/how-to/use-faucet) — 用于获取更大测试余额的水龙头和 Sepolia 桥接选项。
+- [**使用 EIP-7702 进行委托**](/cn/how-to/account-abstraction)：为该钱包添加批量支付、支出限额和会话密钥。
+- [**发送您的第一个 USDT0**](/cn/tutorial/send-usdt0)：相同余额上的原生和 ERC-20 转账。
+- [**为测试网钱包充值**](/cn/how-to/use-faucet)：用于更多测试余额的水龙头和 Sepolia 网桥选项。

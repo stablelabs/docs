@@ -1,30 +1,30 @@
 ---
 source_path: how-to/track-unbonding.mdx
-source_sha: 33d66c8fbb264a445f511902164794ff3796e785
-title: "追踪解绑完成"
-description: "通过系统交易订阅 StableSystem 预编译合约发出的 UnbondingCompleted 事件。按用户或验证人筛选，查询历史事件。"
+source_sha: 5c4d430a5edb73996ba773710b260c58025a04d8
+title: "跟踪解除质押完成情况"
+description: "通过系统交易订阅 StableSystem 预编译合约发出的 UnbondingCompleted 事件。按用户或验证者进行筛选，查询历史事件。"
 diataxis: "how-to"
 ---
 
-# 追踪解绑完成
+# 跟踪解除质押完成情况
 
-当解绑周期完成时，协议会通过系统交易，借助 `StableSystem` 预编译合约（`0x0000000000000000000000000000000000009999`）发出 `UnbondingCompleted` 事件。这使得 dApp 能够实时通知用户并更新余额，而无需运行自定义索引器或轮询 REST 端点。
+当解除质押期完成时，协议会通过系统交易，通过 `StableSystem` 预编译合约（`0x0000000000000000000000000000000000009999`）发出一个 `UnbondingCompleted` 事件。这允许 dApp 实时通知用户并更新余额，而无需运行自定义索引器或轮询 REST 端点。
 
 :::note
-**概念：** 关于系统交易如何将 SDK 层事件桥接到 EVM 以及其重要性，请参阅 [系统交易](/cn/explanation/system-transactions)。
+**概念：** 有关系统交易如何将 SDK 层事件桥接到 EVM 以及其重要性，请参阅[系统交易](/cn/explanation/system-transactions)。
 :::
 
-## 前置条件
+## 前提条件
 
-- 了解 [系统交易](/cn/explanation/system-transactions)。
-- 熟悉 [质押](/cn/explanation/staking-module)，特别是 `undelegate` 和解绑流程。
-- 具备使用标准 web3 库（例如 [ethers.js](https://docs.ethers.org/) v6）订阅和筛选合约事件的经验。
+- 了解[系统交易](/cn/explanation/system-transactions)。
+- 熟悉[质押](/cn/explanation/staking-module)，特别是 `undelegate` 和解除质押过程。
+- 有使用标准 web3 库（例如 [ethers.js](https://docs.ethers.org/) v6）进行合约事件订阅和过滤的经验。
 
 ## 概述
 
-- **设置合约实例**：为 StableSystem 预编译合约创建一个合约实例。
-- **在应用中处理事件**：根据应用逻辑订阅实时事件或查询历史数据。
-- **处理连接问题**：为持久化的 WebSocket 订阅实现重连逻辑。
+- **设置合约实例**：为 StableSystem 预编译合约创建合约实例。
+- **在你的应用程序中处理事件**：根据你的应用程序逻辑订阅实时事件或查询历史数据。
+- **处理连接问题**：为持久的 WebSocket 订阅实现重新连接逻辑。
 
 ## 步骤 1：设置合约实例
 
@@ -49,13 +49,13 @@ export const stableSystem = new ethers.Contract(
 );
 ```
 
-## 步骤 2：在应用中处理事件
+## 步骤 2：在你的应用程序中处理事件
 
-根据应用逻辑订阅实时事件、查询历史数据，或两者兼有。
+根据你的应用程序逻辑，订阅实时事件、查询历史数据或两者兼而有之。
 
 ### 实时订阅
 
-订阅 `UnbondingCompleted` 事件，以便在任何解绑完成时获得实时通知。这对于触发余额更新、发送通知或刷新仪表盘统计数据很有用。
+订阅 `UnbondingCompleted` 事件以获取任何解除质押完成时的实时通知。这对于触发余额更新、发送通知或刷新仪表板统计数据非常有用。
 
 ```typescript
 // subscribeBasic.ts
@@ -73,7 +73,7 @@ stableSystem.on("UnbondingCompleted", (delegator, validator, amount, event) => {
 
 ### 按用户筛选
 
-如果只想接收特定委托人地址的事件，请使用已索引的事件参数创建一个筛选器。
+要仅接收特定委托人地址的事件，请使用索引事件参数创建过滤器。
 
 ```typescript
 // subscribeByUser.ts
@@ -86,12 +86,12 @@ const filter = stableSystem.filters.UnbondingCompleted(userAddress);
 stableSystem.on(filter, (delegator, validator, amount, event) => {
   refreshUserBalance(userAddress);
   showNotification(
-    `Your unbonding of ${ethers.formatEther(amount)} tokens completed!`
+    `您的 ${ethers.formatEther(amount)} 代币的解除质押已完成！`
   );
 });
 ```
 
-### 按验证人筛选
+### 按验证者筛选
 
 ```typescript
 // subscribeByValidator.ts
@@ -110,7 +110,7 @@ stableSystem.on(validatorFilter, (delegator, validator, amount) => {
 
 ### 历史查询
 
-如果你的 dApp 需要展示过去解绑完成的历史记录，请使用带区块范围的事件筛选器查询历史事件。
+如果你的 dApp 需要显示过去解除质押完成的历史记录，请使用带有区块范围的事件过滤器查询历史事件。
 
 ```typescript
 // queryHistory.ts
@@ -144,25 +144,25 @@ const history = await getUnbondingHistory(
 
 ## 步骤 3：处理连接问题
 
-事件订阅依赖于持久化的 WebSocket 连接。请为生产环境的 dApp 实现重连逻辑。
+事件订阅依赖于持久的 WebSocket 连接。为生产 dApp 实现重新连接逻辑。
 
 ```typescript
 // subscribeWithReconnection.ts
-import { ethers } from "ethers";
+import { ethers } = "ethers";
 import { STABLE_SYSTEM_ADDRESS, STABLE_SYSTEM_ABI } from "./config";
 
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 
 function handleUnbonding(delegator: string, validator: string, amount: bigint) {
-  console.log("Unbonding completed:", { delegator, validator, amount });
+  console.log("解除质押完成:", { delegator, validator, amount });
 }
 
 function setupEventListener() {
   const wsProvider = new ethers.WebSocketProvider("wss://rpc.testnet.stable.xyz");
 
   wsProvider.on("error", (error) => {
-    console.error("Provider error:", error);
+    console.error("提供者错误:", error);
     if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
       reconnectAttempts++;
       setTimeout(() => setupEventListener(), 5000);
@@ -181,8 +181,8 @@ function setupEventListener() {
 setupEventListener();
 ```
 
-## 后续推荐
+## 下一步推荐
 
-- [**系统交易概念**](/cn/explanation/system-transactions) — 了解协议层事件如何到达 EVM。
-- [**质押模块概念**](/cn/explanation/staking-module) — 回顾委托和解绑流程。
-- [**质押预编译参考**](/cn/reference/staking-module-api) — 查找触发此处所追踪事件的方法。
+- [**系统交易概念**](/cn/explanation/system-transactions)：了解协议级别的事件如何到达 EVM。
+- [**质押模块概念**](/cn/explanation/staking-module)：回顾委托和解除质押流程。
+- [**质押预编译参考**](/cn/reference/staking-module-api)：查找触发此处跟踪的事件的方法。

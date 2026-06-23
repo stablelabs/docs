@@ -1,33 +1,49 @@
 ---
 source_path: reference/developer-assistance.mdx
-source_sha: 740d84fb64ee73630cea7e1fc648dfa8ceea5b19
-title: 开发者支持
-description: 快速获取帮助、官方交流渠道与关键资源。
+source_sha: 2e55049566daa5a3f782c7ca3acee94096762402
+title: 开发者协助
+description: 快速获取帮助、官方沟通渠道以及在 Stable 上进行开发的关键参考位置。
+diataxis: "reference"
 ---
 
-# 开发者支持
+# 开发者协助
 
-### 常见问题（FAQ）
+## 常见问题解答
 
-- 如何连接 Stable 网络？
-  - 使用标准 JSON-RPC 即可，与常见 EVM 工具兼容。
-- 交易费用使用哪种货币？
-  - 所有交易费用以 USDT0 支付。
+一个不断增长的以开发者为中心的问题集合，涵盖以下主题：
+
+- 如何连接到 Stable 网络？
+  - 您可以使用与常见 EVM 工具兼容的标准 JSON-RPC 请求与网络进行交互。
+- 交易费用使用什么货币？
+  - 您需要支付 USDT0 作为交易费用。除了标准基础 gas 价格外，无需额外的费用参数。
+- 在哪里可以追踪更新？
+  - 发布和变更日志会告知所有协议和面向开发者的变更。
 - Stable 是否支持账户抽象？
-  - 支持。EIP-7702 允许 EOA 临时具备智能账户行为。
-- 如何查看交易结果？
-  - 通过余额查询、合约状态或事件日志。
-- 如何为 Stable 编写智能合约？
-  - 使用标准 EVM 工具（如 Solidity + JSON-RPC 库）。
+  - 是的。EIP-7702 允许 EOA 临时以智能账户行为运行。
+  - 请参阅 [EIP-7702 参考](/cn/reference/eip-7702-api)和[账户抽象操作指南](/cn/how-to/account-abstraction)。
+- 在哪里可以看到我的交易结果？
+  - 一旦包含在区块中，结果可以通过以下方式查看：
+    - 余额读取
+    - 合约状态查询
+    - 日志和发出的事件
+- 如何为 Stable 构建智能合约？
+  - 您可以使用标准的 EVM 开发者工作流，例如：
+    - 基于 Solidity 的合约
+    - JSON-RPC 库与网络交互
 
-完整 FAQ 请见文档。
+随着公测网使用过程中常见问题的出现，此页面将不断扩展。
 
 ## 支持渠道
 
-开发者可直接与 Stable 团队联系以获取技术支持。
+您可以直接与 Stable 团队联系以获得技术协助。
 
-- Discord（开发者频道）:  https://discord.gg/stablexyz
-- 问题反馈: 将会在github repo开放后提供
+- **Discord**：加入开发者频道：https://discord.gg/stablexyz
+- **问题报告**：公共仓库开放后将提供说明
 
-技术支持联系方式将在社区平台上线后持续更新。
+社区平台可用后将更新支持联系方式。
 
+## 下一步推荐
+
+- [**快速入门**](/cn/tutorial/quick-start)：在五分钟内完成您的第一个测试网交易。
+- [**生产就绪**](/cn/how-to/production-readiness)：在发布到主网之前验证集成。
+- [**常见问题**](/cn/reference/faq)：关于链 ID、端点和入门的常见解答。

@@ -126,14 +126,14 @@ you adjust three gas fields (see Behavioral differences below).
 
 ## Common mistakes to avoid
 
-- Copying Ethereum priority-fee constants (2 gwei tips, etc.) — has no effect
-  on Stable and can be rejected by wallets.
+- Copying Ethereum priority-fee constants (2 gwei tips, etc.). This has no
+  effect on Stable and can be rejected by wallets.
 - Using `ethers.parseUnits(x, 18)` for ERC-20 USDT0 amounts. ERC-20 uses 6
   decimals; native transfers use 18.
-- Mirroring native balance in a `uint256 deposited` variable — USDT0
+- Mirroring native balance in a `uint256 deposited` variable. USDT0
   allowance-based operations (transferFrom, permit) can reduce a contract's
   native balance without invoking its code.
-- Sending native or ERC-20 USDT0 to `address(0)` — both revert on Stable.
+- Sending native or ERC-20 USDT0 to `address(0)`. Both revert on Stable.
 - Assuming `EXTCODEHASH == 0` means an address is unused. On Stable,
   permit-based approvals can change state without incrementing nonce.
 - Writing `value: ethers.parseEther(amount, "ether")` and expecting ETH
@@ -207,6 +207,6 @@ env. Print the configured routes on startup.
 
 ## Next recommended
 
-- [**Paying with MCP server**](/en/how-to/pay-with-mcp) — Wrap a paid API as an MCP tool so AI clients can call and pay for it.
-- [**Quick start**](/en/tutorial/quick-start) — Pair the AI context with a first-transaction run in five minutes.
-- [**Difference from Ethereum**](/en/explanation/ethereum-comparison) — Deep-dive on the gas and USDT0 semantics in the context block.
+- [**Paying with MCP server**](/en/how-to/pay-with-mcp): Wrap a paid API as an MCP tool so AI clients can call and pay for it.
+- [**Quick start**](/en/tutorial/quick-start): Pair the AI context with a first-transaction run in five minutes.
+- [**Difference from Ethereum**](/en/explanation/ethereum-comparison): Deep-dive on the gas and USDT0 semantics in the context block.

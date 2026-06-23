@@ -1,44 +1,44 @@
 ---
 source_path: how-to/use-system-modules.mdx
-source_sha: 20a3d686672800eb94c39601d0f332f12eff44cb
+source_sha: cfd6ec43ac3c766ae5fdb7d0007a1cb6671ad955
 title: "使用系统模块"
-description: "通过最小化 ABI 和可运行的示例，从 Solidity 和 ethers.js 调用 Stable 的 Bank、Distribution 和 Staking 预编译合约。"
+description: "通过最少的 ABI 和工作示例，从 Solidity 和 ethers.js 调用 Stable 的银行、分配和质押预编译。"
 diataxis: "how-to"
 ---
 
 # 使用系统模块
 
-Stable 通过位于固定地址的**预编译合约（precompiled contracts）**暴露协议层的结算逻辑。这些预编译合约让 EVM 代码可以调用 Stable SDK 模块（质押、奖励分发、STABLE 代币操作），而无需重新实现它们。由于它们运行在协议层，因此比等价的 Solidity 实现显著更省 gas。
+Stable 通过固定地址的**预编译合约**公开协议级结算逻辑。预编译合约允许 EVM 代码调用 Stable SDK 模块（质押、奖励分配、STABLE 代币操作），而无需重新实现它们。由于它们在协议级别运行，因此比同等的 Solidity 实现效率更高，消耗的 Gas 更少。
 
-本指南展示了如何同时从 Solidity 和 ethers.js 调用预编译合约，以及何时应该使用它而非普通合约。
+本指南介绍了如何从 Solidity 和 ethers.js 调用预编译合约，以及何时使用预编译合约而不是常规合约。
 
 :::note
-**概念**：关于系统模块的作用以及它们为何是预编译合约，请参阅[系统模块](/cn/explanation/system-modules-overview)。关于各模块的方法签名和事件，请参阅[系统模块参考](/cn/reference/system-modules-api-overview)。
+**概念**：有关系统模块的功能和为何它们是预编译合约，请参阅[系统模块概述](/cn/explanation/system-modules-overview)。有关每个模块的方法签名和事件，请参阅[系统模块参考](/cn/reference/system-modules-api-overview)。
 :::
 
-## 暴露了哪些内容
+## 开放的功能
 
-| **模块** | **预编译地址** | **用途** |
+| **模块** | **预编译合约地址** | **用途** |
 | :--- | :--- | :--- |
-| Bank | `0x0000000000000000000000000000000000001003` | STABLE 代币转账和余额操作 |
-| Distribution | `0x0000000000000000000000000000000000000801` | 领取质押奖励、奖励查询、佣金管理 |
-| Staking | `0x0000000000000000000000000000000000000800` | 委托、解除委托、重新委托、验证人查询 |
-| Gov | `0x0000000000000000000000000000000000000805` | 提案、计票结果和链上投票记录 |
-| Slashing | `0x0000000000000000000000000000000000000806` | 验证人签名信息和在线时长 |
-| StableSystem | `0x0000000000000000000000000000000000009999` | 为系统交易（解绑完成）发出 EVM 事件 |
+| Bank (银行) | `0x0000000000000000000000000000000000001003` | STABLE 代币转账和余额操作 |
+| Distribution (分配) | `0x0000000000000000000000000000000000000801` | 领取质押奖励、奖励查询、佣金管理 |
+| Staking (质押) | `0x0000000000000000000000000000000000000800` | 委托、解除委托、重新委托、验证者查询 |
+| Gov (治理) | `0x0000000000000000000000000000000000000805` | 提案、计票结果和链上投票记录 |
+| Slashing (罚没) | `0x0000000000000000000000000000000000000806` | 验证者签名信息和正常运行时间 |
+| StableSystem | `0x0000000000000000000000000000000000009999` | 系统交易的 EVM 事件 emission（解除绑定完成） |
 
-以上所有内容都可以从任何 EVM 合约或链下客户端调用。这些地址是固定的，在主网和测试网上完全相同。
+所有这些都可以从任何 EVM 合约或链下客户端调用。这些地址是稳定的，在主网和测试网上都相同。
 
-## 何时调用预编译合约 vs 普通合约
+## 何时调用预编译合约与常规合约
 
-- **使用预编译合约**：当操作对应于某个 Stable SDK 模块时，例如质押、奖励分发、STABLE 代币操作。调用预编译合约既更便宜，也是触发协议层行为的唯一方式。
-- **使用普通合约**：当操作属于应用逻辑时，例如托管、定价、访问控制。如果你需要自定义授权或验证，可将预编译合约的调用封装在你自己的合约中。
+- **在以下情况下使用预编译合约**：当操作映射到 Stable SDK 模块时：质押、奖励分配、STABLE 代币操作。调用预编译合约更便宜，并且是触发协议级行为的唯一方式。
+- **在以下情况下使用常规合约**：当操作是应用程序逻辑时：托管、定价、访问控制。如果您需要自定义授权或验证，请将预编译合约调用包装在您自己的合约中。
 
-预编译合约并不是应用合约的替代品。它们是进入底层协议的稳定接口。
+预编译合约不能替代应用程序合约。它们是底层协议的稳定接口。
 
 ## 从 Solidity 调用
 
-为你需要的方法声明一个接口，然后像调用已部署合约一样调用预编译合约。
+为所需方法声明一个接口，然后像调用已部署合约一样调用预编译合约。
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -87,15 +87,15 @@ contract StakingHelper {
 }
 ```
 
-使用 Foundry 或 Hardhat 编译并部署。预编译地址被固化到合约的常量槽中，因此部署后无需额外配置。
+使用 Foundry 或 Hardhat 编译和部署。预编译合约地址在合约中固定不变，因此部署后无需任何额外配置。
 
 ```solidity
-// SAFE: precompile address is fixed on Stable and never changes.
+// SAFE: 预编译合约地址在 Stable 上固定且永不改变。
 ```
 
 ## 从 ethers.js 调用
 
-对于链下客户端，将同样的接口声明为最小化 ABI，并实例化一个指向预编译地址的合约。
+对于链下客户端，声明相同的接口作为最小 ABI，并实例化指向预编译地址的合约。
 
 ```typescript
 // queryDelegation.ts
@@ -133,9 +133,9 @@ Delegation balance: 1000.0 STABLE
 
 ## 订阅系统交易事件
 
-某些 Stable SDK 操作（例如解绑完成）本身不会自然地发出 EVM 事件。Stable 通过**系统交易（system transactions）**来填补这一空白：由验证人生成的交易会调用 `StableSystem` 预编译合约，在下一个区块中发出标准的 EVM 事件。
+一些 Stable SDK 操作（例如解除绑定完成）不会自然地发出 EVM 事件。Stable 通过**系统交易**弥补了这一空白：验证者生成的交易调用 `StableSystem` 预编译合约，以便在下一个区块期间发出标准 EVM 事件。
 
-要监听 `UnbondingCompleted`，请像监听任何 ERC-20 `Transfer` 一样，在该预编译地址上进行订阅。
+要监视 `UnbondingCompleted`，请像监听 ERC-20 `Transfer` 事件一样订阅预编译合约地址。
 
 ```typescript
 // watchUnbonding.ts
@@ -173,19 +173,19 @@ Amount: 100.0 STABLE
 Tx: 0x12ab...
 ```
 
-关于完整的系统交易机制以及按用户筛选 / 历史查询的模式，请参阅[追踪解绑完成](/cn/how-to/track-unbonding)。
+有关完整的系统交易机制以及按用户筛选/历史查询模式，请参阅[跟踪解除绑定完成情况](/cn/how-to/track-unbonding)。
 
 ## 各模块参考
 
-每个预编译合约的完整方法列表、事件和授权规则都在其对应的参考页面中。
+每个预编译合约的完整方法列表、事件和授权规则都可以在其参考页面中找到。
 
-- [Bank 预编译合约](/cn/reference/bank-module-api)：STABLE 代币转账和供应量查询。
-- [Distribution 预编译合约](/cn/reference/distribution-module-api)：奖励领取和佣金。
-- [Staking 预编译合约](/cn/reference/staking-module-api)：委托、解除委托、重新委托、验证人查询。
+- [银行预编译合约](/cn/reference/bank-module-api)：STABLE 代币转账和供应查询。
+- [分配预编译合约](/cn/reference/distribution-module-api)：奖励领取和佣金。
+- [质押预编译合约](/cn/reference/staking-module-api)：委托、解除委托、重新委托、验证者查询。
 - [系统交易](/cn/reference/system-transactions-api)：StableSystem 事件格式和授权。
 
-## 推荐的后续阅读
+## 下一步建议
 
-- [**追踪解绑完成**](/cn/how-to/track-unbonding) — 订阅通过 StableSystem 预编译合约发出的 UnbondingCompleted 事件。
-- [**系统模块参考**](/cn/reference/system-modules-api-overview) — 直接查看各模块的 ABI、方法签名和事件结构。
-- [**系统模块概念**](/cn/explanation/system-modules-overview) — 理解 Stable 为何通过预编译合约暴露 SDK 模块。
+- [**跟踪解除绑定完成情况**](/cn/how-to/track-unbonding)：订阅通过 StableSystem 预编译合约发出的 `UnbondingCompleted` 事件。
+- [**系统模块参考**](/cn/reference/system-modules-api-overview)：跳转到各模块的 ABI、方法签名和事件模式。
+- [**系统模块概念**](/cn/explanation/system-modules-overview)：了解 Stable 为什么通过预编译合约公开 SDK 模块。

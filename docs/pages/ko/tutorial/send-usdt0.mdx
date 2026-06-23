@@ -1,48 +1,48 @@
 ---
 source_path: tutorial/send-usdt0.mdx
-source_sha: 1fff06b2bb41a34bd51591c23054ad451815f05e
-title: "첫 USDT0 보내기"
-description: "Stable에서 USDT0를 네이티브 전송과 ERC-20 전송 두 방식으로 보내고, 두 방식이 동일한 잔액에서 작동하는지 확인합니다."
+source_sha: d631d3ab8138addcd0cd58e30ac907fe503a5d04
+title: "첫 USDT0 전송"
+description: "Stable에서 USDT0를 네이티브 전송과 ERC-20 전송으로 모두 전송하고, 두 전송 모두 동일한 잔액으로 작동하는지 확인합니다."
 diataxis: "tutorial"
 ---
 
-# 첫 USDT0 보내기
+# 첫 USDT0 전송
 
-Stable에서 USDT0는 체인의 네이티브 자산이자 ERC-20 토큰입니다. 이는 표준 가치 전송과 함께 `approve`, `transferFrom`, `permit`가 완전히 사용 가능하며, 두 경로 모두 동일한 기본 잔액에서 자금을 이동시킨다는 것을 의미합니다.
+Stable에서 USDT0는 체인의 기본 자산이자 ERC-20 토큰입니다. 이는 `approve`, `transferFrom`, `permit`이 표준 가치 전송과 함께 완벽하게 사용 가능하며, 두 경로 모두 동일한 기본 잔액에서 자금을 이동한다는 것을 의미합니다.
 
-이 페이지에서는 두 경로를 통해 USDT0를 보내고 두 방식이 하나의 잔액에서 인출됨을 확인하는 과정을 안내합니다.
+이 페이지에서는 두 경로를 통해 USDT0를 전송하고 단일 잔액에서 인출되는 것을 확인하는 방법을 안내합니다.
 
 :::note
-타입이 지정된 클라이언트를 선호하시나요? [Stable SDK](/ko/explanation/sdk-overview)는 두 경로를 모두 다루고, 온체인에서 소수점을 처리하며, 지갑의 체인을 자동으로 전환해주는 단일 `transfer({ to, amount, token? })`를 제공합니다.
+타입 클라이언트를 선호하십니까? [Stable SDK](/ko/explanation/sdk-overview)는 두 경로를 모두 다루고, 온체인에서 소수 자릿수를 처리하며, 지갑의 체인을 자동으로 전환하는 단일 `transfer({ to, amount, token? })`를 노출합니다.
 :::
 
 :::note
-**18 소수점 vs 6 소수점**: 네이티브 USDT0는 18 소수점(표준 EVM 정밀도)을 사용하는 반면, ERC-20 인터페이스는 6 소수점(표준 USDT 정밀도)을 보고합니다. 둘 다 동일한 잔액을 반영하므로, `address(x).balance`와 `USDT0.balanceOf(x)`는 소수점 조정으로 인해 최대 0.000001 USDT0까지 차이가 날 수 있습니다. [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참조하세요.
+**18 vs 6 소수 자릿수**: 네이티브 USDT0는 18 소수 자릿수(표준 EVM 정밀도)를 사용하고, ERC-20 인터페이스는 6 소수 자릿수(표준 USDT 정밀도)를 보고합니다. 둘 다 동일한 잔액을 반영하므로 `address(x).balance`와 `USDT0.balanceOf(x)`는 소수점 조정으로 인해 최대 0.000001 USDT0까지 다를 수 있습니다. [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior)을 참조하십시오.
 :::
 
-## 무엇을 만들 것인가
+## 무엇을 만들 것인가요?
 
-0.001 USDT0를 네이티브 전송으로 보내고, 0.001 USDT0를 ERC-20 전송으로 보낸 다음, 두 잔액을 모두 출력하는 2개의 스크립트 흐름입니다.
+0.001 USDT0를 네이티브 전송으로 보내고, 0.001 USDT0를 ERC-20 전송으로 보내고, 두 잔액을 모두 출력하는 두 스크립트 플로우입니다.
 
 ### 데모
 
 ```text
-step 1. Connect wallet → balance displayed
+1단계. 지갑 연결 → 잔액 표시
         0.01 USDT0
 
-step 2. Send 0.001 USDT0 (choose native or ERC-20 transfer)
+2단계. 0.001 USDT0 전송 (네이티브 또는 ERC-20 전송 선택)
 
-step 3. Result
-        Sent:              0.001 USDT0
-        Gas fee:           0.000021 USDT0
-        Native balance:    0.008979 USDT0
-        ERC-20 balance:    0.008979 USDT0
+3단계. 결과
+        전송됨:              0.001 USDT0
+        가스 요금:           0.000021 USDT0
+        네이티브 잔액:    0.008979 USDT0
+        ERC-20 잔액:    0.008979 USDT0
 ```
 
-## 사전 준비물
+## 전제 조건
 
 - Node.js 20 이상
-- 테스트넷 USDT0가 있는 프라이빗 키. 지갑에 자금을 충전하려면 [빠른 시작](/ko/tutorial/quick-start)을 참조하세요.
+- testnet USDT0가 있는 프라이빗 키. 지갑에 자금을 지원하려면 [빠른 시작](/ko/tutorial/quick-start)을 참조하십시오.
 
 **USDT0 컨트랙트 주소**
 
@@ -64,9 +64,9 @@ export const provider = new ethers.JsonRpcProvider(STABLE_TESTNET_RPC);
 export const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 ```
 
-## 옵션 1 (권장): 네이티브 전송으로 보내기
+## 옵션 1 (권장): 네이티브 전송으로 전송
 
-네이티브 전송은 Ethereum에서 ETH를 보내는 것과 동일하게 작동합니다. `value` 필드가 USDT0 금액을 담습니다. 네이티브 전송은 21,000 가스만 소모하며, USDT0를 보내는 가장 저렴한 방법입니다.
+네이티브 전송은 이더리움에서 ETH를 보내는 것과 동일하게 작동합니다. `value` 필드는 USDT0 금액을 전달합니다. 네이티브 전송은 21,000 가스만 소모하며, USDT0를 보내는 가장 저렴한 방법입니다.
 
 ```typescript
 // sendNative.ts
@@ -74,7 +74,7 @@ import { ethers } from "ethers";
 import { provider, wallet } from "./config";
 
 const recipient = "0xRecipientAddress";
-const amount = ethers.parseUnits("0.001", 18); // 18 decimals for native
+const amount = ethers.parseUnits("0.001", 18); // 네이티브의 경우 18 소수 자릿수
 
 const block = await provider.getBlock("latest");
 const baseFee = block!.baseFeePerGas!;
@@ -83,11 +83,11 @@ const tx = await wallet.sendTransaction({
   to: recipient,
   value: amount,
   maxFeePerGas: baseFee * 2n,
-  maxPriorityFeePerGas: 0n, // always 0 on Stable
+  maxPriorityFeePerGas: 0n, // Stable에서는 항상 0
 });
 
 const receipt = await tx.wait(1);
-console.log("Native transfer tx:", receipt!.hash);
+console.log("네이티브 전송 tx:", receipt!.hash);
 ```
 
 ```bash
@@ -95,12 +95,12 @@ npx tsx sendNative.ts
 ```
 
 ```text
-Native transfer tx: 0x8f3a...2d41
+네이티브 전송 tx: 0x8f3a...2d41
 ```
 
-## 옵션 2: ERC-20 전송으로 보내기
+## 옵션 2: ERC-20 전송으로 전송
 
-USDT0는 ERC-20 전송으로도 보낼 수 있습니다. 이는 동일한 잔액에서 차감되지만, 6 소수점 정밀도를 가진 ERC-20 인터페이스를 사용합니다.
+USDT0는 ERC-20 전송으로도 보낼 수 있습니다. 이는 동일한 잔액에서 차감되지만, 6자리 소수점 정밀도를 가진 ERC-20 인터페이스를 사용합니다.
 
 ```typescript
 // sendERC20.ts
@@ -108,7 +108,7 @@ import { ethers } from "ethers";
 import { wallet, USDT0_ADDRESS } from "./config";
 
 const recipient = "0xRecipientAddress";
-const amount = ethers.parseUnits("0.001", 6); // 6 decimals for ERC-20
+const amount = ethers.parseUnits("0.001", 6); // ERC-20의 경우 6 소수 자릿수
 
 const usdt0 = new ethers.Contract(USDT0_ADDRESS, [
   "function transfer(address to, uint256 amount) returns (bool)"
@@ -116,7 +116,7 @@ const usdt0 = new ethers.Contract(USDT0_ADDRESS, [
 
 const tx = await usdt0.transfer(recipient, amount);
 const receipt = await tx.wait(1);
-console.log("ERC-20 transfer tx:", receipt!.hash);
+console.log("ERC-20 전송 tx:", receipt!.hash);
 ```
 
 ```bash
@@ -124,12 +124,12 @@ npx tsx sendERC20.ts
 ```
 
 ```text
-ERC-20 transfer tx: 0xa2b1...77c0
+ERC-20 전송 tx: 0xa2b1...77c0
 ```
 
 ## 통합 잔액 확인
 
-두 전송 중 어느 것이든 후에, 두 잔액을 조회하여 동일한 출처에서 인출되는지 확인하세요.
+어떤 전송 후에도 두 잔액을 쿼리하여 동일한 소스에서 가져왔는지 확인합니다.
 
 ```typescript
 // balances.ts
@@ -137,13 +137,13 @@ import { ethers } from "ethers";
 import { provider, wallet, USDT0_ADDRESS } from "./config";
 
 const nativeBalance = await provider.getBalance(wallet.address);
-console.log("Native balance:", ethers.formatEther(nativeBalance), "USDT0");
+console.log("네이티브 잔액:", ethers.formatEther(nativeBalance), "USDT0");
 
 const usdt0 = new ethers.Contract(USDT0_ADDRESS, [
   "function balanceOf(address) view returns (uint256)"
 ], provider);
 const erc20Balance = await usdt0.balanceOf(wallet.address);
-console.log("ERC-20 balance:", ethers.formatUnits(erc20Balance, 6), "USDT0");
+console.log("ERC-20 잔액:", ethers.formatUnits(erc20Balance, 6), "USDT0");
 ```
 
 ```bash
@@ -151,14 +151,14 @@ npx tsx balances.ts
 ```
 
 ```text
-Native balance: 0.008979 USDT0
-ERC-20 balance: 0.008979 USDT0
+네이티브 잔액: 0.008979 USDT0
+ERC-20 잔액: 0.008979 USDT0
 ```
 
-두 값은 동일한 잔액을 나타냅니다. [소수점 잔액 조정](/ko/explanation/usdt0-behavior#balance-reconciliation)으로 인해 최대 0.000001 USDT0까지 차이가 날 수 있습니다.
+두 값 모두 동일한 잔액을 나타냅니다. [소수점 잔액 조정](/ko/explanation/usdt0-behavior#balance-reconciliation)으로 인해 최대 0.000001 USDT0까지 다를 수 있습니다.
 
 ## 다음 권장 사항
 
-- [**가스 제로 트랜잭션**](/ko/how-to/zero-gas-transactions) — 가스 비용을 면제 서비스가 지불하는 방식으로 USDT0를 보냅니다.
-- [**P2P 결제 앱 만들기**](/ko/how-to/build-p2p-payments) — 지갑 생성, 전송, 수신 및 결제 내역 조회를 구현합니다.
-- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior) — 이중 역할 잔액 조정과 컨트랙트 설계를 이해합니다.
+- [**제로 가스 트랜잭션**](/ko/how-to/zero-gas-transactions): 웨이버 서비스가 가스 요금을 지불하는 USDT0를 보냅니다.
+- [**P2P 결제 앱 구축**](/ko/how-to/build-p2p-payments): 지갑 생성, 송금, 수신 및 결제 내역 쿼리.
+- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior): 이중 역할 잔액 조정 및 컨트랙트 설계 이해.

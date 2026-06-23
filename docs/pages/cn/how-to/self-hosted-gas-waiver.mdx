@@ -1,39 +1,38 @@
 ---
 source_path: how-to/self-hosted-gas-waiver.mdx
-source_sha: 60e5bccdb2641ffd0f4c1184d8dfb6e642990c73
-title: "自托管 gas 豁免"
-description: "在 Stable 上运行你自己的 gas 豁免。通过治理注册豁免地址、构造包装交易，并直接广播，无需使用托管的 Waiver Server API。"
+source_sha: c054baff79a39314af7a4aaa087bd4525dfc7f12
+title: "自托管燃气费代付"
+description: "在 Stable 上运行您自己的燃气费代付服务。通过治理注册代付地址，构建封装器交易，然后无需托管服务器即可广播它们。"
 diataxis: "how-to"
 ---
+# 自托管燃气费代付
 
-# 自托管 gas 豁免
+自托管燃气费代付让您可以操作自己的代付基础设施，而不是使用托管的Waiver Server API。您通过链上治理注册一个代付地址，然后直接向网络广播封装器交易。
 
-自托管 Gas 豁免让你可以运营自己的豁免基础设施，而不必使用托管的 Waiver Server API。你通过链上治理注册一个豁免地址，然后直接向网络广播包装交易。
-
-本指南涵盖注册豁免地址、收集已签名的用户交易、构造包装交易并广播它们。
+本指南涵盖注册代付地址、收集已签名的用户交易、构建封装器交易以及广播它们。
 
 :::note
-**概念：** 关于 Gas 豁免是什么以及为何存在，参见 [Gas 豁免](/cn/explanation/gas-waiver)。关于完整的协议规范（包装交易机制、授权、策略检查、执行语义、安全模型），参见 [Gas 豁免协议](/cn/reference/gas-waiver-api)。
+**概念：** 关于燃气费代付是什么以及它为什么存在，请参阅[燃气费代付](/cn/explanation/gas-waiver)。有关完整的协议规范（封装器交易机制、授权、策略检查、执行语义、安全模型），请参阅[燃气费代付协议](/cn/reference/gas-waiver-api)。
 :::
 
-关于托管的 Waiver Server API 集成路径，参见 [启用免 gas 交易](/cn/how-to/integrate-gas-waiver)。
+有关托管Waiver Server API集成路径，请参阅[启用免燃气费交易](/cn/how-to/integrate-gas-waiver)。
 
-## 前置条件
+## 先决条件
 
-- 通过验证者治理在链上注册的豁免地址。
-- 为你的目标合约配置的 `AllowedTarget` 策略。
+- 一个通过验证者治理在链上注册的代付地址。
+- 为您的目标合约配置了`AllowedTarget`策略。
 
-## 概述
+## 概览
 
 自托管流程：
 
-1. **从用户收集已签名的 InnerTx**，其 `gasPrice = 0`。
-2. **构造 WrapperTx**：对 InnerTx 进行 RLP 编码，并将其包装在一笔发送到 marker 地址的交易中。
-3. **广播** WrapperTx，通过 `eth_sendRawTransaction`。
+1. **收集已签名的 InnerTx**，其中用户的`gasPrice = 0`。
+2. **构建 WrapperTx**：RLP 编码 InnerTx 并将其封装在发送到标记地址的交易中。
+3. **通过 `eth_sendRawTransaction` 广播** WrapperTx。
 
 ## 步骤 1：收集用户的 InnerTx
 
-用户签名一笔 `gasPrice = 0` 的交易。`to` 地址和方法选择器必须匹配你豁免的 `AllowedTarget` 策略。
+用户签署一个`gasPrice = 0`的交易。`to`地址和方法选择器必须与您的代付的`AllowedTarget`策略匹配。
 
 ```typescript
 // config.ts
@@ -82,9 +81,9 @@ const innerTx = {
 const signedInnerTx = await userWallet.signTransaction(innerTx);
 ```
 
-## 步骤 2：构造 WrapperTx
+## 步骤 2：构建 WrapperTx
 
-对已签名的 InnerTx 进行 RLP 编码，并将其包装在一笔发送到 marker 地址的交易中。`gasLimit` 必须同时覆盖内部执行和包装开销。
+RLP 编码已签名的 InnerTx 并将其封装在发送到标记地址的交易中。`gasLimit`必须覆盖内部执行和封装开销。
 
 ```typescript
 // constructWrapper.ts
@@ -110,7 +109,7 @@ const signedWrapperTx = await waiverWallet.signTransaction(wrapperTx);
 ```
 
 :::warning
-`InnerTx.gasPrice` 和 `WrapperTx.gasPrice` 都必须为 `0`。`WrapperTx.value` 也必须为 `0`。如果其中任何条件不满足，验证者将拒绝该交易。
+`InnerTx.gasPrice`和`WrapperTx.gasPrice`都必须为`0`。`WrapperTx.value`也必须为`0`。如果这些条件中的任何一个不满足，验证者将拒绝该交易。
 :::
 
 ## 步骤 3：广播
@@ -131,14 +130,14 @@ Wrapper tx broadcast: 0x...
 Confirmed: true
 ```
 
-## 关键要点
+## 主要收获
 
-- 自托管豁免需要一个通过链上验证者治理注册的豁免地址。
-- WrapperTx 被发送到 marker 地址（`0x...f333`），并以 RLP 编码的 InnerTx 作为数据。
-- InnerTx 和 WrapperTx 都必须满足 `gasPrice = 0` 和 `value = 0`。
+- 自托管代付需要通过链上验证者治理注册一个代付地址。
+- WrapperTx 会发送到标记地址 (`0x...f333`)，数据为 RLP 编码的 InnerTx。
+- InnerTx 和 WrapperTx 的 `gasPrice` 都必须为 `0`，且 `value` 也必须为 `0`。
 
-## 下一步推荐
+## 下一步建议
 
-- [**Gas 豁免概念**](/cn/explanation/gas-waiver) — 在运行你自己的豁免之前理解其机制。
-- [**Gas 豁免协议**](/cn/reference/gas-waiver-api) — 参考完整的协议规范，了解 marker 路由、授权和执行语义。
-- [**启用免 gas 交易**](/cn/how-to/integrate-gas-waiver) — 使用托管的 Waiver Server API，而不是自托管。
+- [**燃气费代付概念**](/cn/explanation/gas-waiver)：在您自行运行之前，了解其机制。
+- [**燃气费代付协议**](/cn/reference/gas-waiver-api)：参考完整的协议规范，了解标记路由、授权和执行语义。
+- [**启用免燃气费交易**](/cn/how-to/integrate-gas-waiver)：使用托管的 Waiver Server API，而不是自行托管。

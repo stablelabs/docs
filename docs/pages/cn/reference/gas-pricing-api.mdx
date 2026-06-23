@@ -1,22 +1,22 @@
 ---
 source_path: reference/gas-pricing-api.mdx
-source_sha: 9355a785da7466f7714460ce6e1ea80e95c4f55c
-title: "Gas 定价参考"
-description: "针对 Stable 的单组件费用模型构建交易、估算 gas 并配置工具链。"
+source_sha: 54bf228a3df7b32d8dc92f632372ba1adbd7bcce
+title: "Gas 资费参考"
+description: "根据 Stable 的单组件费用模型构建交易、估算 gas 并配置工具。"
 diataxis: "reference"
 ---
 
-# Gas 定价参考
+# Gas 资费参考
 
-Stable 上的交易构建、gas 估算和工具链配置。
+Stable 的交易构建、gas 估算和工具配置。
 
 :::note
-**概念：** 关于 Stable 为何使用单组件费用模型以及它与 Ethereum 的对比，请参阅 [Gas 定价](/cn/explanation/gas-pricing)。
+**概念：** 有关 Stable 为何使用单组件费用模型以及它与以太坊的比较，请参阅[Gas 资费](/cn/explanation/gas-pricing)。
 :::
 
 ## 交易构建
 
-在 Stable 上构建交易时，将 `maxPriorityFeePerGas` 设置为 `0`。客户端应从最新区块获取最新的 base fee，并在计算 `maxFeePerGas` 时加入安全余量。
+在 Stable 上构建交易时，将 `maxPriorityFeePerGas` 设置为 `0`。客户端应从最新块中获取最新的基本费用，并在计算 `maxFeePerGas` 时包含安全边际。
 
 ```javascript
 // ethers.js v6
@@ -35,12 +35,12 @@ const tx = await wallet.sendTransaction({
 ```
 
 ```text
-Native USDT0 transfer confirmed. Fee ≈ 0.0000021 USDT0 at baseFee = 1 gwei.
+原生 USDT0 转账已确认。当 baseFee = 1 gwei 时，费用 ≈ 0.0000021 USDT0。
 ```
 
 ## Gas 估算
 
-像在 Ethereum 上一样使用 `eth_estimateGas` 和 `eth_gasPrice`。关键区别在于 `eth_maxPriorityFeePerGas` 将始终返回 `0`。
+像在以太坊上一样使用 `eth_estimateGas` 和 `eth_gasPrice`。关键区别在于 `eth_maxPriorityFeePerGas` 将始终返回 `0`。
 
 ```javascript
 const gasPrice = await provider.send("eth_gasPrice", []);
@@ -52,14 +52,14 @@ const gasEstimate = await provider.estimateGas({
 const estimatedFeeInUSDT0 = gasPrice * gasEstimate;
 ```
 
-## 工具链配置
+## 工具配置
 
-- **Hardhat / Foundry**：无需特殊配置；标准的 EVM 设置即可工作。如果你的配置显式设置了 priority fee，请将其设置为 `0`。
-- **钱包**：隐藏或禁用 priority tip 输入字段。显示它可能会让用户困惑，因为该值不起作用。
-- **监控**：费用分析仪表板不应跟踪 priority fee。它们将始终为零。
+- **Hardhat / Foundry**：无需特殊配置；标准 EVM 设置即可。如果您的配置明确设置了优先费用，请将其设置为 `0`。
+- **钱包**：隐藏或禁用优先小费输入字段。显示它可能会混淆用户，因为该值无效。
+- **监控**：费用分析仪表板不应跟踪优先费用。它们将始终为零。
 
-## 推荐后续阅读
+## 下一步建议
 
-- [**Gas 定价概念**](/cn/explanation/gas-pricing) — 理解 Stable 为何使用单组件费用模型。
-- [**Ethereum 对比**](/cn/explanation/ethereum-comparison) — 了解从 Ethereum 移植时会遇到的所有行为差异。
-- [**JSON-RPC API**](/cn/reference/json-rpc-api) — 参考 Stable 提供的 `eth_*` 方法。
+- [**Gas 资费概念**](/cn/explanation/gas-pricing)：了解 Stable 为何使用单组件费用模型。
+- [**以太坊比较**](/cn/explanation/ethereum-comparison)：查看从以太坊移植时会遇到的所有行为差异。
+- [**JSON-RPC API**](/cn/reference/json-rpc-api)：参考 Stable 公开的 `eth_*` 方法。

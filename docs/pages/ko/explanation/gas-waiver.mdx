@@ -1,267 +1,61 @@
 ---
 source_path: explanation/gas-waiver.mdx
-source_sha: 094d0be55d626fd84d16fee6f1f842dd11be54d8
-title: Gas Waiver
-description: "거버넌스 승인 주소가 가스리스 트랜잭션을 처리하는 Gas Waiver 프로토콜과 Waiver Server API."
+source_sha: 7995b37c002721e3b84297b0e4c3ba54281c0d14
+title: "가스 면제"
+description: "가스 면제(Gas Waiver)를 통해 애플리케이션은 사용자를 위한 가스를 부담할 수 있습니다. 거버넌스 승인을 받은 면제는 서명된 페이로드를 가스 가격 0으로 실행하는 래퍼 트랜잭션을 제출합니다."
+diataxis: "explanation"
 ---
 
-# Gas Waiver
+# 가스 면제
 
-## 요약
+거버넌스 승인을 받은 주소(이하 **면제자**)는 사용자의 서명된 페이로드를 담고 있는 래퍼 트랜잭션을 제출하며, 이를 `gasPrice = 0`으로 실행합니다. 사용자는 USDT0을 가지고 있지 않아도 되며 가스 비용을 지불하지 않습니다. Stable은 호스팅 서비스로 하나의 면제자를 운영하며, 파트너는 검증자 거버넌스를 통해 자체 면제자 주소를 등록할 수도 있습니다.
 
-Gas Waiver는 소수의 거버넌스 승인 주소("면제자")가 `gasPrice = 0`인 트랜잭션을 제출할 수 있도록 허용하여 Stable에서 가스리스 최종 사용자 트랜잭션을 가능하게 합니다. Stable은 현재 파트너가 프로토콜별 래퍼 로직을 구현하지 않고도 가스리스 UX를 제공하기 위해 통합할 수 있는 면제자 서비스("면제자 서버")를 운영하고 있습니다.
+## 동작 방식
 
-본 문서는 Gas Waiver 메커니즘, 트랜잭션 형식, 거버넌스 제어 및 파트너를 위한 면제자 서버 API를 명시합니다.
+가스 면제는 래퍼 트랜잭션 패턴을 사용합니다:
 
-## 범위
+1. **사용자는 `gasPrice = 0`으로 `InnerTx`에 서명합니다.** 사용자의 서명은 처음부터 끝까지 보존됩니다. 면제자는 유효성을 손상시키지 않고 페이로드를 수정할 수 없습니다.
+2. **면제자는 `InnerTx`를 (`value = 0`, `gasPrice = 0`, 서명된 `InnerTx`를 데이터 페이로드로 하는) 프로토콜 마커 주소 (`0x000000000000000000000000000000000000f333`)로 전송되는 `WrapperTx`로 래핑합니다.**
+3. **검증자는 마커를 감지하여** 면제자의 권한 및 정책 제약을 확인하고, 사용자 신원(`from`, `nonce`, 호출 의미론)으로 내부 트랜잭션을 실행합니다.
 
-본 명세는 다음을 다룹니다:
+가스 회계는 면제 메커니즘 내에서 처리됩니다. 사용자는 아무것도 지불하지 않고, 래퍼도 아무것도 지불하지 않으며, 검증자는 면제자별 정책에 따라 비용을 흡수합니다.
 
-- 가스 면제 트랜잭션에 대한 프로토콜 수준 규칙
-- 래퍼 트랜잭션 메커니즘 및 마커 주소
-- 거버넌스 제어 권한 부여 및 허용된 대상
-- 서명된 사용자 트랜잭션 제출을 위한 면제자 서버 인터페이스
+## 권한 부여 및 정책
 
-## 정의
+면제자는 애플리케이션 로직이 아닌 검증자 거버넌스에 의해 제어됩니다. 거버넌스는 다음을 제공합니다:
 
-- **Waiver(면제자)**: 검증자 거버넌스를 통해 온체인에 등록된 이더리움 주소로, 가스 면제 트랜잭션을 제출할 권한이 있습니다.
-- **InnerTx(내부 트랜잭션)**: `gasPrice = 0`인 최종 사용자의 서명된 트랜잭션입니다.
-- **WrapperTx(래퍼 트랜잭션)**: 면제자가 서명한 트랜잭션으로, 사용자의 `InnerTx`를 체인으로 전송하고 실행을 승인합니다.
-- **Marker address(마커 주소)**: 면제자 래퍼 트랜잭션을 식별하는 데 사용되는 센티널 주소: `0x000000000000000000000000000000000000f333`.
-- **AllowedTarget(허용된 대상)**: 면제자를 특정 컨트랙트 주소 및 메서드 선택자로 제한하는 정책입니다.
+- **검토 가능한 등록**: 모든 면제자 주소는 온체인에 등록되며 상태에서 확인할 수 있습니다.
+- **철회**: 검증자는 오작동하는 면제자를 언제든지 제거할 수 있습니다.
+- **`AllowedTarget`을 통한 범위 지정 액세스**: 각 면제자는 특정 대상 계약 및 메서드 선택자 집합에 바인딩됩니다. 프로토콜은 내부 `to` 주소와 메서드 선택자가 해당 범위 밖에 있는 모든 래퍼를 거부합니다.
 
-## 개요
+유효한 래퍼 트랜잭션은 다음 모든 조건을 충족해야 합니다:
 
-Gas Waiver는 래퍼 트랜잭션 패턴을 사용합니다:
+- `WrapperTx.to == 0x000000000000000000000000000000000000f333` (마커 주소).
+- `WrapperTx.from`은 거버넌스를 통해 온체인에 등록된 면제자입니다.
+- `WrapperTx.gasPrice == 0` 및 `InnerTx.gasPrice == 0`.
+- `WrapperTx.value == 0`.
+- `InnerTx.to`와 추출된 메서드 선택자는 면제자의 `AllowedTarget` 정책에 의해 허용됩니다.
 
-1. 사용자가 `gasPrice = 0`인 `InnerTx`에 서명합니다.
-2. 면제자가 `InnerTx`를 `WrapperTx`로 래핑하여 브로드캐스트합니다.
-3. 검증자는 마커 트랜잭션을 감지하고, 면제자 권한 및 정책 제약 조건을 확인한 후 임베디드된 `InnerTx`를 실행합니다.
-
-Stable은 온체인에 승인된 면제자로 등록된 면제자 서비스(면제자 서버)를 운영합니다. 파트너는 면제자 서버 API와 통합하여 서명된 `InnerTx` 페이로드를 제출합니다.
-
-## 프로토콜 명세
-
-### 마커 주소 라우팅
-
-다음 조건을 만족하는 경우에만 트랜잭션이 면제자 래퍼 트랜잭션으로 처리됩니다:
-
-- `to == 0x000000000000000000000000000000000000f333`.
-
-프로토콜은 트랜잭션 `data` 필드를 인코딩된 내부 트랜잭션 페이로드로 해석하고 아래의 면제자 검증 규칙을 사용하여 처리합니다.
-
-### 권한 부여 및 정책 검사
-
-각 후보 래퍼 트랜잭션에 대해 검증자는 다음을 시행해야 합니다:
-
-1. **면제자 권한 부여**
-   - `WrapperTx.from`은 거버넌스를 통해 온체인에 등록된 면제자 주소여야 합니다.
-2. **가스 면제**
-   - `WrapperTx.gasPrice`는 `0`이어야 합니다.
-   - `InnerTx.gasPrice`는 `0`이어야 합니다.
-3. **대상 허용 목록**
-   - `InnerTx.to` 및 `InnerTx.data`에서 추출된 메서드 선택자는 면제자의 `AllowedTarget` 정책에 의해 허용되어야 합니다.
-4. **Value 제한**
-   - `WrapperTx.value`는 `0`이어야 합니다.
-
-검사가 실패하면 래퍼 트랜잭션은 거부되어야 하며 내부 트랜잭션은 실행되지 않아야 합니다.
-
-### 실행 의미론
-
-모든 검사가 통과되면:
-
-1. 프로토콜은 사용자의 `from`, `nonce` 및 호출 의미론을 보존하면서 사용자로서 `InnerTx`를 실행합니다.
-2. 가스 회계는 면제자 메커니즘에 의해 처리됩니다: 사용자는 가스를 지불하지 않으며, 면제자 트랜잭션은 기능의 정의에 따라 `gasPrice = 0`을 사용합니다.
-3. 래퍼 트랜잭션은 `InnerTx`의 실행을 커버할 충분한 `gasLimit`를 제공해야 합니다(언래핑 및 검증 오버헤드 포함).
-
-## 트랜잭션 형식
-
-### WrapperTx
-
-래퍼 트랜잭션은 면제자가 서명하고 마커 주소로 전송됩니다.
-
-```javascript
-WrapperTx {
-  from:     waiver_address,
-  to:       0x000000000000000000000000000000000000f333,
-  value:    0,                          // 0이어야 함
-  data:     RLP(InnerTx),               // RLP 인코딩된 내부 트랜잭션
-  gasPrice: 0,                          // 0이어야 함
-  gasLimit: sufficient_for_inner,       // 내부 실행 + 오버헤드를 커버해야 함
-  nonce:    waiver_nonce
-}
-```
-
-### InnerTx
-
-내부 트랜잭션은 최종 사용자가 서명합니다.
-
-```javascript
-InnerTx {
-  from:     user_address,
-  to:       target_contract,
-  value:    value,
-  data:     call_data,
-  gasPrice: 0,                          // 0이어야 함
-  gasLimit: execution_gas,
-  nonce:    user_nonce
-}
-```
-
-## 거버넌스 제어 액세스
-
-면제자 권한 부여는 검증자 거버넌스에 의해 온체인에서 관리됩니다.
-
-거버넌스 제어는 다음을 제공합니다:
-
-- 면제자 주소의 검토 가능한 권한 부여
-- 면제자 등록 및 업데이트의 온체인 투명성
-- 철회 기능
-- `AllowedTarget`을 통한 면제자별 범위 지정
+어떤 조건이라도 실패하면, 검증자는 내부 트랜잭션을 실행하지 않고 래퍼를 거부합니다.
 
 ## 보안 모델
 
-### 최종 사용자 서명 무결성
+- **사용자 서명 무결성**: 사용자가 `InnerTx`에 서명합니다. 면제자는 서명의 유효성을 손상시키지 않고 페이로드를 변경할 수 없습니다. 파트너는 사용자가 의도한 페이로드에만 서명하도록 보장할 책임이 여전히 있습니다.
+- **온체인 권한 부여**: 권한 부여는 온체인에 있습니다. 요청이 어디에서 시작되었는지에 관계없이 거버넌스에 등록된 면제자 주소만 유효한 래퍼 제출을 생성할 수 있습니다.
+- **서비스 가용성 경계**: 파트너가 Stable의 호스팅된 면제 서버를 통해 라우팅할 때 제출 가용성은 서비스에 따라 달라집니다. 프로토콜 수준의 권한 부여 보장은 영향을 받지 않습니다.
 
-사용자는 `InnerTx`에 서명합니다. 면제자는 서명을 무효화하지 않고는 내부 트랜잭션 페이로드를 수정할 수 없습니다. 파트너는 여전히 사용자가 의도된 트랜잭션 페이로드에만 서명하도록 보장해야 합니다.
+## 가스 면제를 사용해야 하는 경우
 
-### 신뢰 경계
+가스 면제는 최종 사용자가 가스를 위해 USDT0을 보유할 필요가 없는 모든 흐름에 적합합니다:
 
-파트너가 면제자 서버를 통해 제출을 라우팅하는 경우 Gas Waiver는 서비스 종속성을 도입합니다:
+- 아직 스테이블코인 잔액이 없는 사용자를 온보딩하는 소비자 앱.
+- 에이전트의 지갑이 가스를 지원하는 에이전트 주도 흐름.
+- 운영자가 네트워크 비용을 흡수하는 기업 결제 시스템.
 
-- 서비스의 가용성은 가스리스 트랜잭션을 제출할 수 있는 능력에 영향을 미칩니다.
-- 권한 부여는 온체인에 유지됩니다. 등록된 면제자 주소만 유효한 래퍼 제출을 생성할 수 있습니다.
+사용자가 USDT0을 보유하고 있지만 여러 호출을 하나의 서명된 트랜잭션으로 묶고 싶어하는 흐름의 경우, 대신 [EIP-7702 위임](/ko/reference/eip-7702-api)을 참조하십시오.
 
-## 파트너 통합
+## 다음 권장 사항
 
-파트너는 다음과 같이 통합합니다:
-
-1. 사용자로부터 서명된 `InnerTx`를 수집합니다(`gasPrice = 0`).
-2. 서명된 내부 트랜잭션을 면제자 서버 API에 제출합니다.
-3. 스트리밍된 결과를 처리하고 최종 사용자에게 트랜잭션 해시를 표시합니다.
-
-## 면제자 서버
-
-### 개요
-
-면제자 서버는 서명된 사용자 `InnerTx` 페이로드를 면제자 승인 래퍼 트랜잭션으로 래핑하고 브로드캐스트합니다. 파트너는 래퍼 트랜잭션을 구성하거나 면제자 주소를 운영할 필요가 없습니다.
-
-### 엔드포인트 및 기본 URL
-
-기본 URL:
-
-- 메인넷: 미정
-- 테스트넷: `https://waiver.testnet.stable.xyz`
-
-### 인증
-
-상태 확인을 제외한 모든 엔드포인트는 Bearer 토큰 인증이 필요합니다:
-
-```
-Authorization: Bearer <your-api-key>
-```
-
-### API
-
-#### GET `/v1/health`
-
-상태 확인 엔드포인트입니다.
-
-인증: 없음.
-
-#### POST `/v1/submit`
-
-서명된 내부 트랜잭션 배치를 제출합니다.
-
-인증: 필수(`Bearer`).
-
-요청 본문:
-
-```json
-{
-  "transactions": ["0x<signedInnerTx1>", "0x<signedInnerTx2>"]
-}
-```
-
-응답은 NDJSON(줄 바꿈 구분 JSON)으로 스트리밍됩니다. 각 줄은 제출된 트랜잭션 인덱스에 해당합니다.
-
-예시:
-
-```json
-{"index":0,"id":"abc123","success":true,"txHash":"0x..."}
-{"index":1,"id":"def456","success":false,"error":{"code":"VALIDATION_FAILED","message":"invalid signature"}}
-```
-
-#### GET `/v1/submit`
-
-스트리밍 제출을 위한 WebSocket 인터페이스입니다.
-
-인증: 필수(`Bearer`).
-
-### 통합 예시
-
-```javascript
-const WAIVER_SERVER = "https://waiver.testnet.stable.xyz";
-
-async function submitGaslessTransaction(signedInnerTxHex, apiKey) {
-  const response = await fetch(`${WAIVER_SERVER}/v1/submit`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      transactions: [signedInnerTxHex],
-    }),
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const lines = decoder.decode(value).trim().split("\n");
-    for (const line of lines) {
-      const result = JSON.parse(line);
-      console.log(result);
-    }
-  }
-}
-```
-
-### 사용자 InnerTx 생성
-
-파트너는 `gasPrice = 0`인 `InnerTx`를 구성한 후 사용자 서명을 수집할 책임이 있습니다.
-
-예시:
-
-```javascript
-import { ethers } from "ethers";
-
-async function createInnerTx(userWallet, contractAddress, callData, nonce) {
-  const innerTx = {
-    to: contractAddress,
-    data: callData,
-    value: value,
-    gasPrice: 0,              // 면제를 위해 0이어야 함
-    gasLimit: 100000,
-    nonce: nonce,
-    chainId: 2201,            // 메인넷: 988, 테스트넷: 2201
-  };
-
-  return await userWallet.signTransaction(innerTx);
-}
-```
-
-### 오류 코드
-
-- `PARSE_ERROR`: 트랜잭션 파싱 실패
-- `INVALID_REQUEST`: 요청 본문 형식 오류
-- `BATCH_SIZE_EXCEEDED`: 배치 크기가 허용된 최대값 초과
-- `VALIDATION_FAILED`: 트랜잭션 검증 실패
-- `BROADCAST_FAILED`: 체인으로 브로드캐스트 실패
-- `RATE_LIMITED`: 속도 제한 초과
-- `QUEUE_FULL`: 서버 대기열이 용량에 도달
-- `TIMEOUT`: 요청 시간 초과
+- [**가스 없는 트랜잭션 활성화**](/ko/how-to/integrate-gas-waiver): API 키 제출 및 NDJSON 응답으로 호스팅된 면제 서버 API를 통합합니다.
+- [**가스 면제 프로토콜**](/ko/reference/gas-waiver-api): 마커 라우팅, 래퍼 형식, 거버넌스 제어 등 전체 프로토콜 사양을 읽어보세요.
+- [**가스 토큰으로서의 USDT**](/ko/explanation/usdt-as-gas-token): 면제가 적용되는 가스 토큰을 이해합니다.

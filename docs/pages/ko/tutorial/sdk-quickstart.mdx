@@ -1,23 +1,23 @@
 ---
 source_path: tutorial/sdk-quickstart.mdx
-source_sha: 7f6797e29245d890cb46a01da0c772ffc797b252
-title: "SDK 빠른 시작"
-description: "Stable SDK를 설치하고, 테스트넷에서 첫 USDT0 전송을 보내고, 브리지 및 스왑 견적을 미리 확인합니다."
+source_sha: 24bdfc4340389e06e1cb06ee6a7f3e1939940c97
+title: "SDK 퀵스타트"
+description: "Stable SDK를 설치하고, 테스트넷에서 첫 USDT0 전송을 보내고, 브릿지 및 스왑 견적을 미리 봅니다."
 diataxis: "tutorial"
 ---
 
-# SDK 빠른 시작
+# SDK 퀵스타트
 
-`@stablechain/sdk`를 설치하고, 개인 키로 서명하는 클라이언트를 만들고, Stable Testnet에서 USDT0 전송을 보내고, 브리지 및 스왑 견적을 가져옵니다. 총 소요 시간: 약 5분.
+`@stablechain/sdk`를 설치하고, 프라이빗 키로 서명된 클라이언트를 생성하고, Stable 테스트넷에서 USDT0 전송을 보내고, 브릿지 및 스왑 견적을 가져옵니다. 총 소요 시간: 약 5분.
 
 :::note
-Stable은 USDT0를 가스 토큰으로 사용합니다. 거래하려면 테스트넷 USDT0만 있으면 됩니다 — 별도로 충전해야 할 네이티브 자산이 없습니다.
+Stable은 가스 토큰으로 USDT0을 사용합니다. 거래를 위해서는 테스트넷 USDT0만 있으면 됩니다. 자금을 조달할 별도의 기본 자산은 없습니다.
 :::
 
-## 사전 준비 사항
+## 전제 조건
 
 - Node.js 20 이상
-- 테스트넷 USDT0가 있는 테스트 개인 키. [테스트넷 지갑에 자금 충전하기](/ko/how-to/use-faucet)를 참고하세요.
+- 테스트넷 USDT0이 있는 테스트 프라이빗 키. [테스트넷 지갑에 자금 조달](/ko/how-to/use-faucet) 참조.
 
 ## 1. 설치
 
@@ -30,7 +30,7 @@ npm init -y && npm install @stablechain/sdk viem
 added 2 packages, audited 3 packages in 2s
 ```
 
-테스트 키를 저장합니다:
+테스트 키를 저장합니다.
 
 ```bash
 echo "PRIVATE_KEY=0xYOUR_TEST_KEY" > .env
@@ -38,7 +38,7 @@ echo "PRIVATE_KEY=0xYOUR_TEST_KEY" > .env
 
 ## 2. 클라이언트 생성
 
-`index.ts`를 생성합니다:
+`index.ts` 생성:
 
 ```ts
 import "dotenv/config";
@@ -59,11 +59,11 @@ console.log("Signer:", account.address);
 Signer: 0xYourAddress
 ```
 
-`createStable`은 세 가지 서명 모드를 허용합니다: `account`(서버 측, 위에 표시됨), `transport`(`custom(window.ethereum)`를 통한 브라우저 지갑), 또는 `walletClient`(미리 빌드된 viem `WalletClient`). 세 가지 모두에 대해서는 [viem과 함께 SDK 사용하기](/ko/how-to/sdk-with-viem)를 참고하세요.
+`createStable`은 세 가지 서명 모드를 허용합니다: `account` (서버 측, 위 참조), `transport` (`custom(window.ethereum)`을 통한 브라우저 지갑), 또는 `walletClient` (사전 구축된 viem `WalletClient`). 세 가지 모두에 대해서는 [viem과 함께 SDK 사용](/ko/how-to/sdk-with-viem)을 참조하세요.
 
 ## 3. USDT0 전송 보내기
 
-`index.ts`에 추가합니다:
+`index.ts`에 추가:
 
 ```ts
 const { txHash } = await stable.transfer({
@@ -75,7 +75,7 @@ const { txHash } = await stable.transfer({
 console.log("Transfer:", txHash);
 ```
 
-실행합니다:
+실행:
 
 ```bash
 npx tsx index.ts
@@ -86,11 +86,11 @@ Signer: 0xYourAddress
 Transfer: 0x8f3a...2d41
 ```
 
-[테스트넷 익스플로러](https://testnet.stablescan.xyz)에서 해시를 열어 확인하세요.
+[테스트넷 탐색기](https://testnet.stablescan.xyz)에서 해시를 열어 확인합니다.
 
-## 4. 브리지 견적
+## 4. 브릿지 견적
 
-USDT0를 Ethereum Sepolia에서 Stable Testnet으로 브리지합니다. `quoteBridge`는 읽기 전용 호출입니다 — 서명도, 가스도 필요 없습니다:
+이더리움 Sepolia에서 Stable 테스트넷으로 USDT0을 브릿지합니다. `quoteBridge`는 서명도 가스도 없는 읽기 전용 호출입니다.
 
 ```ts
 import { Chain } from "@stablechain/sdk";
@@ -110,11 +110,11 @@ console.log("Bridge quote:", bridgeQuote);
 Bridge quote: { toAmount: 0.999812 }
 ```
 
-견적을 `stable.bridge({ ...params, quote })`에 전달하여 실행합니다. SDK는 USDT0 → USDT0 경로에는 LayerZero를, 그 외 모든 경우에는 LI.FI를 선택합니다.
+견적을 `stable.bridge({ ...params, quote })`에 전달하여 실행합니다. SDK는 USDT0 → USDT0 경로에 LayerZero를, 그 외 모든 것에 LI.FI를 사용합니다.
 
 ## 5. 스왑 견적
 
-스왑은 LI.FI를 통해 Stable에서 실행됩니다. 견적은 예상 출력값과 미리 빌드된 트랜잭션을 반환합니다:
+스왑은 LI.FI를 통해 Stable에서 실행됩니다. 견적은 예상 출력과 미리 구축된 트랜잭션을 반환합니다.
 
 ```ts
 const swapQuote = await stable.quoteSwap({
@@ -133,8 +133,8 @@ You'll receive: 0.998 USDT0
 
 `stable.swap({ ...params, quote: swapQuote })`를 호출하여 실행합니다. ERC-20 소스에 대한 승인은 내부적으로 처리됩니다.
 
-## 다음 추천
+## 다음 권장 사항
 
-- [**SDK 레퍼런스**](/ko/reference/sdk) — 모든 매개변수, 반환 타입, 오류 클래스.
-- [**viem과 함께 사용하기**](/ko/how-to/sdk-with-viem) — 개인 키, 브라우저 지갑, 미리 빌드된 `WalletClient` 서명 간 전환.
-- [**wagmi와 함께 사용하기**](/ko/how-to/sdk-with-wagmi) — wagmi 훅을 사용하여 React 앱에 SDK 연결하기.
+- [**SDK 참조**](/ko/reference/sdk): 모든 매개변수, 반환 유형 및 오류 클래스.
+- [**viem과 함께 사용**](/ko/how-to/sdk-with-viem): 프라이빗 키, 브라우저 지갑 및 미리 구축된 `WalletClient` 서명 간에 전환.
+- [**wagmi와 함께 사용**](/ko/how-to/sdk-with-wagmi): wagmi 훅을 사용하여 SDK를 React 앱에 연결.

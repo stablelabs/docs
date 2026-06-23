@@ -1,15 +1,16 @@
 ---
 source_path: reference/json-rpc-api.mdx
-source_sha: 1b6ce25dd5d0c90be028f78f97179a32c2c70a39
+source_sha: 838e9e92455c9c3acac3d94e4afcf7d7d907ef25
 title: JSON-RPC API
-description: "Stable에서 지원하는 eth, net, web3, debug 네임스페이스의 JSON-RPC API 메서드 목록."
+description: "Stable에서 eth, net, web3, debug 네임스페이스에 걸쳐 지원되는 JSON-RPC API 메서드."
+diataxis: "reference"
 ---
 
 # JSON-RPC API
 
 ## eth_namespace
 
-| API                                        | support |
+| API                                        | 지원 |
 |--------------------------------------------|---------|
 | eth_syncing                                | ✅       |
 | eth_gasPrice                               | ✅       |
@@ -66,7 +67,7 @@ description: "Stable에서 지원하는 eth, net, web3, debug 네임스페이스
 | eth_getLogs                                | ✅       |
 
 ## debug_namespace
-| API                               | support |
+| API                               | 지원 |
 |-----------------------------------|---------|
 | debug_accountRange                | ❌       |
 | debug_backtraceAt                 | ❌       |
@@ -121,3 +122,9 @@ description: "Stable에서 지원하는 eth, net, web3, debug 네임스페이스
 | debug_writeBlockProfile           | ✅       |
 | debug_writeMemProfile             | ✅       |
 | debug_writeMutexProfile           | ✅       |
+
+## 다음 권장 사항
+
+- [**가스 가격 책정 참조**](/ko/reference/gas-pricing-api): Stable의 base-fee-only 모델에 대해 EIP-1559 트랜잭션을 구성합니다.
+- [**EIP-7702 참조**](/ko/reference/eip-7702-api): `authorizationList` 필드를 사용하여 유형-4 트랜잭션을 구축합니다.
+- [**시스템 모듈 참조**](/ko/reference/system-modules-api-overview): Bank, Distribution, Staking을 고정된 프리컴파일 주소에서 호출합니다.

@@ -1,50 +1,75 @@
 ---
 source_path: reference/faq.mdx
-source_sha: 8bc0e6b7823c072b4f7c5dd26e280584966f7493
+source_sha: 348b72ccef22f764866c7d7b5395ae60c4e9f159
 title: "FAQ"
-description: "Stable의 설계, USDT 통합, 확장성 접근 방식 및 기술적 특성에 대한 자주 묻는 질문."
+description: "Stable이란 무엇인지, 어떻게 시작하고, 이더리움과 다른 점은 무엇이며, 더 심층적인 문서는 어디에서 찾을 수 있는지와 같은 일반적인 온보딩 질문에 대한 빠른 답변을 얻으세요."
+diataxis: "reference"
 ---
 
 # FAQ
 
-## 일반 정보
+## 시작하기
 
 **Stable이란 무엇인가요?**
 
-Stable은 USDT를 위한 전용 네트워크로 설계된 **고성능 블록체인**으로, USDT의 글로벌 전송 방식을 혁신하는 것을 목표로 합니다.
+USDT0가 네이티브 가스 토큰이자 결제 자산인 레이어 1입니다. 표준 EVM 도구는 변경 없이 작동합니다.
 
-**Stable은 다른 블록체인과 무엇이 다른가요?**
+**Stable은 누구를 위한 것인가요?**
 
-Stable은 USDT에 최적화된 고성능 네트워크입니다. USDT를 기본 가스 토큰으로 사용하고, 보장된 블록스페이스, USDT0 전송 집계 기능 등을 제공하며, 모두 높은 확장성의 아키텍처를 기반으로 구축되어 있습니다.
+세 가지 빌더 프로필: USDT0를 이동하는 결제 및 월렛 팀, EVM에 배포하는 스마트 컨트랙트 개발자, 노드 또는 RPC를 실행하는 인프라 팀. [학습 개요](/ko/explanation/learn-overview)에는 각 경로에 대한 카드가 있습니다.
 
-## 기술 특징
+**어디서부터 시작해야 할까요: 결제, 계약, AI/에이전트 또는 인프라?**
 
-**Stable은 확장성을 어떻게 향상시키나요?**
+- USDT0를 이동하거나 결제 흐름을 구축하는 경우 → [결제](/ko/explanation/payments-overview).
+- 계약을 배포하는 경우 → [계약](/ko/explanation/contracts-overview).
+- AI 편집기를 연결하거나 에이전트 결제 서비스를 구축하는 경우 → [에이전트 결제](/ko/explanation/agent-settlement).
+- 노드를 실행하거나 사용자를 위한 가스를 충당하는 경우 → [인프라](/ko/explanation/integrate-overview).
 
-Stable은 트랜잭션 라이프사이클 내 모든 단계 - State DB, 실행 엔진, 합의, USDT 전용 최적화 - 를 업그레이드하는 풀스택 접근 방식을 사용합니다.
+아직 테스트넷에 연결하지 않았다면, [빠른 시작](/ko/tutorial/quick-start)부터 시작하세요.
 
-**Stable이 향후 DAG 기반 합의로 업그레이드될 수 있나요?**
+## 기술
 
-네. StableBFT와 호환되지 않는 Narwhal 및 Tusk와 달리, Autobahn은 DAG 기반 PBFT 아키텍처를 제공하며, Stable의 합의 계층과 자연스럽게 통합될 수 있습니다.
+**Stable은 EVM 호환입니까?**
 
-**Stable은 EVM 호환되나요? 기존 dApp을 이식할 수 있나요?**
+예. Solidity, Vyper, Foundry, Hardhat, ethers, viem과 `eth_*` JSON-RPC 메서드는 모두 변경 없이 작동합니다. 네 가지 동작은 이더리움과 다릅니다. [이더리움과의 차이점](/ko/explanation/ethereum-comparison)을 참조하세요.
 
-네. Stable은 완전한 EVM 호환성을 가지며, 사용자 및 개발자는 기존 Ethereum 스마트 컨트랙트, 툴, 지갑 등을 그대로 사용할 수 있습니다.
+**USDT0가 가스 토큰인 이유는 무엇인가요?**
 
-## USDT 관련 기능
+이미 거래하고 있는 자산으로 수수료를 지불할 수 있도록 하기 위함입니다. 다른 토큰에 자금을 조달할 필요가 없으며, 수수료는 스테이블 코인으로 표시됩니다. 또한 프로토콜은 보장된 블록 공간과 전송 집계를 통해 USDT0 관련 워크로드를 최적화합니다. [핵심 개념](/ko/explanation/core-concepts)을 참조하세요.
 
-**Stable에서 USDT0를 어떻게 받을 수 있나요?**
+**USDT0는 어떻게 얻나요?**
 
-USDT0는 OFT 표준을 따르기 때문에, LayerZero 브릿지를 통해 다른 네트워크에서 쉽게 Stable로 USDT0를 옮길 수 있습니다.
+- **테스트넷:** [faucet.stable.xyz](https://faucet.stable.xyz)에서 파우셋을 사용하거나, 이더리움 세폴리아에서 테스트 USDT를 브릿지합니다. [테스트넷 USDT0 얻기](/ko/how-to/use-faucet)에서 상세한 과정을 확인하세요.
+- **메인넷:** LayerZero를 통해 다른 체인에서 USDT0를 브릿지하거나, 거래소나 관리인을 통해 얻습니다.
 
-**Stable의 기타 USDT 전용 기능은 무엇이 있나요?**
+**이더리움에서 계약을 포팅할 때 무엇이 변경되나요?**
 
-다음과 같은 기능들이 추가될 예정입니다.
+대부분의 계약은 변경 없이 배포됩니다. 해당되는 경우 수정해야 할 세 가지 사항:
 
-- 보장된 블록스페이스: 기관 사용자가 네트워크 혼잡 여부와 무관하게 예측 가능한 레이턴시와 비용으로 블록 공간을 확보할 수 있도록 합니다
-- USDT 전송 집계: 여러 개의 USDT0 전송을 묶어서 처리하여, 처리량을 향상하고 오버헤드를 감소시킵니다.
-- 기밀 전송: 거래 금액에 대한 프라이버시를 보호하면서도 규제를 준수할 수 있습니다.
+- 내부 변수에 네이티브 잔액을 미러링하지 마세요. `transferFrom`은 계약 호출 없이 네이티브를 소진할 수 있습니다.
+- `address(0)`으로 전송하지 마세요. 네이티브 및 ERC-20 모두 0으로의 전송은 되돌려집니다.
+- `EXTCODEHASH`에 주소 재사용 감지를 의존하지 마세요. Permit 기반 승인은 nonce 증가 없이 네이티브 잔액을 변경합니다.
 
-**Stable Pay이란 무엇인가요?**
+전체 체크리스트: [Stable에서의 USDT0 동작](/ko/explanation/usdt0-behavior).
 
-Stable Pay은 초보자와 고급 사용자 모두를 위한 간단하고 직관적인 탈중앙화 지갑입니다. 소셜 로그인 등으로 쉽게 온보딩할 수 있으며, 기존 지갑도 별도 마이그레이션 없이 연결 가능합니다. 웹과 모바일 모두에서 제공되어, 언제 어디서나 안전한 자산 접근이 가능합니다.
+## 자료
+
+**토큰 경제, 로드맵, 아키텍처는 어디에서 찾을 수 있나요?**
+
+- [토큰 경제](/ko/reference/tokenomics): STABLE 공급, 할당, 베스팅.
+- [기술 로드맵](/ko/explanation/technical-roadmap): 단계별 최적화 계획.
+- [기술 개요](/ko/explanation/tech-overview): StableBFT, Stable EVM, StableDB, RPC 디자인.
+- [USDT 특정 기능](/ko/explanation/usdt-features-overview): 가스, 블록 공간, 집계, 기밀 전송에 대한 세부 정보.
+
+**도움이 필요하면 어디로 가야 하나요?**
+
+- [개발자 지원](/ko/reference/developer-assistance): FAQ 및 참조 포인터.
+- [Discord](https://discord.gg/stablexyz): 커뮤니티 지원 및 프로토콜 업데이트.
+- `bizdev@stable.xyz`: 파트너십 및 통합 대화.
+
+## 다음 권장 사항
+
+- [**빠른 시작**](/ko/tutorial/quick-start): 테스트넷에서 첫 번째 트랜잭션을 전송하세요.
+- [**핵심 개념**](/ko/explanation/core-concepts): 개발을 시작하기 전에 필요한 네 가지 핵심 개념을 학습하세요.
+- [**학습 개요**](/ko/explanation/learn-overview): 개발하려는 항목에 맞는 문서 경로를 선택하세요.
+- [**프로덕션 준비성**](/ko/how-to/production-readiness): 메인넷에 출시하기 전에 통합을 검증하세요.

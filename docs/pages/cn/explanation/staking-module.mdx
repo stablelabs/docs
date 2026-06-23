@@ -1,414 +1,48 @@
 ---
 source_path: explanation/staking-module.mdx
-source_sha: b2ec42174c8f286072288127461ab39c538fd932
-title: 质押模块
-description: "通过 EVM 智能合约进行验证者参与和委托的 Staking 预编译合约。"
+source_sha: 32af1af02985137c678f7ed6d46376607121b6bf
+title: "Stake 模块"
+description: "Stake 预编译合约将委托、解除委托和验证者管理暴露给 EVM 合约，通过授权检查强制执行调用者身份。"
+diataxis: "explanation"
 ---
 
-# 质押模块
+# Stake 模块
 
-## 概述
+`x/staking` 模块控制 Stable 上的验证者参与和委托。它的预编译合约使得这些操作可以从 Solidity 调用，因此合约可以委托 STABLE、在解绑期后解除委托、在验证者之间重新委托或查询验证者状态，而无需离开 EVM。
 
-`staking` 预编译合约作为桥梁，使 Stable SDK 的 `x/staking` 模块功能能在 EVM 环境中使用。
+## 暴露的功能
 
-## 目录
+- **创建验证者**：注册一个新验证者，包括描述、佣金率和初始自我委托。
+- **编辑验证者**：更新验证者元数据和佣金参数。
+- **委托**：将 STABLE 质押给验证者。
+- **解除委托**：开始从验证者解除绑定（代币将在解绑期后可用）。
+- **重新委托**：在不解除绑定的情况下在验证者之间转移质押。
+- **取消解除委托**：在解绑期完成之前取消正在进行的解除绑定。
+- **查询方法**：读取验证者集合、委托记录、解除绑定记录和参数。
 
-1. **[概念](#concepts)**
-2. **[配置](#configuration)**
-3. **[方法](#methods)**
-4. **[事件](#events)**
+## 授权语义
 
-## 概念
+预编译合约执行两个检查：
 
-在 Stable SDK 的 `x/staking` 模块中，必须在链初始化时注册绑定denomination以进行质押。
-验证者和委托者只能使用绑定denomination质押代币。
-在 `staking` 预编译合约中，会进行额外检查以确保验证者或委托者是调用者。
+1. 绑定面额（质押代币）必须在链初始化时注册。在 Stable 上，这是 STABLE 代币。
+2. 调用者必须与被修改状态的验证者或委托者匹配。您不能通过直接调用预编译合约来代表他人进行委托。
 
-## 配置
+## 解绑完成
 
-合约地址和gas费用已预定义。
+当解绑期结束时，代币变得可流通，但 SDK 会悄悄地处理此过程，EVM 不会看到直接事件。Stable 的[系统交易](/cn/explanation/system-transactions)机制弥合了这一点：一旦解绑完成，协议通过 `StableSystem` 预编译合约发出 `UnbondingCompleted` 事件，因此 dApp 可以通过标准 EVM 日志订阅。
 
-### 合约地址
+## 何时使用
 
-- `0x0000000000000000000000000000000000000800`
+- 质押协议通过保险库合约管理委托：当用户存入和取出时调用 `delegate` 和 `undelegate`。
+- 治理仪表板需要一个实时的验证者集合：使用查询方法。
+- 重质押或流动性质押产品跟踪解绑完成：订阅 `UnbondingCompleted` 事件（一旦该指南发布，请参见[跟踪解绑完成](/cn/how-to/track-unbonding)）。
 
-## 方法
+## 何处查找 ABI
 
-### `createValidator`
+完整的方法签名、结构定义和发出的事件在[Stake 预编译合约参考](/cn/reference/staking-module-api)中。
 
-创建一个验证者。
-验证者必须以来自操作员的初始委托创建。
-对于潜在的委托者，验证者应提供他们的信息和佣金率计划。
-委托者可以通过公开信息和市场机制的自然调节来选择验证者委托他们自己的代币。
+## 推荐阅读
 
-当验证者成功注册时，会发出 `CreateValidator` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|description|Description|验证者的信息|
-|commissionRates|CommissionRates|验证者奖励质押代币的佣金率|
-|minSelfDelegation|uint256|验证者的最小自委托金额|
-|validatorAddress|address|验证者的地址|
-|pubkey|string|验证者的公钥|
-|value|uint256|最初自委托给验证者的质押代币数量|
-
-`Description` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|moniker|string|验证者的名称|
-|identity|string|验证者的身份|
-|website|string|验证者网站的URL|
-|securityContact|string|安全联系信息|
-|details|string|验证者的额外描述|
-
-`CommissionRates` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|rate|uint256|验证者获得的当前佣金率|
-|maxRate|uint256|最大佣金率（不能设置得比这更高）|
-|maxChangeRate|uint256|验证者一天内可以更改的最大佣金率|
-
-`rate` 应设置为市场可接受的适当值。
-
-- 如果验证者的佣金率较高，委托者的利润就较低。
-- 如果验证者的佣金率较低，验证者的利润就较低，这使得运营变得困难。
-
-由于高 `maxRate` 会让委托者担心验证者意外设置高佣金率，因此应小心设置 `maxRate`。`maxChangeRate` 在初始化后不可更改。
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果验证者成功注册，则为true|
-
-### `editValidator`
-
-验证者更新其信息。
-验证者只能更新除了 `CommissionRates` 结构中不可更改字段（如 `maxRate` 和 `maxChangeRate`）之外的信息。
-
-当验证者成功更新时，会发出 `EditValidator` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|description|Description|验证者的信息|
-|validatorAddress|address|验证者的地址|
-|commissionRate|int256|验证者奖励质押代币的佣金率|
-|minSelfDelegation|int256|验证者的最小自委托金额|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果验证者成功更新，则为true|
-
-### `delegate`
-
-委托者设置要委托给验证者的代币数量。
-
-当委托成功完成时，会发出 `Delegate` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|validatorAddress|address|验证者的地址|
-|amount|uint256|委托给验证者的质押代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果委托成功完成，则为true|
-
-#### 事件
-
-`newShares` 表示委托者的所有权比例。
-即使委托相同数量的代币，计算出的份额也可能因时间而异。
-
-### `undelegate`
-
-委托者提取委托给验证者的代币数量。
-
-当取消委托成功完成时，会发出 `Unbond` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|validatorAddress|address|验证者的地址|
-|amount|uint256|愿意从验证者那里取消委托的质押代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果取消委托成功完成，则为true|
-
-### `redelegate`
-
-委托者将委托给验证者的代币数量重新委托给另一个验证者。
-
-当重新委托成功完成时，会发出 `Redelegate` 事件。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|validatorSrc|string|源验证者的地址|
-|validatorDst|string|目标验证者的地址|
-|amount|uint256|重新委托的质押代币数量|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|success|bool|如果重新委托成功完成，则为true|
-
-### `delegation`
-
-返回委托者和验证者之间的委托信息。
-如果未找到委托，`shares` 和 `balance` 将为 `0`。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|shares|uint256|委托的份额|
-|balance|Coin|委托代币的数量和denomination|
-
-`Coin` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|denom|string|奖励的denomination|
-|amount|uint256|奖励的数量|
-
-### `unbondingDelegation`
-
-返回委托者和验证者之间的解绑委托信息。
-如果未找到解绑委托，将返回空的 `UnbondingDelegationOutput`。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|unbondingDelegation|UnbondingDelegationOutput|解绑委托的信息|
-
-`UnbondingDelegationOutput` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-|delegatorAddress|address|委托者的地址|
-|entries|UnbondingDelegationEntry[]|解绑委托的条目|
-
-`UnbondingDelegationEntry` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|creationHeight|uint64|条目的创建高度|
-|completionTime|uint64|条目的完成时间|
-|initialBalance|Coin|条目的初始余额|
-|balance|Coin|条目的余额|
-
-### `validator`
-
-返回验证者信息。
-如果未找到验证者，将返回空的 `ValidatorOutput`。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|validatorAddress|address|验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|validator|Validator|验证者的信息|
-
-`Validator` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|operatorAddress|address|验证者的地址|
-|consensusPubkey|string|验证者的公钥|
-|jailed|bool|验证者是否被监禁|
-|status|int32|验证者的状态|
-|tokens|uint256|委托给验证者的质押代币数量|
-|delegatorShares|uint256|委托份额的数量|
-|description|string|验证者的描述|
-|unbondingHeight|int64|验证者解绑的高度|
-|unbondingTime|int64|验证者解绑的时间|
-|commission|uint256|验证者奖励质押代币的佣金率|
-|minSelfDelegation|uint256|验证者的最小自委托金额|
-
-### `validators`
-
-返回所有与状态匹配的验证者。
-如果未找到验证者，将返回空的 `ValidatorsOutput`。
-
-状态在 `x/staking` 模块中声明，可以是以下之一：
-
-- 0 : "BOND_STATUS_UNSPECIFIED", 未指定状态
-- 1 : "BOND_STATUS_UNBONDING", 验证者正在解绑
-- 2 : "BOND_STATUS_UNBONDED", 验证者已解绑
-- 3 : "BOND_STATUS_BONDED", 验证者已绑定
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|status|string|验证者的状态|
-|pageRequest|PageReq|分页请求|
-
-`PageReq` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|key|bytes|页面的键|
-|offset|int64|页面的偏移量|
-|limit|int64|页面的限制|
-|countTotal|bool|是否计算结果总数|
-|reverse|bool|是否反转结果|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|validators|Validator[]|验证者数组|
-|pageResponse|PageResp|分页响应|
-
-`PageResp` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|nextKey|bytes|页面的下一个键|
-|total|uint64|结果的总数|
-
-### `redelegation`
-
-返回委托者、源验证者和目标验证者的重新委托信息。
-如果未找到重新委托，将返回空的 `RedelegationOutput`。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|srcValidatorAddress|address|源验证者的地址|
-|dstValidatorAddress|address|目标验证者的地址|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|redelegation|RedelegationOutput|重新委托的信息|
-
-`RedelegationOutput` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|validatorSrcAddress|address|源验证者的地址|
-|validatorDstAddress|address|目标验证者的地址|
-|entries|RedelegationEntry[]|重新委托的条目|
-
-`RedelegationEntry` 是一个包含以下字段的结构：
-
-|名称|类型|描述|
-|---|---|---|
-|creationHeight|uint64|条目的创建高度|
-|completionTime|uint64|条目的完成时间|
-|initialBalance|Coin|条目的初始余额|
-|balance|Coin|条目的余额|
-
-### `redelegations`
-
-返回委托者、源验证者和目标验证者的所有重新委托。
-如果未找到重新委托，将返回空的 `RedelegationResponse` 和 `PageResp`。
-
-#### 输入参数
-
-|名称|类型|描述|
-|---|---|---|
-|delegatorAddress|address|委托者的地址|
-|srcValidatorAddress|address|源验证者的地址|
-|dstValidatorAddress|address|目标验证者的地址|
-|pageRequest|PageReq|分页请求|
-
-#### 输出参数
-
-|名称|类型|描述|
-|---|---|---|
-|response|RedelegationResponse[]|重新委托的信息|
-|pageResponse|PageResp|分页响应|
-
-## 事件
-
-### CreateValidator
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|valiAddr|address|Y|验证者的地址|
-|value|uint256|N|最初自委托给验证者的质押代币数量|
-
-### EditValidator
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|valiAddr|address|Y|验证者的地址|
-|commissionRate|int256|N|验证者奖励质押代币的更新佣金率|
-|minSelfDelegation|int256|N|验证者的更新最小自委托金额|
-
-### Delegate
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|delegatorAddr|address|Y|委托者的地址|
-|validatorAddr|string|Y|验证者的地址|
-|amount|uint256|N|委托给验证者的质押代币数量|
-|newShares|uint256|N|委托后的委托份额数量|
-
-### Unbond
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|delegatorAddr|address|Y|委托者的地址|
-|validatorAddr|string|Y|验证者的地址|
-|amount|uint256|N|从验证者取消委托的质押代币数量|
-|completionTime|uint256|N|取消委托的完成时间|
-
-### Redelegate
-
-|名称|类型|索引|描述|
-|---|---|---|---|
-|delegatorAddr|address|Y|委托者的地址|
-|validatorSrcAddress|address|Y|源验证者的地址|
-|validatorDstAddress|address|Y|目标验证者的地址|
-|amount|uint256|N|重新委托的质押代币数量|
-|completionTime|uint256|N|重新委托的完成时间|
+- [**Stake 预编译合约参考**](/cn/reference/staking-module-api)：调用 `delegate`、`undelegate`、`redelegate` 并读取验证者状态。
+- [**系统交易**](/cn/explanation/system-transactions)：了解解绑完成如何以事件形式到达 EVM。
+- [**分发模块**](/cn/explanation/distribution-module)：提取此处管理的委托所赚取的奖励。

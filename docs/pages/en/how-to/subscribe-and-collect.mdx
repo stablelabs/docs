@@ -44,7 +44,7 @@ step 5. Subscriber cancels
 
 **Subscriber:**
 
-```
+```text
 ─── Subscriber ───────────────────────────────────────
 // One-time setup: delegate EOA to the subscription contract
 signAuthorization(delegateContract)
@@ -59,7 +59,7 @@ sendTransaction({ to: self, data: cancelSubscription(subscriptionId) })
 
 **Service provider:**
 
-```
+```text
 ─── Service Provider ────────────────────────────────
 // Each billing cycle: collect payment from subscriber's EOA
 // The delegate contract verifies caller, billing schedule, and amount
@@ -384,6 +384,6 @@ The subscriber is authorizing the delegate contract to pull funds from their EOA
 
 ## Next recommended
 
-- [**Subscription billing concept**](/en/reference/subscriptions) — Understand the pull-based billing model.
-- [**Account abstraction**](/en/how-to/account-abstraction) — See how batch payments, spending limits, and session keys combine under one delegation.
-- [**EIP-7702 concept**](/en/explanation/eip-7702) — Review the delegation model that makes this possible.
+- [**Subscription billing concept**](/en/reference/subscriptions): Understand the pull-based billing model.
+- [**Account abstraction**](/en/how-to/account-abstraction): See how batch payments, spending limits, and session keys combine under one delegation.
+- [**EIP-7702 concept**](/en/explanation/eip-7702): Review the delegation model that makes this possible.

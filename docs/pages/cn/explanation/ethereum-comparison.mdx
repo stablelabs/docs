@@ -1,81 +1,81 @@
 ---
 source_path: explanation/ethereum-comparison.mdx
-source_sha: 725ca9815a4f258f89945ec7c668c9729a1652c8
+source_sha: 899ef035bfd583ce5d1f14916e2dbd9df613a7bb
 title: "以太坊对比"
-description: "Stable 完全兼容 EVM。从以太坊移植时哪些保持不变、哪些会改变以及需要注意的事项。"
+description: "Stable 完全兼容 EVM。在从以太坊移植时，哪些保持不变，哪些会改变，以及需要注意什么。"
 diataxis: "explanation"
 ---
 
 # 以太坊对比
 
-Stable 完全兼容 EVM，因此大多数以太坊工具、库和合约模式无需修改即可使用。下面的章节将逐一介绍从以太坊迁移到 Stable 时哪些保持不变、哪些会改变。
+Stable 完全兼容 EVM，因此大多数以太坊工具、库和合约模式都无需修改即可使用。以下部分将介绍从以太坊迁移到 Stable 时哪些保持不变，哪些会改变。
 
-## 哪些保持不变
+## 保持不变的地方
 
-Stable 与以太坊开发生态系统保持完全兼容：
+Stable 保持与以太坊开发生态系统的完全兼容：
 
 | **领域** | **兼容性** |
 | :--- | :--- |
-| 语言 | Solidity、Vyper |
-| 工具 | Hardhat、Foundry |
-| 库 | ethers.js、web3.js |
-| 合约模式 | 所有标准 EVM 约定（ERC-20、ERC-721、ERC-1155、代理等） |
-| RPC 接口 | 支持大多数 `eth_*` 方法（`eth_call`、`eth_sendRawTransaction`、`eth_getBalance`、`eth_getLogs`、`eth_estimateGas` 等）。完整列表请参见 [JSON-RPC API](/cn/reference/json-rpc-api) |
+| 语言 | Solidity, Vyper |
+| 工具 | Hardhat, Foundry |
+| 库 | ethers.js, web3.js |
+| 合约模式 | 所有标准 EVM 约定 (ERC-20, ERC-721, ERC-1155, 代理等) |
+| RPC 接口 | 支持大多数 `eth_*` 方法 (`eth_call`, `eth_sendRawTransaction`, `eth_getBalance`, `eth_getLogs`, `eth_estimateGas` 等)。有关完整列表，请参阅 [JSON-RPC API](/cn/reference/json-rpc-api) |
 
-现有的智能合约、部署脚本和前端集成只需更改 RPC 端点和链 ID 即可面向 Stable。
+通过更改 RPC 端点和链 ID，现有的智能合约、部署脚本和前端集成可以目标 Stable。
 
-## 哪些不同
+## 不同之处
 
 有四种行为与以太坊不同。
 
 ### 1. 单槽最终性
 
-以太坊需要多个区块确认才能将交易视为最终确认。Stable 提供单槽最终性：交易一旦被包含在某个区块中即为最终确认。
+以太坊需要多次区块确认才能认为交易最终确定。Stable 提供单槽最终性：交易一旦包含在区块中即为最终确定。
 
-对开发者而言，这意味着：
+对于开发人员而言，这意味着：
 
-- 交易一旦出现在已确认的区块中，其状态更改即为最终且不可逆转。
+- 一旦交易出现在已确认的区块中，其状态变化就是最终且不可逆的。
 - 应用程序可以安全地依赖区块包含作为结算确认。
 
-即便具备确定性最终性，处理金融敏感流程的应用程序仍应：
+即使是确定性最终性，处理金融敏感流的应用程序也应该：
 
-- 在进行依赖性操作（例如解锁、赎回）之前，通过 RPC 或发出的事件验证交易是否成功。
-- 为自动化和批量操作实现重试和对账逻辑，以处理临时提交或 RPC 错误。
+- 在执行依赖操作（例如，解锁、赎回）之前，通过 RPC 或发出的事件验证交易是否成功。
+- 为自动化和批量操作实施重试和协调逻辑，以处理瞬时提交或 RPC 错误。
 
 ### 2. Gas 代币：USDT0
 
-在 Stable 上，交易费用以 USDT0 支付，而非波动性的原生代币。这提供了以 USDT 计价、可预测的低 gas 成本。
+在 Stable 上，交易费用以 USDT0 支付，而不是波动性原生代币。这提供以 USDT 计价的、可预测的低 Gas 成本。
 
-- 用户需要在其钱包中持有 USDT0 才能提交交易。
-- 交易中的 `value` 字段仍可用于发送 USDT0，类似于在以太坊上发送 ETH 的方式。
-- 详情请参见 [USDT 作为 gas](/cn/explanation/usdt-as-gas-token)。
+- 用户钱包中需要有 USDT0 才能提交交易。
+- 交易中的 `value` 字段仍然可以用于发送 USDT0，类似于以太坊上发送 ETH 的方式。
+- 详情请参阅 [以 USDT 作为 Gas](/cn/explanation/usdt-as-gas-token)。
 
-### 3. 无优先小费
+### 3. 没有优先级小费
 
-Stable 使用单组件 gas 模型。不存在基于小费的交易排序。
+Stable 使用单一组件 Gas 模型。没有基于小费的交易排序。
 
 - `maxPriorityFeePerGas` 被忽略（始终为 0）。
 - 交易排序不受费用竞价影响。
-- 钱包应隐藏或禁用优先小费输入字段。
-- 详情请参见 [Gas 定价](/cn/explanation/gas-pricing)。
+- 钱包应隐藏或禁用优先级小费输入字段。
+- 详情请参阅 [Gas 定价](/cn/explanation/gas-pricing)。
 
 ### 4. USDT0 双重角色行为
 
-USDT0 既作为原生 gas 代币，又作为 ERC-20 代币。这在余额语义、授权安全性以及某些操作码假设方面引入了行为差异。完整详情请参见 [USDT0 在 Stable 上的行为](/cn/explanation/usdt0-behavior)。
+USDT0 既充当原生 Gas 代币，又充当 ERC-20 代币。这导致在余额语义、许可安全性和某些操作码假设方面存在行为差异。有关完整详细信息，请参阅 [Stable 上的 USDT0 行为](/cn/explanation/usdt0-behavior)。
 
-## 快速对比
+## 快速比较
 
 | **参数** | **Stable** | **以太坊** |
 | :--- | :--- | :--- |
 | Gas 代币 | USDT0 | ETH |
 | 最终性 | 单槽 | 多区块确认 |
-| 出块时间 | ~0.7 秒 | ~12 秒 |
-| 优先小费（`maxPriorityFeePerGas`） | 被忽略（始终为 0） | 用于排序 |
+| 区块时间 | ~0.7 秒 | ~12 秒 |
+| 优先级小费 (`maxPriorityFeePerGas`) | 忽略 (始终为 0) | 用于排序 |
 | EIP-1559 交易格式 | 支持 | 支持 |
 | EVM 兼容性 | 完全 | 不适用 |
 
-## 推荐的后续内容
+## 推荐阅读
 
-- [**USDT 作为 gas**](/cn/explanation/usdt-as-gas-token) — 了解取代 ETH 作为 gas 的资产模型。
-- [**Gas 定价**](/cn/explanation/gas-pricing) — 详细了解单组件费用模型。
-- [**USDT0 在 Stable 上的行为**](/cn/explanation/usdt0-behavior) — 针对双重角色资产语义、授权安全性和 `EXTCODEHASH` 行为审计合约。
+- [**以 USDT 作为 Gas**](/cn/explanation/usdt-as-gas-token)：了解用于替代 ETH 作为 Gas 的资产模型。
+- [**Gas 定价**](/cn/explanation/gas-pricing)：详细审查单组件费用模型。
+- [**Stable 上的 USDT0 行为**](/cn/explanation/usdt0-behavior)：审计合约以了解双重角色资产语义、许可安全性和 `EXTCODEHASH` 行为。

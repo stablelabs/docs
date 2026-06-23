@@ -70,7 +70,8 @@ end in `index` (e.g. `-guides`, `-overview`). Do not reach for `-index` as a
   this record plus `docs:build` link-checking: a `sidebar.json` link to the
   intended `/foo-index` fails the build, surfacing the mistake. (A lint rule
   rejecting non-`index.mdx` files ending in `index` would make this active
-  rather than incidental — an open follow-up if it recurs.)
+  rather than incidental — an open follow-up if it recurs. The natural home is
+  now the styleguide checker, [DR005](./DR005_Styleguide_Enforcement.md).)
 
 ## Related
 

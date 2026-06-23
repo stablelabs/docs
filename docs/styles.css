@@ -147,6 +147,83 @@
   display: none;
 }
 
+/* --------------------------- Consent banner ------------------------------ */
+/* Mounted site-wide by the default Layout export (docs/layout.tsx) and shown
+   only until the visitor accepts/declines analytics. Pinned bottom-right,
+   above all content. Accept/Decline are deliberately equal-weight. */
+.stable-consent {
+  position: fixed;
+  z-index: 1000;
+  right: 16px;
+  bottom: 16px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--vocs-color_background2);
+  border: 1px solid var(--vocs-color_border);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+.stable-consent-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--vocs-color_text2);
+}
+.stable-consent-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.stable-consent-btn {
+  padding: 7px 16px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid var(--vocs-color_border2);
+  background: transparent;
+  color: var(--vocs-color_text);
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+.stable-consent-decline:hover {
+  background: var(--vocs-color_background3);
+}
+.stable-consent-accept {
+  border-color: transparent;
+  background: var(--vocs-color_backgroundAccent);
+  color: var(--vocs-color_backgroundAccentText);
+}
+.stable-consent-accept:hover {
+  background: var(--vocs-color_backgroundAccentHover);
+}
+@media (max-width: 480px) {
+  .stable-consent {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}
+
+/* "Cookie preferences" footer control (docs/footer.tsx) to reopen the banner. */
+.stable-footer-consent {
+  margin-top: 12px;
+}
+.stable-consent-link {
+  padding: 0;
+  font-size: 0.8125rem;
+  border: none;
+  background: none;
+  color: var(--vocs-color_text3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.stable-consent-link:hover {
+  color: var(--vocs-color_text);
+}
+
 /* ===========================================================================
    Stable design language — decorative layer.
    Ported from the Mintlify site (dev-docs/style.css), retargeted onto Vocs'

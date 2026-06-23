@@ -1,32 +1,32 @@
 ---
 source_path: explanation/contracts-guides.mdx
-source_sha: d11a9b3683251378d49f56b7994d0f90de10bd7b
+source_sha: 9399f7ec9f6cb709da5f547e311c8bbaa678d941
 title: "컨트랙트 가이드"
-description: "모든 컨트랙트 가이드, 개념, 레퍼런스: 배포 흐름, 시스템 모듈, JSON-RPC 호환성, 이더리움과의 차이점."
+description: "모든 컨트랙트 가이드, 개념 및 레퍼런스: 배포 흐름, 시스템 모듈, JSON-RPC 호환성 및 이더리움과의 차이점."
 diataxis: "explanation"
 ---
 
 # 컨트랙트 가이드
 
-컨트랙트 탭 아래의 모든 가이드, 개념, 레퍼런스를 작업 목적별로 분류했습니다.
+수행하려는 작업에 따라 그룹화된 컨트랙트 탭 아래의 모든 가이드, 개념 및 레퍼런스.
 
 ## 컨트랙트 빌드 및 배포
 
-- [**배포**](/ko/tutorial/smart-contract) — Foundry 프로젝트를 스캐폴딩하고 Counter를 Stable 테스트넷에 배포합니다.
-- [**검증**](/ko/how-to/verify-contract) — Stablescan에 소스를 업로드하여 사용자가 컨트랙트를 읽고 호출할 수 있도록 합니다.
-- [**이벤트 인덱싱**](/ko/how-to/index-contract) — ethers.js로 실시간 이벤트 스트림을 구축하고 과거 데이터를 백필합니다.
+- [**배포**](/ko/tutorial/smart-contract): Foundry 프로젝트 스캐폴드 및 Counter를 Stable 테스트넷에 배포합니다.
+- [**확인**](/ko/how-to/verify-contract): 사용자가 컨트랙트를 읽고 호출할 수 있도록 Stablescan에 소스를 업로드합니다.
+- [**이벤트 인덱싱**](/ko/how-to/index-contract): ethers.js로 라이브 이벤트 스트림 및 과거 데이터 채우기를 구축합니다.
 
 ## 시스템 모듈 호출
 
-- [**시스템 모듈 사용**](/ko/how-to/use-system-modules) — Solidity 또는 ethers.js에서 Bank, Distribution, Staking 프리컴파일을 호출합니다.
-- [**언본딩 완료 추적**](/ko/how-to/track-unbonding) — StableSystem 프리컴파일을 통해 발생하는 UnbondingCompleted 이벤트를 구독합니다.
+- [**시스템 모듈 사용**](/ko/how-to/use-system-modules): Solidity 또는 ethers.js에서 Bank, Distribution 및 Staking 사전 컴파일을 호출합니다.
+- [**언본딩 완료 추적**](/ko/how-to/track-unbonding): StableSystem 사전 컴파일을 통해 방출되는 UnbondingCompleted 이벤트 구독.
 
 ## 레퍼런스
 
-- [**시스템 모듈 레퍼런스**](/ko/reference/system-modules-api-overview) — 프리컴파일 주소 및 모듈별 ABI 포인터.
-- [**JSON-RPC API**](/ko/reference/json-rpc-api) — 지원되는 `eth_*`, `net_*`, `web3_*`, `debug_*` 메서드.
+- [**시스템 모듈 레퍼런스**](/ko/reference/system-modules-api-overview): 사전 컴파일 주소 및 모듈별 ABI 포인터.
+- [**JSON-RPC API**](/ko/reference/json-rpc-api): 지원되는 `eth_*`, `net_*`, `web3_*` 및 `debug_*` 메서드.
 
-## 기초 개념
+## 핵심 개념
 
-- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior) — 이중 역할 잔액, 조정 이벤트, 컨트랙트 설계 규칙.
-- [**이더리움과의 차이점**](/ko/explanation/ethereum-comparison) — 가스 토큰, 최종성, 우선순위 팁, EVM 호환성.
+- [**Stable에서의 USDT0 동작**](/ko/explanation/usdt0-behavior): 이중 역할 잔액, 조정 이벤트 및 컨트랙트 디자인 규칙.
+- [**이더리움과의 차이점**](/ko/explanation/ethereum-comparison): 가스 토큰, 최종성, 우선 순위 팁 및 EVM 호환성.

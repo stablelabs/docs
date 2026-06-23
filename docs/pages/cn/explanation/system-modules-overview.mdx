@@ -1,39 +1,39 @@
 ---
 source_path: explanation/system-modules-overview.mdx
-source_sha: 9fceb608b81d160096165cf2420612413f756df2
+source_sha: e9d156bb03d4413c1981f308ba7c076759d9baa8
 title: "系统模块"
-description: "Stable 通过预编译合约将 Cosmos-SDK 协议模块暴露给 EVM，使 dApp 无需重写即可调用质押、分配和银行操作。"
+description: "从 EVM 调用质押、分发和银行操作。Stable 将 Cosmos-SDK 协议模块作为预编译合约公开，无需重写。"
 diataxis: "explanation"
 ---
 
 # 系统模块
 
-Stable 的核心协议行为位于 SDK 模块中：`x/bank`、`x/distribution`、`x/staking`。为了让这些行为能从 EVM 访问，Stable 将每个模块作为固定地址上的**预编译合约**暴露出来。用 Solidity 编写的合约直接调用预编译，EVM 会将调用路由到原生 SDK 处理程序。预编译在协议层面实现，使其比等效的 Solidity 重新实现显著更省 gas。
+Stable 的核心协议行为存在于 SDK 模块中： `x/bank` 、 `x/distribution` 和 `x/staking` 。为了使 EVM 可以访问此行为，Stable 将每个模块作为**预编译合约**公开在固定地址。用 Solidity 编写的合约直接调用预编译，EVM 将调用路由到原生 SDK 处理程序。预编译是在协议级别实现的，因此它们比等效的 Solidity 重新实现节省了更多的 gas。
 
-## 三个模块
+## 这三个模块
 
 | 模块 | 预编译地址 | 用途 |
 | :--- | :--- | :--- |
-| [Bank](/cn/explanation/bank-module) | `0x0000…1003` (STABLE) | 代币转账、余额记账、授权管理、为授权合约执行铸造/销毁。 |
-| [Distribution](/cn/explanation/distribution-module) | `0x0000…0801` | 质押奖励领取、奖励查询、提取地址管理。 |
-| [Staking](/cn/explanation/staking-module) | `0x0000…0800` | 委托、解除委托、重新委托、验证人查询。 |
-| [系统交易](/cn/explanation/system-transactions) | `0x0000…9999` | 协议为 SDK 层操作（例如解绑完成）发出的 EVM 事件。 |
+| [银行](/cn/explanation/bank-module) | `0x0000…1003` (STABLE) | 代币转账、余额记账、津贴管理、授权合约的铸造/销毁。 |
+| [分发](/cn/explanation/distribution-module) | `0x0000…0801` | 质押奖励认领、奖励查询、提款地址管理。 |
+| [质押](/cn/explanation/staking-module) | `0x0000…0800` | 委托、取消委托、重新委托、验证器查询。 |
+| [系统交易](/cn/explanation/system-transactions) | `0x0000…9999` | SDK 层操作（例如解除绑定完成）的协议发出的 EVM 事件。 |
 
-上面的每个页面都解释了该模块的功能、何时使用以及在哪里找到它的 ABI。
+上面每个页面都解释了模块的功能、何时使用以及在哪里可以找到其 ABI。
 
-## 为什么用预编译，而不是 Solidity
+## 为什么是预编译，而不是 Solidity
 
-两个原因：
+原因有二：
 
-- **Gas 效率。** 预编译运行在协议的原生执行路径中。等效的 Solidity 合约会以显著更高的 gas 成本重新实现相同的逻辑。
-- **单一可信来源。** 质押、分配和代币供应是协议层面的状态。通过预编译暴露这些状态，避免维护一个可能与 SDK 产生偏差的重复 Solidity 实现。
+- **Gas 效率。** 预编译在协议的原生执行路径中运行。等效的 Solidity 合约将重新实现相同的逻辑，但 gas 成本明显更高。
+- **单一事实来源。** 质押、分发和代币供应是协议级状态。通过预编译公开它们可以避免维护重复的 Solidity 实现，这可能会偏离 SDK。
 
 ## 授权
 
-某些预编译方法（`mint`、`burn`、协议层面的质押操作）需要调用方授权。`x/precompile` 模块维护着一个链上白名单，来自未注册合约的调用会被回退。这使得特权操作受治理门控，同时不会阻碍 EVM 对只读/转账方法的常规使用。
+某些预编译方法（`mint`、`burn`、协议级质押操作）需要调用者授权。`x/precompile` 模块维护一个链上白名单，未注册合约的调用会回滚。这使得特权操作受到治理限制，同时不阻止 EVM 对读/转账方法的通用使用。
 
-## 推荐后续阅读
+## 下一步建议
 
-- [**Bank 模块**](/cn/explanation/bank-module) — 了解代币转账、授权以及铸造/销毁授权模型。
-- [**Staking 模块**](/cn/explanation/staking-module) — 了解委托和验证人管理如何到达 EVM。
-- [**系统交易**](/cn/explanation/system-transactions) — 了解解绑完成等协议层面的事件如何以 EVM 日志的形式呈现。
+- [**银行模块**](/cn/explanation/bank-module)：了解代币转账、津贴和铸造/销毁授权模型。
+- [**质押模块**](/cn/explanation/staking-module)：了解委托和验证器管理如何到达 EVM。
+- [**系统交易**](/cn/explanation/system-transactions)：了解解除绑定完成等协议级事件如何作为 EVM 日志显示。

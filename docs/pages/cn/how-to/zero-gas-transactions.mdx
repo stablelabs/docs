@@ -1,56 +1,56 @@
 ---
 source_path: how-to/zero-gas-transactions.mdx
-source_sha: 169da924be4764e0ff38c2b0af2e580ed4508070
-title: "零 gas 交易"
-description: "使用 Stable 的 Gas Waiver 发送一笔不需要用户支付 gas 的 USDT0 转账，并验证收据显示费用为零。"
+source_sha: e339e4b5be06cdca1384f6b51ea54df697194698
+title: "零 Gas 交易"
+description: "使用 Stable 的 Gas Waiver 发送一笔用户无需支付 Gas 的 USDT0 转账，并验证收据是否显示零费用。"
 diataxis: "how-to"
 ---
 
-# 零 gas 交易
+# 零 Gas 交易
 
-Gas Waiver 让应用程序可以代表用户承担 gas 费用。用户使用 `gasPrice = 0` 签署一笔交易，由治理注册的 waiver 将其包装，验证者以零成本为用户执行该调用。本指南将带你完成一笔符合条件的转账，展示如何验证 gas 已被豁免，并解释 waiver 涵盖与不涵盖的范围。
+Gas Waiver 允许应用程序代表用户支付 Gas。用户使用 `gasPrice = 0` 签署交易，经治理注册的豁免机制会封装该交易，验证者将以零成本为用户执行调用。本指南将引导您完成一笔符合条件的转账，展示如何验证 Gas 是否已被豁免，并解释豁免所涵盖和不涵盖的范围。
 
 :::note
-**概念**：关于包装交易机制、授权模型和安全保证，请参阅 [Gas waiver](/cn/explanation/gas-waiver) 和 [Gas waiver 协议参考](/cn/reference/gas-waiver-api)。
+**概念**：有关封装交易机制、授权模型和安全保证，请参阅[Gas 豁免](/cn/explanation/gas-waiver)和[Gas 豁免协议参考](/cn/reference/gas-waiver-api)。
 :::
 
-## 你将构建的内容
+## 您将构建什么
 
-一个两脚本流程，通过托管的 Waiver Server 提交一笔 USDT0 转账，获取收据，并确认 `gasPrice = 0`。
+一个包含两个脚本的流程，通过托管的 Waiver Server 提交 USDT0 转账，获取收据，并确认 `gasPrice = 0`。
 
 ### 演示
 
 ```text
-step 1. Connect wallet, balance displayed as 0.01 USDT0
+步骤 1. 连接钱包，余额显示 0.01 USDT0
 
-step 2. Send transaction via Gas Waiver → [Run]
+步骤 2. 通过 Gas Waiver 发送交易 → [运行]
 
-step 3. Result
-        tx:                   0x8f3a...2d41
-        Gas fee paid by you:  0.000000 USDT0
-        Balance after:        0.01 USDT0
+步骤 3. 结果
+        交易哈希:               0x8f3a...2d41
+        您支付的 Gas 费用: 0.000000 USDT0
+        交易后余额:            0.01 USDT0
 ```
 
-## waiver 何时生效
+## 豁免适用情况
 
-当以下所有条件均满足时，交易符合条件：
+当以下所有条件都满足时，交易才符合条件：
 
 - 用户使用 `gasPrice = 0` 签署内部交易。
-- 提交者是治理注册的 waiver 地址。
-- 目标 `to` 地址和方法选择器位于 waiver 的 `AllowedTarget` 策略中。
-- 包装交易发送到标记地址 `0x000000000000000000000000000000000000f333`，且 `value = 0` 和 `gasPrice = 0`。
+- 提交者是经过治理注册的豁免地址。
+- 目标 `to` 地址和方法选择器位于豁免的 `AllowedTarget` 策略中。
+- 封装交易发送到标记地址 `0x000000000000000000000000000000000000f333`，且 `value = 0` 和 `gasPrice = 0`。
 
-如果其中任何一项不满足，验证者将拒绝该包装交易，不执行内部调用。未列入 `AllowedTarget` 的合约调用不在涵盖范围内。无法进行任意的自助 waiver；每个 waiver 都必须通过验证者治理注册。
+如果其中任何一个失败，验证者将拒绝封装交易，而不执行内部调用。未在 `AllowedTarget` 中列出的合约调用不受涵盖。任意的自助豁免是不可能的；每个豁免都必须通过验证者治理进行注册。
 
-## 前置条件
+## 先决条件
 
-- Waiver Server 的 API 密钥，由 Stable 团队签发。
-- 已在 waiver 的 `AllowedTarget` 策略上注册的目标合约地址和方法选择器。
-- 一个测试网上的用户钱包，无需 USDT0 用于支付 gas。
+- Stable 团队颁发的 Waiver Server API 密钥。
+- 目标合约地址和方法选择器已在豁免的 `AllowedTarget` 策略上注册。
+- 测试网上拥有用户钱包，无需 USDT0 用于 Gas。
 
 ## 步骤 1：签署符合条件的 InnerTx
 
-用户使用 `gasPrice = 0` 签署一笔标准交易。在本示例中，该调用是一笔 USDT0 `transfer`，这是应用程序承担 gas 流程中常见的 `AllowedTarget`。
+用户使用 `gasPrice = 0` 签署标准交易。在此示例中，调用是 USDT0 `transfer`，这是应用程序涵盖的 Gas 流的常见 `AllowedTarget`。
 
 ```typescript
 // config.ts
@@ -113,12 +113,12 @@ Signed InnerTx: 0xf8a8...c1
 ```
 
 :::warning
-`gasPrice` 必须为 `0`。非零值会导致 waiver 服务器拒绝提交，验证者拒绝包装交易。
+`gasPrice` 必须为 `0`。非零值会导致豁免服务器拒绝提交，并导致验证者拒绝封装交易。
 :::
 
 ## 步骤 2：通过 Waiver Server 提交
 
-Waiver Server 会包装已签署的内部交易并广播。你需要一个服务器签发的 API 密钥。
+Waiver Server 会封装签名的内部交易并广播它。您需要一个服务器颁发的 API 密钥。
 
 ```typescript
 // submit.ts
@@ -162,9 +162,9 @@ npx tsx submit.ts
 tx confirmed: 0x8f3a...2d41
 ```
 
-## 步骤 3：验证收据显示零 gas
+## 步骤 3：验证收据显示零 Gas
 
-获取收据并确认 `effectiveGasPrice` 为 0。这就是用户未支付任何 gas 的密码学证明。
+获取收据并确认 `effectiveGasPrice` 为 0。这是用户未支付 Gas 的加密证据。
 
 ```typescript
 // verify.ts
@@ -192,18 +192,18 @@ Effective gas price: 0
 Gas fee paid:        0 USDT0 (wei-equivalent)
 ```
 
-`effectiveGasPrice` 为 `0` 确认了该交易在已注册的 waiver 下执行，且用户未被收费。
+`effectiveGasPrice` 为 `0` 确认交易是在已注册的豁免下执行的，并且未向用户收取费用。
 
 ## Gas Waiver 不涵盖的范围
 
-- **`AllowedTarget` 之外的合约**：任意合约调用不在涵盖范围内。每个目标都通过治理按 waiver 进行限定。
-- **用户提交的包装交易**：如果用户直接提交到 `0x...f333`，将会失败。只有已注册的 waiver 地址才能进行包装。
-- **费用提取**：验证者不接受内部交易或包装交易上任何非零的 `gasPrice`。
+- **`AllowedTarget` 之外的合约**：任意合约调用不在此列。每个目标都通过治理按豁免范围确定。
+- **用户提交的封装交易**：如果用户直接提交给 `0x...f333`，则会失败。只有注册的豁免地址才能进行封装。
+- **费用提取**：验证者不接受内部或封装交易中的非零 `gasPrice`。
 
-关于完整的策略模型和按 waiver 的范围规则，请参阅 [Gas waiver 协议](/cn/reference/gas-waiver-api)。
+有关完整的策略模型和每个豁免的范围规则，请参阅[Gas 豁免协议](/cn/reference/gas-waiver-api)。
 
-## 推荐的后续步骤
+## 下一步建议
 
-- [**集成 Waiver Server**](/cn/how-to/integrate-gas-waiver) — 完整的 API 参考、批量提交、错误码和 NDJSON 流式传输。
-- [**自托管 Gas Waiver**](/cn/how-to/self-hosted-gas-waiver) — 注册你自己的 waiver 地址，无需托管 API 即可广播包装交易。
-- [**Gas waiver 协议**](/cn/reference/gas-waiver-api) — 阅读完整规范：标记路由、包装格式、治理控制。
+- [**集成 Waiver Server**](/cn/how-to/integrate-gas-waiver)：完整的 API 参考、批量提交、错误代码和 NDJSON 流。
+- [**自托管 Gas Waiver**](/cn/how-to/self-hosted-gas-waiver)：注册您自己的豁免地址，无需托管 API 即可广播封装交易。
+- [**Gas 豁免协议**](/cn/reference/gas-waiver-api)：阅读完整规范：标记路由、封装格式、治理控制。

@@ -42,7 +42,7 @@ step 4. Reconciliation
 
 **Buyer:**
 
-```
+```text
 ─── Buyer ───────────────────────────────────────────
 nonce = getInvoiceNonce(invoice)
 authorization = { from: buyer, to: vendor, value: amount, nonce, ... }
@@ -57,7 +57,7 @@ usdt0.transferWithAuthorization(authorization, signature)
 
 **Vendor:**
 
-```
+```text
 ─── Vendor ──────────────────────────────────────────
 // If Option B: submit transferWithAuthorization using the buyer's signature
 
@@ -409,6 +409,6 @@ Never retry a failed submission without classifying the error. Blind retries on 
 
 ## Next recommended
 
-- [**Invoice settlement concept**](/en/reference/invoices) — Understand the deterministic-nonce reconciliation model.
-- [**ERC-3009**](/en/explanation/erc-3009) — Review the signed-authorization standard behind this flow.
-- [**Enable gas-free transactions**](/en/how-to/integrate-gas-waiver) — Combine with Gas Waiver to eliminate gas from the settlement path.
+- [**Invoice settlement concept**](/en/reference/invoices): Understand the deterministic-nonce reconciliation model.
+- [**ERC-3009**](/en/explanation/erc-3009): Review the signed-authorization standard behind this flow.
+- [**Enable gas-free transactions**](/en/how-to/integrate-gas-waiver): Combine with Gas Waiver to eliminate gas from the settlement path.

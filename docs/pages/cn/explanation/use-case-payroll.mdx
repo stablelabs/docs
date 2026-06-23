@@ -1,27 +1,27 @@
 ---
 source_path: explanation/use-case-payroll.mdx
-source_sha: ed009fb2792af92e0a8a47e182f31875bd4f6e60
-title: "薪资发放与批量支付"
-description: "Stable 如何通过批量结算、预留区块空间和金额屏蔽来处理大批量支付。"
+source_sha: 354e35fd7b7a6c13e98c31a2a409b2ba69fd1e35
+title: "薪资与大规模支付"
+description: "Stable 如何通过批量结算、预留区块空间和屏蔽金额来处理大批量支付。"
 diataxis: "explanation"
 ---
 
-# 薪资发放与批量支付
+# 薪资与大规模支付
 
-为员工、承包商和供应商进行大规模支付，具备可预测的吞吐量、可预测的成本，并为敏感金额提供隐私保护。
+大规模支付员工、承包商和供应商，具有可预测的吞吐量、可预测的成本以及对敏感金额的隐私保护。
 
-## 问题所在
+## 问题
 
-大批量稳定币支付在共享链上会触及单笔交易吞吐量限制。成本会随网络拥堵而波动，因此昨天还能低成本完成的薪资发放，今天可能就会成本飙升。除此之外，薪资和供应商金额对任何观察链上情况的人都是公开可见的，这会泄露具有商业敏感性的数据。
+大批量稳定币支付在共享链上会遇到每笔交易的吞吐量限制。成本随网络拥塞而波动，因此昨天低成本完成的薪资支付今天可能会飙升。最重要的是，薪资和供应商金额对任何关注链的人都是公开可见的，这会泄露商业敏感数据。
 
 ## Stable 如何解决
 
-- **USDT 转账聚合器将大批量转账批处理为并行化的结算捆绑包**，因此单次发放不会受到单笔交易开销的瓶颈限制。参见 [USDT 转账聚合器](/cn/explanation/usdt-transfer-aggregator)。
-- **保障区块空间为已注册的合作伙伴在每个区块中提供预留容量**，因此无论网络在做什么，纳入和成本都保持可预测。参见 [保障区块空间](/cn/explanation/guaranteed-blockspace)。
-- **机密转账使用零知识密码学屏蔽金额**，因此薪资和供应商发放不会在链上公布敏感数字。参见 [机密转账](/cn/explanation/confidential-transfer)。
+- **USDT 传输聚合器将大批量传输打包成并行结算捆绑包**，因此单次运行不会受每笔交易开销的瓶颈限制。请参阅[USDT 传输聚合器](/cn/explanation/usdt-transfer-aggregator)。
+- **保证的区块空间为注册合作伙伴提供每个区块的预留容量**，因此无论网络正在做什么，包含和成本都保持可预测。请参阅[保证的区块空间](/cn/explanation/guaranteed-blockspace)。
+- **保密传输使用零知识加密屏蔽金额**，因此薪资和供应商支付不会在链上发布敏感数字。请参阅[保密传输](/cn/explanation/confidential-transfer)。
 
-## 后续推荐
+## 下一步建议
 
-- [**USDT 转账聚合器**](/cn/explanation/usdt-transfer-aggregator) — 了解大批量 USDT0 转账如何批处理为并行化的结算捆绑包。
-- [**保障区块空间**](/cn/explanation/guaranteed-blockspace) — 了解已注册的合作伙伴如何在每个区块中获得预留容量。
-- [**机密转账**](/cn/explanation/confidential-transfer) — 了解 ZK 密码学如何屏蔽转账金额，同时保持各方可审计。
+- [**USDT 传输聚合器**](/cn/explanation/usdt-transfer-aggregator)：了解大批量 USDT0 传输如何打包成并行结算捆绑包。
+- [**保证的区块空间**](/cn/explanation/guaranteed-blockspace)：了解注册合作伙伴如何确保每个区块的预留容量。
+- [**保密传输**](/cn/explanation/confidential-transfer)：查看零知识加密如何屏蔽传输金额，同时保持各方可审计。

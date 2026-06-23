@@ -1,46 +1,46 @@
 ---
 source_path: how-to/pay-with-mcp.mdx
-source_sha: 355c978d02f66d687a3bee1cb0f49dc3558381a9
-title: "通过 MCP 服务器付款"
-description: "通过 MCP 服务器将启用 x402 的 API 连接到 AI 客户端。用户通过提示词为 API 调用付费，无需直接管理钱包或支付流程。"
+source_sha: bdf458199e0866324d1f3d08253609bea9b2236f
+title: "使用 MCP 服务器支付"
+description: "通过 MCP 服务器将启用 x402 的 API 连接到 AI 客户端。用户通过提示为 API 调用付费，而无需直接管理钱包或支付流程。"
 diataxis: "how-to"
 ---
 
-# 通过 MCP 服务器付款
+# 使用 MCP 服务器支付
 
-本指南展示如何将启用 x402 的 API 桥接到 [MCP](https://modelcontextprotocol.io) 工具，使 AI 客户端能够通过自然语言提示词调用并为其付费。它基于 [构建按调用付费 API](/cn/how-to/build-pay-per-call) 中的服务器构建。
+本指南展示了如何将启用 x402 的 API 桥接到 [MCP](https://modelcontextprotocol.io) 工具，以便 AI 客户端可以通过自然语言提示调用并支付它们。它基于 [构建按次付费 API](/cn/how-to/build-pay-per-call) 中的服务器。
 
-## 你将构建的内容
+## 您将构建什么
 
-一个将 x402 付费端点封装为工具的 MCP 服务器。AI 客户端输入自然语言提示词，每次工具调用都会触发一次付费的 x402 请求，结算可在 Stablescan 上查看。用户永远不会看到钱包提示。
+一个 MCP 服务器，它将支持 x402 付费的端点封装为工具。AI 客户端输入自然语言提示，每次工具调用都会触发付费的 x402 请求，并且结算可在 Stablescan 上查看。用户永远不会看到钱包提示。
 
 ### 演示
 
 ```text
-step 1. User in Claude: "Pull financials for ACME Corp and assess credit risk."
+步骤 1. Claude 中的用户："提取 ACME Corp 的财务数据并评估信用风险。"
 
-step 2. Client calls get_company_financials("ACME")
-        → MCP handler: fetchWithPayment("/financials?ticker=ACME")
-        → 402 Payment Required → sign ERC-3009 → retry
-        → Facilitator settles $0.01 USDT0 on-chain
-        → tx: 0x8f3a...aaaa
+步骤 2. 客户端调用 get_company_financials("ACME")
+        → MCP 处理程序：fetchWithPayment("/financials?ticker=ACME")
+        → 402 Payment Required → 签署 ERC-3009 → 重试
+        → 协调器链上结算 $0.01 USDT0
+        → 交易：0x8f3a...aaaa
         → 200 OK { revenue, debt_ratio, cash_flow }
 
-step 3. Client calls assess_credit_risk(financials)
-        → MCP handler: fetchWithPayment("/credit-risk", POST)
-        → Facilitator settles $0.05 USDT0 on-chain
-        → tx: 0x9bc4...bbbb
+步骤 3. 客户端调用 assess_credit_risk(financials)
+        → MCP 处理程序：fetchWithPayment("/credit-risk", POST)
+        → 协调器链上结算 $0.05 USDT0
+        → 交易：0x9bc4...bbbb
         → 200 OK { score: 72, rating: "moderate" }
 
-step 4. Claude responds:
-        "ACME Corp has a credit risk score of 72 (moderate). Revenue is stable
-        but debt-to-equity ratio is elevated at 1.8x..."
+步骤 4. Claude 回答：
+        "ACME Corp 的信用风险评分为 72（中等）。收入稳定，
+        但债股比率升至 1.8 倍..."
 ```
 
-两个 `tx` 值均可在 [https://stablescan.xyz](https://stablescan.xyz) 上查看。
+两个 `tx` 值都可以在 [https://stablescan.xyz](https://stablescan.xyz) 上看到。
 
 :::note
-**为代理钱包注资**：MCP 服务器使用你控制的助记词来签署支付。在启动服务器之前，请为该钱包在主网上注入 USDT0。至少 `$0.10` 的余额可以支付多次付费调用；`$1.00` 足以进行长时间测试。需要时，可以使用标准的 USDT0 转账向该钱包地址充值。
+**代理钱包资金**：MCP 服务器使用您控制的助记词签署付款。在启动服务器之前，请将该钱包与主网上的 USDT0 资金同步。至少 `$0.10` 的余额足以支付多次付费调用；`$1.00` 足以进行长时间测试。根据需要使用标准 USDT0 转账到钱包地址进行充值。
 :::
 
 ## 概述
@@ -49,7 +49,7 @@ step 4. Claude responds:
 
 ```typescript
 // --- MCP Server ---
-// Bridge x402-enabled APIs to MCP tools
+// 将启用 x402 的 API 桥接到 MCP 工具
 tools = {
   "get_company_financials": {
     handler: (ticker) =>
@@ -67,30 +67,30 @@ tools = {
 
 **用户（通过 AI 客户端）：**
 
+```text
+─── AI 客户端 ─────────────────────────────────
+用户："提取 ACME Corp 的财务数据并评估其信用风险。"
+
+客户端调用 get_company_financials 工具
+  → MCP 服务器发送 x402 付费请求
+  → 协调器链上结算 USDT0
+  → API 返回财务数据
+
+客户端使用结果调用 assess_credit_risk 工具
+  → MCP 服务器发送 x402 付费请求
+  → 协调器链上结算 USDT0
+  → API 返回风险评估
+  → 客户端回复合并结果
 ```
-─── AI Client ───────────────────────────────────────
-User: "Pull financials for ACME Corp and assess their credit risk."
 
-Client calls get_company_financials tool
-  → MCP server sends x402 paid request
-  → Facilitator settles USDT0 on-chain
-  → API returns financial data
+## 先决条件
 
-Client calls assess_credit_risk tool with the result
-  → MCP server sends x402 paid request
-  → Facilitator settles USDT0 on-chain
-  → API returns risk assessment
-  → Client responds with the combined result
-```
+- 运行中的 x402 服务器（请参阅 [构建按次付费 API](/cn/how-to/build-pay-per-call)）。
+- 兼容 MCP 的 AI 客户端（Claude Desktop、Claude Code 等）。
 
-## 前提条件
+## 步骤 1：创建 MCP 服务器
 
-- 一个正在运行的 x402 服务器（参见 [构建按调用付费 API](/cn/how-to/build-pay-per-call)）。
-- 一个兼容 MCP 的 AI 客户端（Claude Desktop、Claude Code 等）。
-
-## 第 1 步：创建 MCP 服务器
-
-MCP 服务器充当 AI 客户端与启用 x402 的 API 之间的桥梁。每个工具使用 x402 客户端 SDK 发起付费请求并返回结果。
+MCP 服务器充当 AI 客户端和支持 x402 的 API 之间的桥梁。每个工具都使用 x402 客户端 SDK 发送付费请求并返回结果。
 
 ```bash
 npm install @modelcontextprotocol/sdk @x402/fetch @x402/evm @tetherto/wdk-wallet-evm
@@ -105,7 +105,7 @@ import { x402Client, wrapFetchWithPayment } from "@x402/fetch";
 import { registerExactEvmScheme } from "@x402/evm/exact/client";
 import { z } from "zod";
 
-// --- Wallet and x402 client ---
+// --- 钱包和 x402 客户端 ---
 const account = await new WalletManagerEvm(process.env.SEED_PHRASE!, {
   provider: "https://rpc.stable.xyz",
 }).getAccount(0);
@@ -114,10 +114,10 @@ const client = new x402Client();
 registerExactEvmScheme(client, { signer: account });
 const fetchWithPayment = wrapFetchWithPayment(fetch, client);
 
-// --- x402 API base URL ---
+// --- x402 API 基础 URL ---
 const API_BASE = process.env.API_BASE || "http://localhost:4021";
 
-// --- MCP server ---
+// --- MCP 服务器 ---
 const server = new McpServer({
   name: "x402-payments",
   version: "1.0.0",
@@ -125,8 +125,8 @@ const server = new McpServer({
 
 server.tool(
   "get_company_financials",
-  "Get company financial data by ticker (paid endpoint, $0.01 per call)",
-  { ticker: z.string().describe("Company ticker symbol (e.g. ACME)") },
+  "通过股票代码获取公司财务数据（付费端点，每次调用 $0.01）",
+  { ticker: z.string().describe("公司股票代码 (例如 ACME)") },
   async ({ ticker }) => {
     const response = await fetchWithPayment(`${API_BASE}/financials?ticker=${ticker}`);
     const data = await response.json();
@@ -136,8 +136,8 @@ server.tool(
 
 server.tool(
   "assess_credit_risk",
-  "Assess credit risk from financial data (paid endpoint, $0.05 per call)",
-  { financials: z.string().describe("JSON string of company financial data") },
+  "根据财务数据评估信用风险（付费端点，每次调用 $0.05）",
+  { financials: z.string().describe("公司财务数据的 JSON 字符串") },
   async ({ financials }) => {
     const response = await fetchWithPayment(`${API_BASE}/credit-risk`, {
       method: "POST",
@@ -151,30 +151,30 @@ server.tool(
 
 server.tool(
   "check_balance",
-  "Check the USDT0 balance of the payment wallet",
+  "检查支付钱包的 USDT0 余额",
   {},
   async () => {
     const USDT0_STABLE = "0x779Ded0c9e1022225f8E0630b35a9b54bE713736";
     const balance = await account.getTokenBalance(USDT0_STABLE);
     const formatted = (Number(balance) / 1e6).toFixed(2);
     return {
-      content: [{ type: "text", text: `Wallet balance: ${formatted} USDT0` }],
+      content: [{ type: "text", text: `钱包余额：${formatted} USDT0` }],
     };
   },
 );
 
-// --- Start ---
+// --- 启动 ---
 const transport = new StdioServerTransport();
 await server.connect(transport);
 ```
 
-每个工具处理程序都会调用 `fetchWithPayment`，它会自动处理完整的 x402 支付流程。AI 客户端只能看到工具名称、描述和参数。
+每个工具处理程序都会调用 `fetchWithPayment`，它会自动处理完整的 x402 支付周期。AI 客户端只看到工具名称、描述和参数。
 
-## 第 2 步：配置你的 AI 客户端
+## 步骤 2：配置您的 AI 客户端
 
-将 MCP 服务器添加到你的 AI 客户端配置中。
+将 MCP 服务器添加到您的 AI 客户端配置中。
 
-**Claude Desktop**（`claude_desktop_config.json`）：
+**Claude Desktop** (`claude_desktop_config.json`):
 
 ```json
 {
@@ -183,7 +183,7 @@ await server.connect(transport);
       "command": "npx",
       "args": ["tsx", "/path/to/mcp-server.ts"],
       "env": {
-        "SEED_PHRASE": "your seed phrase here",
+        "SEED_PHRASE": "您的助记词",
         "API_BASE": "https://api.example.com"
       }
     }
@@ -191,51 +191,51 @@ await server.connect(transport);
 }
 ```
 
-**Claude Code：**
+**Claude Code:**
 
 ```bash
 claude mcp add x402-payments -- npx tsx /path/to/mcp-server.ts
 ```
 
-配置完成后，重启你的 AI 客户端。这些工具应该会出现在可用工具列表中。
+配置后，重启您的 AI 客户端。工具应该出现在可用工具列表中。
 
 :::warning
-MCP 配置中的助记词控制着真实资金。请使用你的操作系统密钥链或密钥管理器安全地存储它，而不是放在明文配置文件中。
+MCP 配置中的助记词控制着真实的资金。请使用您的操作系统密钥链或秘密管理器安全地存储它，而不是以纯文本配置文件形式。
 :::
 
-## 第 3 步：输入提示词并使用
+## 步骤 3：输入提示并使用它
 
-配置完成后，AI 客户端可以通过用户的提示词调用付费 API：
+配置后，AI 客户端可以通过用户的提示调用付费 API：
 
-**用户：**"拉取 ACME Corp 的财务数据并评估他们的信用风险。"
+**用户：**"提取 ACME Corp 的财务数据并评估其信用风险。"
 
-1. 客户端调用 `get_company_financials("ACME")`：通过 x402 支付 $0.01。返回营收、负债率、现金流等。
+1. 客户端调用 `get_company_financials("ACME")`：通过 x402 支付 $0.01。返回收入、负债率、现金流等。
 2. 客户端调用 `assess_credit_risk(financials)`：通过 x402 支付 $0.05。返回风险评分、评级、关键因素。
-3. 客户端响应："ACME Corp 的信用风险评分为 72（中等）。营收稳定，但负债权益比偏高，为 1.8 倍……"
+3. 客户端回复："ACME Corp 的信用风险评分为 72（中等）。收入稳定，但债股比率升至 1.8 倍..."
 
-各个工具也可以单独使用：
+单个工具也可以独立工作：
 
-- "拉取 ACME Corp 的财务数据" 调用 `get_company_financials`（$0.01）。
-- "评估这些数据的信用风险" 调用 `assess_credit_risk`（$0.05）。
-- "我还剩多少 USDT0？" 调用 `check_balance`。
+- "提取 ACME Corp 的财务数据" 调用 `get_company_financials` ($0.01)。
+- "评估此数据的信用风险" 调用 `assess_credit_risk` ($0.05)。
+- "我还有多少 USDT0？" 调用 `check_balance`。
 
-用户不会与钱包、签名或支付流程交互。MCP 服务器会透明地为每次工具调用处理支付。
+用户无需与钱包、签名或支付流程进行交互。MCP 服务器透明地处理每个工具调用的支付。
 
-## 支出控制
+## 消费控制
 
-为防止意外支出，请考虑为 MCP 服务器添加控制措施。
+为防止意外消费，请考虑向 MCP 服务器添加控制。
 
 ```typescript
-const MAX_PER_CALL = 100_000;   // $0.10 in base units
-const MAX_PER_SESSION = 5_000_000; // $5.00 in base units
+const MAX_PER_CALL = 100_000;   // 以基本单位计 $0.10
+const MAX_PER_SESSION = 5_000_000; // 以基本单位计 $5.00
 let sessionSpent = 0n;
 
 function checkSpendingLimit(amount: bigint) {
   if (amount > BigInt(MAX_PER_CALL)) {
-    throw new Error(`Amount exceeds per-call limit of $${MAX_PER_CALL / 1e6}`);
+    throw new Error(`金额超出单次调用上限 $${MAX_PER_CALL / 1e6}`);
   }
   if (sessionSpent + amount > BigInt(MAX_PER_SESSION)) {
-    throw new Error(`Session spending limit of $${MAX_PER_SESSION / 1e6} reached`);
+    throw new Error(`会话消费上限 $${MAX_PER_SESSION / 1e6} 已达到`);
   }
   sessionSpent += amount;
 }
@@ -245,6 +245,6 @@ function checkSpendingLimit(amount: bigint) {
 
 ## 接下来推荐
 
-- [**构建按调用付费 API**](/cn/how-to/build-pay-per-call) — 设置此 MCP 服务器所桥接的 x402 服务器。
-- [**x402 概念**](/cn/explanation/x402) — 了解这些支付背后的结算协议。
-- [**使用 AI 开发**](/cn/how-to/develop-with-ai) — 将 Stable 的文档和运行时 MCP 服务器接入同一个 AI 客户端。
+- [**构建按次付费 API**](/cn/how-to/build-pay-per-call)：设置此 MCP 服务器桥接的 x402 服务器。
+- [**x402 概念**](/cn/explanation/x402)：回顾这些支付背后的结算协议。
+- [**使用 AI 开发**](/cn/how-to/develop-with-ai)：将 Stable 的文档和运行时 MCP 服务器连接到同一个 AI 客户端。

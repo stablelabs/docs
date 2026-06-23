@@ -10,8 +10,12 @@ on:
     paths:
       - 'docs/pages/**'
       - 'docs/sidebar.json'
+      - 'docs/lib/structured-data.ts'
       - 'docs/lib/verify-i18n.mjs'
+      - 'docs/lib/verify-structured-data.mts'
       - 'docs/i18n-allowlist.json'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
 
 jobs:
@@ -24,9 +28,25 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+      - name: Detect changed en pages
+        id: changed-en
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$BASE"...HEAD -- 'docs/pages/en' | grep -q '\.mdx$'; then
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          fi
       # Blocks the PR when any en page is missing a translation.
       - name: Check translation parity
         run: npm run i18n:check
+      # When English source changed, translations must be fresh before merge.
+      - name: Check changed English translations strictly
+        if: steps.changed-en.outputs.changed == 'true'
+        run: npm run i18n:check:strict
+      - name: Check structured data
+        run: npm run structured-data:check
       # Catches broken internal links and missing sidebar targets in every locale.
       - name: Build docs
         run: npm run docs:build
