@@ -41,7 +41,7 @@ console.log(txHash);
 
 ## Browser-side: `Transport` from a wallet
 
-Pass `custom(window.ethereum)` (or any EIP-1193 provider) as `transport`. The SDK builds the `WalletClient` and reads the signer address from the provider.
+Pass `custom(window.ethereum)` (or any EIP-1193 provider) as `transport`. The SDK builds a `WalletClient` from the transport and signs as the `from` address you pass to `transfer`.
 
 ```ts
 import { createStable, Network } from "@stablechain/sdk";
@@ -64,6 +64,10 @@ const { txHash } = await stable.transfer({
 ```text
 0x8f3a...2d41
 ```
+
+:::warning
+Transport mode covers `transfer` only, because `transfer` takes an explicit `from`. `swap`, `quoteSwap`, `bridge`, and the `earn` methods read the signer address from `account` or `walletClient` and throw `StableValidationError` when neither is set. For those, build a `WalletClient` from the same provider instead (next section).
+:::
 
 :::warning
 `transfer`, `bridge`, and `swap` call `switchChain` to put the wallet on the right network. If the user rejects, the SDK throws `StableTransactionError` with `phase: "switch_chain"`. Catch it and surface a retry to the user.
@@ -102,7 +106,7 @@ const { txHash } = await stable.transfer({ from, to: "0xRecipient", amount: 5 })
 | **Mode** | **Use when** |
 | :--- | :--- |
 | `account` | Backend services, scripts, agents, anywhere you hold the key. |
-| `transport` | Browser apps where the user signs with MetaMask or a wagmi-less custom flow. |
+| `transport` | Browser apps that only call `transfer` with an explicit `from`. |
 | `walletClient` | You already have a configured `WalletClient` (wagmi, RainbowKit, ConnectKit). |
 
 ## Next recommended

@@ -1,0 +1,176 @@
+---
+title: "Earn yield with the SDK"
+description: "Deposit USDT0 into a Morpho vault with the Stable SDK, read your APY and position, withdraw, and claim Merkl rewards."
+diataxis: "how-to"
+---
+
+# Earn yield with the SDK
+
+Supply USDT0 into a Morpho V2 vault on Stable mainnet to earn yield, then read your position and withdraw. The `@stablechain/sdk` `earn` methods handle the ERC-20 approval, the deposit, and adapter deallocations on withdrawal, so you call one method per action.
+
+Two clients are involved. `createStable` gives you a signing client for deposits and withdrawals. `createStableReader` gives you a read-only client for APY, position, and withdrawability, with no signer.
+
+## Prerequisites
+
+- Node.js 20 or later, and `@stablechain/sdk` plus `viem` installed. See the [SDK quickstart](/en/tutorial/sdk-quickstart).
+- A signer with USDT0 on Stable mainnet. To move funds in, use [`stable.bridge`](/en/reference/sdk#bridgeparams) or one of the [supported bridges](/en/reference/bridges).
+- The vault address. The SDK exports the default mainnet vault as `STABLE_VAULT_ADDRESS`.
+
+:::note
+The earn examples run on mainnet. The SDK ships no testnet vault address, so `Network.Testnet` only works with a vault you deploy yourself.
+:::
+
+## 1. Create a signing client with a vault
+
+Pass `earn: { vault }` to `createStable`. Without it, the deposit and withdraw methods throw `StableValidationError`.
+
+```ts
+import { createStable, Network, STABLE_VAULT_ADDRESS } from "@stablechain/sdk";
+import { privateKeyToAccount } from "viem/accounts";
+
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
+
+const stable = createStable({
+  network: Network.Mainnet,
+  account,
+  earn: { vault: STABLE_VAULT_ADDRESS },
+});
+```
+
+```text
+StableClient { transfer, quoteBridge, bridge, quoteSwap, swap, earn }
+```
+
+## 2. Check the APY before depositing
+
+Create a read-only reader and fetch the vault's current net APY. The reader needs the address you want to read and the vault, but no signer.
+
+```ts
+import { createStableReader } from "@stablechain/sdk";
+
+const reader = createStableReader({
+  network: Network.Mainnet,
+  address: account.address,
+  earn: { vault: STABLE_VAULT_ADDRESS },
+});
+
+const { apy, native, rewards } = await reader.earn.getYield();
+console.log("Net APY:", (apy * 100).toFixed(2) + "%");
+```
+
+```text
+Net APY: 5.80%
+```
+
+`apy` is the total net APY after fees, including reward boosts. `native` is the underlying market yield on its own, and `rewards` breaks out each reward token's APR contribution. All values are decimals, so `0.058` is 5.8%.
+
+To estimate what an amount earns over time, use `preview`:
+
+```ts
+const { projectedYield } = await reader.earn.preview({ amount: 1000, horizonDays: 30 });
+console.log("30-day projection on 1000:", projectedYield.toFixed(2));
+```
+
+```text
+30-day projection on 1000: 4.64
+```
+
+## 3. Deposit
+
+Supply assets to the vault. The SDK sends the approval (or a permit signature when the wallet supports it), then the deposit, and waits for the receipt.
+
+```ts
+const { txHash } = await stable.earn.deposit({ amount: 100 });
+console.log("Deposit:", txHash);
+```
+
+```text
+Deposit: 0x8f3a...2d41
+```
+
+Amounts are human-readable. The underlying asset decimals are fetched on-chain unless you pass `tokenDecimals`. To cap how much of the vault's idle liquidity a single deposit consumes, pass `depositBuffer` (for example `0.8` for 80%); the SDK throws before sending if the amount exceeds the cap.
+
+:::tip
+Pass an `idempotencyKey` to make a deposit safe to retry. If a call with the same key is already in flight, the SDK returns the same Promise instead of sending a second transaction.
+:::
+
+## 4. Read your position
+
+Fetch your share balance and its current asset value.
+
+```ts
+const position = await reader.earn.position();
+console.log("Shares:", position.sharesFormatted, "worth", position.assets);
+```
+
+```text
+Shares: 100 worth 100.02
+```
+
+`shares` is the raw balance and `sharesFormatted` is its human value. `assets` is what those shares are worth in underlying units right now.
+
+## 5. Withdraw or redeem
+
+Withdraw a specific amount of underlying assets, or redeem a number of shares. When the vault's idle liquidity is short, the SDK automatically deallocates from the vault's adapters to cover the difference.
+
+```ts
+const { txHash } = await stable.earn.withdraw({ amount: 50 });
+console.log("Withdraw:", txHash);
+```
+
+```text
+Withdraw: 0xabcd...7890
+```
+
+To redeem by share count instead, use `stable.earn.redeem({ shares: 25 })`. To check first whether an amount can come out instantly, call the reader:
+
+```ts
+const { isInstant, availableLiquidity } = await reader.earn.withdrawability({ amount: 50 });
+console.log("Instant:", isInstant, "available:", availableLiquidity);
+```
+
+```text
+Instant: true available: 12500.5
+```
+
+When `isInstant` is `false`, the withdrawal still succeeds; it just requires an adapter deallocation, which `withdraw` and `redeem` handle for you. For manual control over which adapters to pull from, use [`forceWithdraw` / `forceRedeem`](/en/reference/sdk#forcewithdrawparams--forceredeemparams).
+
+## 6. Claim incentive rewards
+
+Vaults can earn Merkl reward tokens on top of native yield. Fetch pending rewards, then claim them. These methods need a signer but not the `earn` vault config.
+
+```ts
+const { rewards } = await stable.earn.incentiveRewards.fetch();
+if (rewards.length > 0) {
+  const { txHash, tokenCount } = await stable.earn.incentiveRewards.claim();
+  console.log("Claimed", tokenCount, "token(s):", txHash);
+}
+```
+
+```text
+Claimed 1 token(s): 0xabcd...7890
+```
+
+:::note
+Merkl commits rewards to its merkle tree roughly every two hours. Rewards still pending that update cannot be claimed yet, and calling `claim()` with nothing claimable throws `StableValidationError`. From a browser, set `merklApiBase` to a proxy on your own server to avoid CORS limits on the Merkl API.
+:::
+
+## Don't sign in the SDK?
+
+If you sign transactions elsewhere (a relayer, a gas-waiver flow, or a multisig), build the calldata without sending it:
+
+```ts
+const { steps, chainId } = await stable.earn.prepareDepositCalldata({ amount: 100 });
+```
+
+```text
+{ steps: [ { to: "0x...", data: "0x...", value: 0n } ], chainId: 988 }
+```
+
+`steps` is an ordered list of transactions, an optional approval followed by the deposit. `prepareWithdrawCalldata` and `prepareRedeemCalldata` each return a single `{ to, data, value, chainId }` transaction.
+
+## Where to go next
+
+- [**SDK reference**](/en/reference/sdk#stableearn): Every earn parameter, return type, and the reader methods in full.
+- [**Use with wagmi**](/en/how-to/sdk-with-wagmi): Wire the SDK into a React app so users deposit from a browser wallet.
+- [**SDK overview**](/en/explanation/sdk-overview): When to use the SDK, and how signing modes work.

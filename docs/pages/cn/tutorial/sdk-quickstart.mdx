@@ -1,36 +1,39 @@
 ---
 source_path: tutorial/sdk-quickstart.mdx
-source_sha: 24bdfc4340389e06e1cb06ee6a7f3e1939940c97
+source_sha: c918339737f4e49e3639b4e61c16abf0e1a9376e
 title: "SDK 快速入门"
-description: "安装 Stable SDK，在测试网上发送第一个 USDT0 转账，并预览桥接和互换报价。"
+description: "安装 Stable SDK，在测试网上发送您的第一个 USDT0 转账，并预览主网桥接报价。"
 diataxis: "tutorial"
 ---
 
 # SDK 快速入门
 
-你将安装 `@stablechain/sdk`，使用私钥创建客户端，在 Stable 测试网上发送 USDT0 转账，并获取桥接和互换报价。总耗时：大约五分钟。
+您将安装 `@stablechain/sdk`，创建一个由私钥签名的客户端，在 Stable 测试网上发送 USDT0 转账，并获取主网桥接报价。总共耗时：大约五分钟。
 
 :::note
-Stable 使用 USDT0 作为 Gas 代币。你只需要测试网 USDT0 即可进行交易。无需为单独的原生资产充值。
+Stable 使用 USDT0 作为 Gas 代币。您只需要测试网 USDT0 即可进行交易。无需单独资助原生资产。
 :::
 
 ## 前提条件
 
 - Node.js 20 或更高版本
-- 一个包含测试网 USDT0 的测试私钥。请参阅[为你的测试网钱包充值](/cn/how-to/use-faucet)。
+- 一个包含测试网 USDT0 的测试私钥。请参阅[为您的测试网钱包充值](/cn/how-to/use-faucet)。
 
 ## 1. 安装
 
 ```bash
 mkdir stable-sdk-quickstart && cd stable-sdk-quickstart
-npm init -y && npm install @stablechain/sdk viem
+npm init -y && npm pkg set type=module
+npm install @stablechain/sdk viem dotenv
 ```
 
 ```text
-added 2 packages, audited 3 packages in 2s
+added 3 packages, audited 4 packages in 2s
 ```
 
-保存你的测试密钥：
+`type=module` 允许您在下面的步骤中使用顶层 `await`；如果没有它，`tsx` 将拒绝该脚本。
+
+保存您的测试密钥：
 
 ```bash
 echo "PRIVATE_KEY=0xYOUR_TEST_KEY" > .env
@@ -59,7 +62,7 @@ console.log("Signer:", account.address);
 Signer: 0xYourAddress
 ```
 
-`createStable` 接受三种签名模式：`account`（服务器端，如上所示）、`transport`（通过 `custom(window.ethereum)` 进行浏览器钱包签名）或 `walletClient`（预构建的 viem `WalletClient`）。有关所有三种模式的详细信息，请参阅[将 SDK 与 viem 结合使用](/cn/how-to/sdk-with-viem)。
+`createStable` 支持三种签名模式：`account`（服务器端，如上所示）、`transport`（通过 `custom(window.ethereum)` 的浏览器钱包）或 `walletClient`（预构建的 viem `WalletClient`）。有关所有三种模式的详细信息，请参阅[将 SDK 与 viem 结合使用](/cn/how-to/sdk-with-viem)。
 
 ## 3. 发送 USDT0 转账
 
@@ -75,7 +78,7 @@ const { txHash } = await stable.transfer({
 console.log("Transfer:", txHash);
 ```
 
-运行：
+运行它：
 
 ```bash
 npx tsx index.ts
@@ -86,55 +89,48 @@ Signer: 0xYourAddress
 Transfer: 0x8f3a...2d41
 ```
 
-在 [testnet explorer](https://testnet.stablescan.xyz) 上打开哈希以确认。
+在[测试网浏览器](https://testnet.stablescan.xyz)上打开哈希以进行确认。
 
-## 4. 报价桥接
+## 4. 获取桥接报价
 
-将 USDT0 从 Ethereum Sepolia 桥接到 Stable Testnet。`quoteBridge` 是一个只读调用，无需签名和 Gas 费用：
+桥接和交换路由通过 LI.FI，它支持 Stable 主网但不支持测试网。`quoteBridge` 是一个只读调用（无需签名、无需 Gas、无需资金），因此您可以使用相同的密钥预览主网桥接。追加：
 
 ```ts
 import { Chain } from "@stablechain/sdk";
 
-const bridgeQuote = await stable.quoteBridge({
-  fromChain: Chain.Sepolia,
-  toChain: Chain.StableTestnet,
-  fromToken: "0xc4DCC311c028e341fd8602D8eB89c5de94625927",
-  toToken: "0x78Cf24370174180738C5B8E352B6D14c83a6c9A9",
-  amount: 1,
+const stableMainnet = createStable({
+  network: Network.Mainnet,
+  account,
+});
+
+const bridgeQuote = await stableMainnet.quoteBridge({
+  fromChain: Chain.Ethereum,
+  toChain: Chain.Stable,
+  fromToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", // 以太坊上的 USDT
+  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", // Stable 上的 USDT0
+  amount: 100,
 });
 
 console.log("Bridge quote:", bridgeQuote);
 ```
 
 ```text
-Bridge quote: { toAmount: 0.999812 }
+Bridge quote: { toAmount: 99.73 }
 ```
 
-将报价传递给 `stable.bridge({ ...params, quote })` 以执行。SDK 会为 USDT0 → USDT0 路由选择 LayerZero，并为其他所有路由选择 LI.FI。
+将报价传递给 `stableMainnet.bridge({ ...params, quote })` 以执行。路由通过 LI.FI，它选择桥接路径；SDK 处理批准和链切换。
 
-## 5. 报价互换
+## 5. 交换
 
-互换在 Stable 上通过 LI.FI 运行。报价返回预期输出和预构建的交易：
+同链交换遵循相同的模式：`stable.quoteSwap` 返回预期输出和一个预构建的交易，`stable.swap({ ...params, quote })` 执行它，内部处理 ERC-20 批准。
 
-```ts
-const swapQuote = await stable.quoteSwap({
-  fromToken: "0x8a2B28364102Bea189D99A475C494330Ef2bDD0B",
-  toToken: "0x78Cf24370174180738C5B8E352B6D14c83a6c9A9",
-  amount: 1,
-  fromDecimals: 6,
-});
+:::note
+交换路由取决于 LI.FI 在 Stable 上的 DEX 覆盖范围，目前仍然有限。当某个交易对没有可用的路由时，`quoteSwap` 和 `swap` 会抛出 `StableQuoteError` 并显示“No available quotes for the requested transfer”的错误信息。有关完整的 API，请参阅[`quoteSwap` 在 SDK 参考中](/cn/reference/sdk#quoteswapparams)。
+:::
 
-console.log("You'll receive:", swapQuote.toAmount, "USDT0");
-```
-
-```text
-You'll receive: 0.998 USDT0
-```
-
-调用 `stable.swap({ ...params, quote: swapQuote })` 以执行。ERC-20 源的批准是在内部处理的。
-
-## 接下来推荐
+## 推荐的下一步
 
 - [**SDK 参考**](/cn/reference/sdk)：每个参数、返回类型和错误类。
-- [**与 viem 结合使用**](/cn/how-to/sdk-with-viem)：在私钥、浏览器钱包和预构建的 `WalletClient` 签名之间切换。
-- [**与 wagmi 结合使用**](/cn/how-to/sdk-with-wagmi)：使用 wagmi 钩子将 SDK 连接到 React 应用。
+- [**使用 SDK 赚取收益**](/cn/how-to/earn-yield)：将 USDT0 存入主网保险库，查看您的 APY 和头寸，然后提款。
+- [**与 viem 一起使用**](/cn/how-to/sdk-with-viem)：在私钥、浏览器钱包和预构建的 `WalletClient` 签名之间切换。
+- [**与 wagmi 一起使用**](/cn/how-to/sdk-with-wagmi)：使用 wagmi 钩子将 SDK 接入 React 应用程序。

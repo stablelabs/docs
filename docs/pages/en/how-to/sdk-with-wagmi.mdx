@@ -92,7 +92,7 @@ Sent: 0x8f3a...2d41
 
 ## 4. Bridge and swap from React
 
-The same `stable` instance handles bridge and swap. Fetch the quote in an effect or a `useQuery`, then execute on click.
+The same `stable` instance handles bridge and swap. Fetch the quote in an effect or a `useQuery`, then execute on click. Catch `StableQuoteError`: LI.FI's DEX coverage on Stable is still limited, and pairs without a route throw "No available quotes for the requested transfer".
 
 ```tsx
 const stable = useStable(Network.Mainnet);

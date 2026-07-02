@@ -1,14 +1,14 @@
 ---
 source_path: explanation/sdk-overview.mdx
-source_sha: efcb1b7d8aaf0782573a67c4964ac01904c220ae
+source_sha: de079c165ba2efc991a66b7134e00a6e9b5073f4
 title: "Stable SDK"
-description: "使用类型化的 TypeScript SDK，只需几行代码即可在 Stable 上传输 USDT0、跨链桥接和兑换代币。"
+description: "使用类型化的 TypeScript SDK，只需几行代码即可在 Stable 上转移 USDT0、跨链桥接、兑换代币和赚取金库收益。"
 diataxis: "explanation"
 ---
 
 # Stable SDK
 
-`@stablechain/sdk` 是 Stable 官方的 TypeScript 客户端。它封装了 Viem，提供了一个小巧、类型化的 API，用于处理你最常使用的操作：传输 USDT0、在链之间进行桥接以及在 Stable 上兑换代币。路由、授权、小数位和链切换都已为你处理好。
+`@stablechain/sdk` 是 Stable 的官方 TypeScript 客户端。它将 viem 封装成一个小的、类型化的 API，用于您最常进行的操作：转移 USDT0、跨链桥接、兑换代币以及在 Stable 上赚取收益。路由、批准、小数位数和链切换都为您处理。
 
 ```ts
 import { createStable, Network } from "@stablechain/sdk";
@@ -32,29 +32,32 @@ txHash: 0x8f3a...2d41
 
 ## SDK 功能
 
-- **`transfer`**：发送原生 USDT0 或 Stable 上的任何 ERC-20 代币。Gas 费会自动以 USDT0 支付。
-- **`quoteBridge` / `bridge`**：跨链传输。USDT0 → USDT0 使用 LayerZero，其他所有代币使用 LI.FI。系统会自动为你选择路由。
-- **`quoteSwap` / `swap`**：通过 LI.FI 进行同链代币兑换，ERC-20 授权在内部处理。
+- **`transfer`**：发送原生 USDT0 或 Stable 上的任何 ERC-20。Gas 费会自动以 USDT0 支付。
+- **`quoteBridge` / `bridge`**：通过 LI.FI 进行跨链传输，LI.FI 会为您选择桥接路线。批准和链切换在内部处理。
+- **`quoteSwap` / `swap`**：通过 LI.FI 进行同链代币兑换，ERC-20 批准在内部处理。
+- **`earn`**：将 USDT0 存入 Morpho V2 金库以赚取收益，提现或赎回，并领取 Merkl 激励奖励。批准和适配器解除分配都为您处理。
+- **`createStableReader`**：一个只读客户端，用于获取金库年化收益率 (APY)、您的头寸、收益预测和即时提现可用性检查。无需签名器。
 
-SDK 已发布到 npm，名称为 [`@stablechain/sdk`](https://www.npmjs.com/package/@stablechain/sdk)，并要求 `viem >= 2.0.0` 作为 peer dependency。
+SDK 发布在 npm 上，名称为 [`@stablechain/sdk`](https://www.npmjs.com/package/@stablechain/sdk)，并要求 `viem >= 2.0.0` 作为对等依赖项。
 
-## 何时使用（何时不使用）
+## 何时使用（以及何时不使用）
 
-当你想要一个类型化、规范化的客户端，并隐藏路由和授权样板文件时，请使用 SDK。当你需要直接控制交易构建、自定义 gas 策略或进行 transfer/bridge/swap 之外的合约调用时，请降级到原始的 Viem 或 Ethers。
+当您需要一个类型化、规范化的客户端来隐藏路由和批准样板文件时，请使用 SDK。当您需要直接控制交易构造、自定义 Gas 策略或转账/桥接/兑换之外的合同调用时，请降级到原始 viem 或 ethers。
 
 :::note
-SDK 使用任何兼容 Viem 的签名器进行签名：私钥 `Account`、浏览器 `Transport`（如 `custom(window.ethereum)`）或预构建的 `WalletClient`（例如，wagmi 的 `useWalletClient` 返回的客户端）。
+SDK 使用任何兼容 viem 的签名器进行签名：私钥 `Account`、浏览器 `Transport`（例如 `custom(window.ethereum)`）或预构建的 `WalletClient`（例如，wagmi 的 `useWalletClient` 返回的客户端）。
 :::
 
-## 从这里开始
+## 从此处开始
 
-- [**快速入门**](/cn/tutorial/sdk-quickstart)：安装 SDK 并在测试网上运行你的首次转账、桥接和兑换。
+- [**快速入门**](/cn/tutorial/sdk-quickstart)：安装 SDK 并在测试网上运行您的第一个转账、桥接和兑换。
+- [**使用 SDK 赚取收益**](/cn/how-to/earn-yield)：存款到金库，查看您的 APY 和头寸，提款并领取奖励。
 - [**SDK 参考**](/cn/reference/sdk)：所有方法、配置选项、枚举和错误类。
-- [**与 viem 一起使用**](/cn/how-to/sdk-with-viem)：服务器端账户、浏览器钱包以及自带的 `WalletClient`。
-- [**与 wagmi 一起使用**](/cn/how-to/sdk-with-wagmi)：使用 `useWalletClient` 和 hooks 将 SDK 连接到 React 应用程序。
+- [**与 viem 配合使用**](/cn/how-to/sdk-with-viem)：服务器端账户、浏览器钱包和自带 `WalletClient`。
+- [**与 wagmi 配合使用**](/cn/how-to/sdk-with-wagmi)：使用 `useWalletClient` 和 hooks 将 SDK 连接到 React 应用程序。
 
-## 下一步推荐
+## 下一步建议
 
 - [**从 npm 安装**](https://www.npmjs.com/package/@stablechain/sdk)：在 npmjs.com 上查看软件包并检查最新版本。
 - [**连接到 Stable**](/cn/reference/connect)：主网和测试网的链 ID、RPC 端点和浏览器。
-- [**资助测试网钱包**](/cn/how-to/use-faucet)：在运行快速入门之前，从水龙头获取测试网 USDT0。
+- [**资助测试网钱包**](/cn/how-to/use-faucet)：在运行快速入门之前从水龙头获取测试网 USDT0。

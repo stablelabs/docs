@@ -1,14 +1,14 @@
 ---
 source_path: reference/sdk.mdx
-source_sha: 64d437cfd1ea8f5c39da592e6dfad6bb6ab8b3bf
+source_sha: cb2522d5ba3ff23ce6506a1bdc182e119b247b59
 title: "SDK 参考"
-description: "@stablechain/sdk 的完整参考：createStable、StableClient 方法、枚举、链配置和错误类。"
+description: "@stablechain/sdk 完整参考：createStable、createStableReader、transfer、bridge、swap、earn 和 yield 方法，枚举和错误类。"
 diataxis: "reference"
 ---
 
 # SDK 参考
 
-`@stablechain/sdk` 的完整概览。有关详细介绍，请参阅 [SDK 快速入门](/cn/tutorial/sdk-quickstart)。
+`@stablechain/sdk` 的完整表面。这涵盖了来自 [`createStable`](#createstableconfig) 的签名客户端，来自 [`createStableReader`](#createstablereaderconfig) 的只读客户端，以及共享的枚举、常量和错误类。有关详细说明，请参阅 [SDK 快速入门](/cn/tutorial/sdk-quickstart)。有关以任务为中心的收益指南，请参阅 [使用 SDK 赚取收益](/cn/how-to/earn-yield)。
 
 ## 安装
 
@@ -20,7 +20,7 @@ npm install @stablechain/sdk viem
 added 2 packages, audited 3 packages in 2s
 ```
 
-`viem >= 2.0.0` 是对等依赖。
+`viem >= 2.0.0` 是一个对等依赖。
 
 ## `createStable(config)`
 
@@ -33,7 +33,7 @@ const stable = createStable({ network: Network.Mainnet, account });
 ```
 
 ```text
-StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
+StableClient { transfer, quoteBridge, bridge, quoteSwap, swap, earn }
 ```
 
 ### `StableConfig`
@@ -45,14 +45,16 @@ StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
 | `account` | `viem.Account` | | 服务器端签名器（例如 `privateKeyToAccount`）。 |
 | `transport` | `viem.Transport` | | 浏览器钱包传输（例如 `custom(window.ethereum)`）。 |
 | `walletClient` | `viem.WalletClient` | | 预构建的钱包客户端。优先于 `account` 和 `transport`。 |
+| `earn` | `{ vault: string }` | | Morpho V2 保险库配置。调用 `stable.earn` 存款、取款、赎回和准备 calldata 方法时需要。 |
+| `merklApiBase` | `string` | `https://api.merkl.xyz` | Merkl 奖励 API 基础 URL。覆盖以通过您自己的服务器代理并避免浏览器 CORS 限制。 |
 
-请提供 `account`、`transport` 或 `walletClient` 中的一个。
+提供 `account`、`transport` 或 `walletClient` 中的一个。`earn` 字段是可选的：转账、跨链桥和掉期在没有它也可以工作。保险库存款和取款需要它，如果您在没有配置保险库的情况下调用它们，SDK 会抛出 `StableValidationError`。
 
 ## `StableClient`
 
 ### `transfer(params)`
 
-在 Stable 上发送原生 USDT0 或任何 ERC-20。切换钱包到 Stable 链，在缺失时链上获取代币小数位数，并等待回执。
+在 Stable 上发送原生 USDT0 或任何 ERC-20。将钱包切换到 Stable 链，当缺失时在链上获取代币小数位数，并等待收据。
 
 ```ts
 const { txHash } = await stable.transfer({
@@ -70,35 +72,39 @@ const { txHash } = await stable.transfer({
 | :--- | :--- | :--- |
 | `from` | `string` | 发送方地址。 |
 | `to` | `string` | 接收方地址。 |
-| `amount` | `number` | 人类可读金额。 |
+| `amount` | `number` | 人类可读的数量。 |
 | `token` | `string?` | ERC-20 合约地址。原生 USDT0 则省略。 |
-| `tokenDecimals` | `number?` | 小数位数。省略时从链上获取。 |
+| `tokenDecimals` | `number?` | 小数位数。省略时在链上获取。 |
 
 返回 `OperationResult` (`{ txHash, toAmount? }`)。
 
 ### `quoteBridge(params)`
 
-桥接预览。只读。无签名，无 gas。
+预览跨链桥。只读。无签名，无 gas。
 
 ```ts
 const quote = await stable.quoteBridge({
   fromChain: Chain.Ethereum,
   toChain: Chain.Stable,
-  fromToken: "0x6C96dE32CEa08842dcc4058c14d3aaAD7Fa41dee",
-  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+  fromToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", // 以太坊上的 USDT
+  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", // Stable 上的 USDT0
   amount: 100,
 });
 ```
 
 ```text
-{ toAmount: 99.94 }
+{ toAmount: 99.73 }
 ```
 
 返回 `BridgeQuote`。
 
+:::note
+LI.FI 仅为 [`Chain`](#chain) 枚举中的主网链提供报价。`Chain.Sepolia` 和 `Chain.StableTestnet` 被 `StableQuoteError` 拒绝，并且 `CHAIN_CONFIGS` 中的某些代币地址（例如以太坊上的 USDT0）在 LI.FI 的报价拒绝列表中。如有疑问，请使用链的规范代币进行报价。
+:::
+
 ### `bridge(params)`
 
-跨链桥接代币。SDK 选择路由：USDT0 → USDT0 使用 LayerZero，其他使用 LI.FI。传入预取的 `quote` 可跳过内部引用调用。
+通过 LI.FI 进行跨链桥接代币，LI.FI 会选择桥接路由。SDK 会处理 ERC-20 批准并在发送前将钱包切换到源链。传递预先获取的 `quote` 可跳过内部报价调用。
 
 ```ts
 const { txHash } = await stable.bridge({ ...bridgeParams, quote });
@@ -114,14 +120,14 @@ const { txHash } = await stable.bridge({ ...bridgeParams, quote });
 | `toChain` | `Chain` | 目标链。 |
 | `fromToken` | `string` | 源代币合约地址。 |
 | `toToken` | `string` | 目标代币合约地址。 |
-| `amount` | `number` | 人类可读金额。 |
+| `amount` | `number` | 人类可读的数量。 |
 | `fromDecimals` | `number?` | 源代币小数位数。默认为 `6`。 |
 | `recipient` | `string?` | 目标地址。默认为签名者。 |
-| `quote` | `BridgeQuote?` | 预取的报价。跳过内部报价调用。 |
+| `quote` | `BridgeQuote?` | 预先获取的报价。跳过内部报价调用。 |
 
 ### `quoteSwap(params)`
 
-获取 Stable 上的 LI.FI 交换报价。返回预构建的交易请求和批准地址。
+在 Stable 上获取 LI.FI 掉期报价。返回预构建的交易请求和批准地址。
 
 ```ts
 const quote = await stable.quoteSwap({
@@ -135,6 +141,10 @@ const quote = await stable.quoteSwap({
 ```text
 { toAmount: 99.81, fromAmount: 100000000n, fromToken: "0x8a2B...", approvalAddress: "0x...", transactionRequest: { ... } }
 ```
+
+:::note
+掉期路由取决于 LI.FI 在 Stable 上的 DEX 覆盖范围，目前仍然有限。当没有针对某个交易对的路由时，`quoteSwap` 和 `swap` 会抛出 `StableQuoteError` 并显示“请求的转账没有可用报价”。
+:::
 
 ### `swap(params)`
 
@@ -152,10 +162,275 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 | :--- | :--- | :--- | :--- |
 | `fromToken` | `string` | | 源代币地址。 |
 | `toToken` | `string` | | 目标代币地址。 |
-| `amount` | `number` | | 人类可读金额。 |
+| `amount` | `number` | | 人类可读的数量。 |
 | `fromDecimals` | `number?` | `6` | 源代币小数位数。 |
 | `toAddress` | `string?` | signer | 接收方地址。 |
-| `quote` | `SwapQuote?` | | 预取的报价。跳过 LI.FI 调用。 |
+| `quote` | `SwapQuote?` | | 预取报价。跳过 LI.FI 调用。 |
+
+## `stable.earn`
+
+将 USDT0 存入 Morpho V2 Vault 以赚取收益，并领取 Merkl 激励奖励。所有方法都位于 `earn` 命名空间下，并需要一个签名者。存款、取款、赎回和准备 calldata 方法还需要 [`StableConfig`](#stableconfig) 中的 `earn: { vault }`。
+
+```ts
+const stable = createStable({
+  network: Network.Mainnet,
+  account,
+  earn: { vault: "0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08" },
+});
+```
+
+```text
+stable.earn { deposit, bulkDeposit, withdraw, bulkWithdraw, redeem, forceWithdraw, forceRedeem, prepareDepositCalldata, prepareWithdrawCalldata, prepareRedeemCalldata, incentiveRewards }
+```
+
+金额和份额计数是人类可读的数字。如果您省略资产和份额的小数位数，则会从链上获取。存款、取款、赎回和强制方法返回 `EarnResult` (`{ txHash, idempotencyKey? }`) 并在解析前等待收据。批处理方法返回 `BulkEarnResult`，`incentiveRewards.claim()` 返回 `MerklClaimResult`，将在下面的部分中介绍。
+
+### `deposit(params)`
+
+将资产存入保险库。一次调用即可处理 ERC-20 批准（或钱包支持时的许可签名），然后是存款。
+
+```ts
+const { txHash } = await stable.earn.deposit({ amount: 100 });
+```
+
+```text
+{ txHash: "0x8f3a...2d41" }
+```
+
+| **参数** | **类型** | **默认值** | **描述** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` | | 要存入的底层资产，人类可读。 |
+| `vault` | `string?` | config vault | 保险库地址覆盖。在 `bulkDeposit` 中跨多个保险库逐项需要。 |
+| `tokenDecimals` | `number?` | on-chain | 底层资产小数位数。 |
+| `slippageTolerance` | `number?` | `0.0003` | 滑点以小数表示（例如 `0.003` = 0.3%）。默认为 Morpho 的 0.03%。 |
+| `depositBuffer` | `number?` | | 此存款可消耗的保险库闲置流动性的最大百分比（例如 `0.8` = 80%）。必须 `> 0` 且 `≤ 1`。如果超出则在发送前抛出。 |
+| `idempotencyKey` | `string?` | | 去重键。第二次带在途键的调用返回相同的 Promise。 |
+
+### `withdraw(params)`
+
+提取给定数量的底层资产。当闲置资金池流动性不足时，SDK 会自动从资金池的适配器中解除分配以弥补差额。
+
+```ts
+const { txHash } = await stable.earn.withdraw({ amount: 50 });
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+| **参数** | **类型** | **默认值** | **描述** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` | | 要提取的底层资产，人类可读。 |
+| `tokenDecimals` | `number?` | on-chain | 底层资产的小数位数。 |
+| `idempotencyKey` | `string?` | | 去重键。 |
+
+### `redeem(params)`
+
+将一定数量的 Vault 份额赎回为基础资产。与 `withdraw` 类似，当闲置流动性不足时，它会自动从 Adapter 中解除分配。
+
+```ts
+const { txHash } = await stable.earn.redeem({ shares: 25 });
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+| **参数** | **类型** | **默认值** | **描述** |
+| :--- | :--- | :--- | :--- |
+| `shares` | `number` | | 要赎回的 Vault 份额，人类可读。 |
+| `shareDecimals` | `number?` | on-chain | Vault 份额小数位数。 |
+| `idempotencyKey` | `string?` | | 去重键。 |
+
+### `bulkDeposit(items, options?)` / `bulkWithdraw(items, options?)`
+
+按顺序运行多个存款或取款。默认情况下，批量尝试每个项目并返回部分结果。设置 `stopOnError: true` 以在第一次失败时停止并抛出 `StableBulkError`。
+
+```ts
+const result = await stable.earn.bulkDeposit([
+  { amount: 100 },
+  { amount: 250, vault: "0xAnotherVault" },
+]);
+```
+
+```text
+{ results: [ { status: "fulfilled", txHash: "0x..." }, ... ], succeeded: 2, failed: 0 }
+```
+
+`items` 是 `EarnDepositParams`（或 `EarnWithdrawParams`）的数组。`options` 接受：
+
+| **选项** | **类型** | **默认值** | **描述** |
+| :--- | :--- | :--- | :--- |
+| `idempotencyKey` | `string?` | | 批处理级别的去重键。 |
+| `stopOnError` | `boolean?` | `false` | 在第一次失败时停止并抛出 `StableBulkError`，而不是返回部分结果。 |
+
+返回 `BulkEarnResult` (`{ results, succeeded, failed, idempotencyKey? }`)。`results` 中的每个条目要么是 `{ status: "fulfilled", txHash, vault?, idempotencyKey? }`，要么是 `{ status: "rejected", error, vault?, idempotencyKey? }`。
+
+### `forceWithdraw(params)` / `forceRedeem(params)`
+
+通过明确控制首先解除分配哪些适配器头寸来取款或赎回。当您需要自己选择来源市场而不是 `withdraw` / `redeem` 中的自动选择时，请使用这些。
+
+```ts
+const { txHash } = await stable.earn.forceWithdraw({
+  amount: 1000,
+  deallocations: [{ adapter: "0xAdapter", amount: 1000 }],
+});
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+两者都接受一个 `deallocations: ForceDeallocation[]` 数组和一个可选的 `tokenDecimals`（用于解除分配数量的底层资产小数位数；如果省略，则在链上获取）。`forceWithdraw` 接受 `amount`；`forceRedeem` 接受 `shares` 和可选的 `shareDecimals`。每个 `ForceDeallocation` 是：
+
+| **字段** | **类型** | **描述** |
+| :--- | :--- | :--- |
+| `adapter` | `string` | 要解除分配的适配器合约。 |
+| `amount` | `number` | 要解除分配的数量，以底层资产单位表示。 |
+| `marketParams` | `object?` | 仅当 Morpho Blue 市场适配器才需要：`{ loanToken, collateralToken, oracle, irm, lltv }` (`lltv` 乘以 1e18)。Vault 适配器则省略。 |
+
+### `prepareDepositCalldata(params)` / `prepareWithdrawCalldata(params)` / `prepareRedeemCalldata(params)`
+
+构建事务 calldata，但不签名或发送。使用这些将事务通过中继器、燃气费豁免流或多重签名。
+
+```ts
+const { steps, chainId } = await stable.earn.prepareDepositCalldata({ amount: 100 });
+```
+
+```text
+{ steps: [ { to: "0x...", data: "0x...", value: 0n } ], chainId: 988 }
+```
+
+`prepareDepositCalldata` 返回 `EarnDepositCalldata` (`{ steps, chainId }`)，其中 `steps` 是 `{ to, data, value }` 事务的有序列表：可选的代币批准，然后是存款。`prepareWithdrawCalldata` 和 `prepareRedeemCalldata` 返回 `EarnWithdrawCalldata` (`{ to, data, value, chainId }`)，一个单一事务。它们接受与其签名对应物相同的参数。
+
+### `incentiveRewards`
+
+获取并申领签名者的 Merkl 奖励代币。这些方法需要签名者，但不需要 `earn` vault 配置。
+
+```ts
+const { rewards } = await stable.earn.incentiveRewards.fetch();
+const { txHash, tokenCount } = await stable.earn.incentiveRewards.claim();
+```
+
+```text
+{ txHash: "0xabcd...7890", tokenCount: 1 }
+```
+
+`fetch()` 返回 `MerklRewardsResult` (`{ chainId, rewards: MerklReward[] }`)，其中包含每个代币的可申领净额。`claim()` 申领当前 Merkl 默克尔树中提交的所有奖励，并返回 `MerklClaimResult` (`{ txHash, tokenCount }`)。
+
+:::note
+Merkl 大约每两个小时将奖励提交到其默克尔树。仍在等待更新的奖励尚不能申领。调用 `claim()` 且无可申领内容时将抛出 `StableValidationError`。
+:::
+
+## `createStableReader(config)`
+
+为 Vault 收益和头寸数据构建一个只读的 `StableReader`。不需要签名者，只需要您要读取的地址。
+
+```ts
+import { createStableReader, Network } from "@stablechain/sdk";
+
+const reader = createStableReader({
+  network: Network.Mainnet,
+  address: "0xUserAddress",
+  earn: { vault: "0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08" },
+});
+```
+
+```text
+StableReader { earn: { getYield, position, preview, withdrawability, incentiveRewards } }
+```
+
+### `StableReaderConfig`
+
+| **字段** | **类型** | **默认值** | **描述** |
+| :--- | :--- | :--- | :--- |
+| `address` | `string` | | 要读取其头寸和奖励的用户地址。必填。 |
+| `earn` | `{ vault: string }` | | 要读取的 Vault。必填：如果缺少，`createStableReader` 将抛出 `StableValidationError`。 |
+| `network` | `Network?` | `Network.Mainnet` | 目标网络。 |
+| `rpc` | `string?` | 公共 RPC | RPC 覆盖。 |
+| `merklApiBase` | `string?` | `https://api.merkl.xyz` | Merkl 奖励 API 基础 URL。 |
+
+## `StableReader`
+
+### `getYield()`
+
+返回 Vault 当前的净 APY 和费用明细。
+
+```ts
+const vaultYield = await reader.earn.getYield();
+```
+
+```text
+{ apy: 0.058, native: 0.041, rewards: [ { symbol: "MORPHO", address: "0x...", apr: 0.017 } ], performanceFee: 0.1, managementFee: 0 }
+```
+
+返回 `VaultYield`。`apy` 是扣除奖励提升后总的净 APY；`native` 是不包括奖励的基础市场收益。所有值都是小数（`0.05` = 5%）。
+
+### `position()`
+
+返回已配置地址的当前 Vault 头寸。
+
+```ts
+const position = await reader.earn.position();
+```
+
+```text
+{ shares: 100000000n, sharesFormatted: 100, shareDecimals: 6, assets: 101.2, tokenDecimals: 6, assetAddress: "0x..." }
+```
+
+返回 `VaultPosition`，其中包含原始 `shares` 余额、其 `sharesFormatted` 人类可读值以及这些份额以基础单位表示的 `assets` 值。
+
+### `preview(params)`
+
+使用保险库的实时净 APY，预测一段时间内的收益。
+
+```ts
+const preview = await reader.earn.preview({ amount: 1000, horizonDays: 30 });
+```
+
+```text
+{ projectedYield: 4.64, apy: 0.058, horizonDays: 30 }
+```
+
+| **参数** | **类型** | **描述** |
+| :--- | :--- | :--- |
+| `amount` | `number` | 要预测的本金，人类可读。 |
+| `horizonDays` | `number` | 预测周期，以天为单位。 |
+
+返回 `YieldPreview` (`{ projectedYield, apy, horizonDays }`)。
+
+### `withdrawability(params)`
+
+检查是否可以从保管库的闲置流动性中即时提取一定数量。
+
+```ts
+const status = await reader.earn.withdrawability({ amount: 5000 });
+```
+
+```text
+{ isInstant: true, availableLiquidity: 12500.5, tokenDecimals: 6 }
+```
+
+| **参数** | **类型** | **默认值** | **描述** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` | | 要测试的数量，人类可读。 |
+| `tokenDecimals` | `number?` | on-chain | 基础资产的小数位数。 |
+
+返回 `WithdrawStatus` (`{ isInstant, availableLiquidity, tokenDecimals }`)。当 `isInstant` 为 `false` 时，提款需要适配器解除分配，`stable.earn.withdraw` 会自动处理。
+
+### `incentiveRewards.fetch()`
+
+读取已配置地址的待处理 Merkl 奖励。与 `stable.earn.incentiveRewards.fetch` 对应的只读方法。
+
+```ts
+const { rewards } = await reader.earn.incentiveRewards.fetch();
+```
+
+```text
+{ chainId: 988, rewards: [ { token: { symbol: "MORPHO", ... }, amount: 1.25, rawAmount: "1250000...", proofs: [...] } ] }
+```
+
+返回 `MerklRewardsResult`。
 
 ## 枚举
 
@@ -168,7 +443,7 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 ### `Chain`
 
-由 `quoteBridge` 和 `bridge` 使用。每个条目都有相应的 `CHAIN_CONFIGS` 条目。
+由 `quoteBridge` 和 `bridge` 使用。每个条目都有一个相应的 `CHAIN_CONFIGS` 条目。定义两个测试网条目是为了完整性，但 LI.FI 拒绝它们：桥接仅在主网链之间工作。
 
 | **枚举** | **网络** | **链 ID** |
 | :--- | :--- | :--- |
@@ -186,7 +461,7 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 ## `CHAIN_CONFIGS`
 
-由 `Chain` 枚举键入的 `Partial<Record<Chain, ChainConfig>>`。每个条目都公开 `id`、`rpc`、`usdt` 和 `decimals`。当您需要支持链上的规范 USDT 地址而无需硬编码时使用。
+由 `Chain` 枚举键入的 `Partial<Record<Chain, ChainConfig>>`。每个条目都公开 `id`、`rpc`、`usdt` 和 `decimals`。当您需要支持的链上的规范 USDT 地址而无需硬编码时使用。
 
 ```ts
 import { CHAIN_CONFIGS, Chain } from "@stablechain/sdk";
@@ -198,16 +473,35 @@ console.log(CHAIN_CONFIGS[Chain.Stable]);
 { id: 988, rpc: "https://rpc.stable.xyz", usdt: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", decimals: 6 }
 ```
 
+## 常量
+
+规范主网地址，导出以便您不必硬编码。
+
+```ts
+import { STABLE_USDT_ADDRESS, STABLE_VAULT_ADDRESS } from "@stablechain/sdk";
+```
+
+```text
+STABLE_USDT_ADDRESS  0x779ded0c9e1022225f8e0630b35a9b54be713736
+STABLE_VAULT_ADDRESS 0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08
+```
+
+| **常量** | **描述** |
+| :--- | :--- |
+| `STABLE_USDT_ADDRESS` | Stable 主网上的 USDT 代币地址。 |
+| `STABLE_VAULT_ADDRESS` | Stable 主网上的默认 Morpho V2 earn vault。传递给 `earn: { vault }`。 |
+
 ## 错误
 
 所有 SDK 错误都扩展了 `StableError`，后者又扩展了 viem 的 `BaseError`。错误携带结构化元数据，因此您可以根据 `error.name` 或 `instanceof` 进行分支。
 
-| **类** | **抛出条件** | **有用字段** |
+| **类** | **抛出时机** | **有用字段** |
 | :--- | :--- | :--- |
-| `StableValidationError` | 参数验证失败（地址错误、非有限金额、不支持的链）。 | `field`, `value` |
+| `StableValidationError` | 参数验证失败（地址错误、金额非有限、不支持的链）。 | `field`, `value` |
 | `StableQuoteError` | 向 LI.FI 发出的报价请求失败。 | `provider`, `httpStatus`, `providerCode`, `body` |
 | `StableTransactionError` | 链上步骤失败：链切换、批准、发送或回滚。 | `phase`, `txHash`, `chainId`, `revertReason` |
-| `StableNetworkError` | 底层 HTTP/RPC 调用失败。 | `url` |
+| `StableNetworkError` | 底层 HTTP/RPC 调用失败（例如 Morpho 或 Merkl API）。 | `url` |
+| `StableBulkError` | 带有 `stopOnError: true` 的 `bulkDeposit` 或 `bulkWithdraw` 运行，遇到首次失败。 | `results`, `succeeded`, `failed` |
 
 ```ts
 import { StableTransactionError } from "@stablechain/sdk";
@@ -228,8 +522,8 @@ StableTransactionError: transfer: wallet rejected or failed to switch to chain 9
   Chain ID: 988
 ```
 
-## 建议下一步
+## 接下来推荐
 
-- [**SDK 快速入门**](/cn/tutorial/sdk-quickstart)：安装 SDK 并在测试网上运行您的首次传输。
-- [**与 viem 结合使用**](/cn/how-to/sdk-with-viem)：在私钥、浏览器钱包和预构建的签名器之间切换。
-- [**与 wagmi 结合使用**](/cn/how-to/sdk-with-wagmi)：使用挂钩将 SDK 连接到 React 应用程序。
+- [**SDK 快速入门**](/cn/tutorial/sdk-quickstart)：安装 SDK 并在测试网上运行您的首次转账。
+- [**与 viem 结合使用**](/cn/how-to/sdk-with-viem)：在私钥、浏览器钱包和预建签名器之间切换。
+- [**与 wagmi 结合使用**](/cn/how-to/sdk-with-wagmi)：使用 Hooks 将 SDK 连接到 React 应用程序。

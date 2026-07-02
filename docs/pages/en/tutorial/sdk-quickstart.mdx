@@ -1,12 +1,12 @@
 ---
 title: "SDK quickstart"
-description: "Install the Stable SDK, send your first USDT0 transfer on testnet, and preview a bridge and swap quote."
+description: "Install the Stable SDK, send your first USDT0 transfer on testnet, and preview a mainnet bridge quote."
 diataxis: "tutorial"
 ---
 
 # SDK quickstart
 
-You'll install `@stablechain/sdk`, create a client signed by a private key, send a USDT0 transfer on Stable Testnet, and fetch a bridge and swap quote. Total time: about five minutes.
+You'll install `@stablechain/sdk`, create a client signed by a private key, send a USDT0 transfer on Stable Testnet, and fetch a mainnet bridge quote. Total time: about five minutes.
 
 :::note
 Stable uses USDT0 as the gas token. You only need testnet USDT0 to transact. There's no separate native asset to fund.
@@ -21,12 +21,15 @@ Stable uses USDT0 as the gas token. You only need testnet USDT0 to transact. The
 
 ```bash
 mkdir stable-sdk-quickstart && cd stable-sdk-quickstart
-npm init -y && npm install @stablechain/sdk viem
+npm init -y && npm pkg set type=module
+npm install @stablechain/sdk viem dotenv
 ```
 
 ```text
-added 2 packages, audited 3 packages in 2s
+added 3 packages, audited 4 packages in 2s
 ```
+
+`type=module` lets you use top-level `await` in the steps below; without it, `tsx` rejects the script.
 
 Save your test key:
 
@@ -88,51 +91,44 @@ Open the hash on the [testnet explorer](https://testnet.stablescan.xyz) to confi
 
 ## 4. Quote a bridge
 
-Bridge USDT0 from Ethereum Sepolia to Stable Testnet. `quoteBridge` is a read-only call, with no signature and no gas:
+Bridge and swap routing goes through LI.FI, which supports Stable Mainnet but no testnets. `quoteBridge` is a read-only call (no signature, no gas, no funds needed), so you can preview a mainnet bridge with the same key. Append:
 
 ```ts
 import { Chain } from "@stablechain/sdk";
 
-const bridgeQuote = await stable.quoteBridge({
-  fromChain: Chain.Sepolia,
-  toChain: Chain.StableTestnet,
-  fromToken: "0xc4DCC311c028e341fd8602D8eB89c5de94625927",
-  toToken: "0x78Cf24370174180738C5B8E352B6D14c83a6c9A9",
-  amount: 1,
+const stableMainnet = createStable({
+  network: Network.Mainnet,
+  account,
+});
+
+const bridgeQuote = await stableMainnet.quoteBridge({
+  fromChain: Chain.Ethereum,
+  toChain: Chain.Stable,
+  fromToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT on Ethereum
+  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", // USDT0 on Stable
+  amount: 100,
 });
 
 console.log("Bridge quote:", bridgeQuote);
 ```
 
 ```text
-Bridge quote: { toAmount: 0.999812 }
+Bridge quote: { toAmount: 99.73 }
 ```
 
-Pass the quote into `stable.bridge({ ...params, quote })` to execute. The SDK picks LayerZero for USDT0 → USDT0 routes and LI.FI for everything else.
+Pass the quote into `stableMainnet.bridge({ ...params, quote })` to execute. Routing goes through LI.FI, which picks the bridge route; the SDK handles approval and chain switching.
 
-## 5. Quote a swap
+## 5. Swaps
 
-Swaps run on Stable through LI.FI. The quote returns the expected output and a pre-built transaction:
+Same-chain swaps follow the same pattern: `stable.quoteSwap` returns the expected output and a pre-built transaction, and `stable.swap({ ...params, quote })` executes it with ERC-20 approval handled internally.
 
-```ts
-const swapQuote = await stable.quoteSwap({
-  fromToken: "0x8a2B28364102Bea189D99A475C494330Ef2bDD0B",
-  toToken: "0x78Cf24370174180738C5B8E352B6D14c83a6c9A9",
-  amount: 1,
-  fromDecimals: 6,
-});
-
-console.log("You'll receive:", swapQuote.toAmount, "USDT0");
-```
-
-```text
-You'll receive: 0.998 USDT0
-```
-
-Call `stable.swap({ ...params, quote: swapQuote })` to execute. Approval for ERC-20 sources is handled internally.
+:::note
+Swap routes depend on LI.FI's DEX coverage on Stable, which is still limited. When no route exists for a pair, `quoteSwap` and `swap` throw `StableQuoteError` with "No available quotes for the requested transfer". See [`quoteSwap` in the SDK reference](/en/reference/sdk#quoteswapparams) for the full API.
+:::
 
 ## Next recommended
 
 - [**SDK reference**](/en/reference/sdk): Every parameter, return type, and error class.
+- [**Earn yield with the SDK**](/en/how-to/earn-yield): Deposit USDT0 into a mainnet vault, check your APY and position, and withdraw.
 - [**Use with viem**](/en/how-to/sdk-with-viem): Switch between private-key, browser-wallet, and pre-built `WalletClient` signing.
 - [**Use with wagmi**](/en/how-to/sdk-with-wagmi): Wire the SDK into a React app using wagmi hooks.

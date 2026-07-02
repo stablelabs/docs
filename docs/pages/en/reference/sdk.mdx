@@ -1,12 +1,12 @@
 ---
 title: "SDK reference"
-description: "Complete reference for @stablechain/sdk: createStable, StableClient methods, enums, chain configs, and error classes."
+description: "Complete reference for @stablechain/sdk: createStable, createStableReader, transfer, bridge, swap, earn and yield methods, enums, and error classes."
 diataxis: "reference"
 ---
 
 # SDK reference
 
-Full surface of `@stablechain/sdk`. For a walkthrough, see [SDK quickstart](/en/tutorial/sdk-quickstart).
+Full surface of `@stablechain/sdk`. This covers the signing client from [`createStable`](#createstableconfig), the read-only client from [`createStableReader`](#createstablereaderconfig), and the shared enums, constants, and error classes. For a walkthrough, see [SDK quickstart](/en/tutorial/sdk-quickstart). For a task-focused earn guide, see [Earn yield with the SDK](/en/how-to/earn-yield).
 
 ## Install
 
@@ -31,7 +31,7 @@ const stable = createStable({ network: Network.Mainnet, account });
 ```
 
 ```text
-StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
+StableClient { transfer, quoteBridge, bridge, quoteSwap, swap, earn }
 ```
 
 ### `StableConfig`
@@ -43,8 +43,10 @@ StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
 | `account` | `viem.Account` |  | Server-side signer (e.g. `privateKeyToAccount`). |
 | `transport` | `viem.Transport` |  | Browser-wallet transport (e.g. `custom(window.ethereum)`). |
 | `walletClient` | `viem.WalletClient` |  | Pre-built wallet client. Takes precedence over `account` and `transport`. |
+| `earn` | `{ vault: string }` |  | Morpho V2 vault config. Required to call `stable.earn` deposit, withdraw, redeem, and prepare-calldata methods. |
+| `merklApiBase` | `string` | `https://api.merkl.xyz` | Merkl rewards API base URL. Override to proxy through your own server and avoid browser CORS limits. |
 
-Provide one of `account`, `transport`, or `walletClient`.
+Provide one of `account`, `transport`, or `walletClient`. The `earn` field is optional: transfer, bridge, and swap work without it. Vault deposits and withdrawals require it, and the SDK throws `StableValidationError` if you call them without a configured vault.
 
 ## `StableClient`
 
@@ -82,21 +84,25 @@ Preview a bridge. Read-only. No signature, no gas.
 const quote = await stable.quoteBridge({
   fromChain: Chain.Ethereum,
   toChain: Chain.Stable,
-  fromToken: "0x6C96dE32CEa08842dcc4058c14d3aaAD7Fa41dee",
-  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+  fromToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT on Ethereum
+  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", // USDT0 on Stable
   amount: 100,
 });
 ```
 
 ```text
-{ toAmount: 99.94 }
+{ toAmount: 99.73 }
 ```
 
 Returns `BridgeQuote`.
 
+:::note
+LI.FI serves quotes for the mainnet chains in the [`Chain`](#chain) enum only. `Chain.Sepolia` and `Chain.StableTestnet` are rejected with `StableQuoteError`, and some token addresses in `CHAIN_CONFIGS` (such as USDT0 on Ethereum) are on LI.FI's deny list for quoting. When in doubt, quote with the chain's canonical token.
+:::
+
 ### `bridge(params)`
 
-Bridge tokens cross-chain. The SDK picks the route: LayerZero for USDT0 → USDT0, LI.FI for everything else. Pass a pre-fetched `quote` to skip the internal quote call.
+Bridge tokens cross-chain via LI.FI, which picks the bridge route. The SDK handles the ERC-20 approval and switches the wallet to the source chain before sending. Pass a pre-fetched `quote` to skip the internal quote call.
 
 ```ts
 const { txHash } = await stable.bridge({ ...bridgeParams, quote });
@@ -134,6 +140,10 @@ const quote = await stable.quoteSwap({
 { toAmount: 99.81, fromAmount: 100000000n, fromToken: "0x8a2B...", approvalAddress: "0x...", transactionRequest: { ... } }
 ```
 
+:::note
+Swap routes depend on LI.FI's DEX coverage on Stable, which is still limited. When no route exists for a pair, `quoteSwap` and `swap` throw `StableQuoteError` with "No available quotes for the requested transfer".
+:::
+
 ### `swap(params)`
 
 Swap tokens on Stable via LI.FI. Handles ERC-20 approval automatically and switches the wallet's chain when needed.
@@ -155,6 +165,271 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 | `toAddress` | `string?` | signer | Recipient address. |
 | `quote` | `SwapQuote?` |  | Pre-fetched quote. Skips LI.FI call. |
 
+## `stable.earn`
+
+Supply USDT0 into a Morpho V2 vault to earn yield, and claim Merkl incentive rewards. All methods live under the `earn` namespace and require a signer. The deposit, withdraw, redeem, and prepare-calldata methods also require `earn: { vault }` in [`StableConfig`](#stableconfig).
+
+```ts
+const stable = createStable({
+  network: Network.Mainnet,
+  account,
+  earn: { vault: "0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08" },
+});
+```
+
+```text
+stable.earn { deposit, bulkDeposit, withdraw, bulkWithdraw, redeem, forceWithdraw, forceRedeem, prepareDepositCalldata, prepareWithdrawCalldata, prepareRedeemCalldata, incentiveRewards }
+```
+
+Amounts and share counts are human-readable numbers. Asset and share decimals are fetched on-chain when you omit them. The deposit, withdraw, redeem, and force methods return `EarnResult` (`{ txHash, idempotencyKey? }`) and wait for the receipt before resolving. The bulk methods return `BulkEarnResult` and `incentiveRewards.claim()` returns `MerklClaimResult`, described in their sections below.
+
+### `deposit(params)`
+
+Supply assets to the vault. Handles the ERC-20 approval (or a permit signature when the wallet supports it), then the deposit, in one call.
+
+```ts
+const { txHash } = await stable.earn.deposit({ amount: 100 });
+```
+
+```text
+{ txHash: "0x8f3a...2d41" }
+```
+
+| **Param** | **Type** | **Default** | **Description** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` |  | Underlying assets to deposit, human-readable. |
+| `vault` | `string?` | config vault | Vault address override. Required per-item in `bulkDeposit` across multiple vaults. |
+| `tokenDecimals` | `number?` | on-chain | Underlying asset decimals. |
+| `slippageTolerance` | `number?` | `0.0003` | Slippage as a decimal (e.g. `0.003` = 0.3%). Defaults to Morpho's 0.03%. |
+| `depositBuffer` | `number?` |  | Max fraction of the vault's idle liquidity this deposit may consume (e.g. `0.8` = 80%). Must be `> 0` and `≤ 1`. Throws before sending if exceeded. |
+| `idempotencyKey` | `string?` |  | Deduplication key. A second call with an in-flight key returns the same Promise. |
+
+### `withdraw(params)`
+
+Withdraw a given amount of underlying assets. When idle vault liquidity is short, the SDK automatically deallocates from the vault's adapters to cover the difference.
+
+```ts
+const { txHash } = await stable.earn.withdraw({ amount: 50 });
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+| **Param** | **Type** | **Default** | **Description** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` |  | Underlying assets to withdraw, human-readable. |
+| `tokenDecimals` | `number?` | on-chain | Underlying asset decimals. |
+| `idempotencyKey` | `string?` |  | Deduplication key. |
+
+### `redeem(params)`
+
+Redeem a number of vault shares back to underlying assets. Like `withdraw`, it deallocates from adapters automatically when idle liquidity is short.
+
+```ts
+const { txHash } = await stable.earn.redeem({ shares: 25 });
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+| **Param** | **Type** | **Default** | **Description** |
+| :--- | :--- | :--- | :--- |
+| `shares` | `number` |  | Vault shares to redeem, human-readable. |
+| `shareDecimals` | `number?` | on-chain | Vault share decimals. |
+| `idempotencyKey` | `string?` |  | Deduplication key. |
+
+### `bulkDeposit(items, options?)` / `bulkWithdraw(items, options?)`
+
+Run several deposits or withdrawals in sequence. By default the batch attempts every item and returns partial results. Set `stopOnError: true` to halt on the first failure and throw `StableBulkError`.
+
+```ts
+const result = await stable.earn.bulkDeposit([
+  { amount: 100 },
+  { amount: 250, vault: "0xAnotherVault" },
+]);
+```
+
+```text
+{ results: [ { status: "fulfilled", txHash: "0x..." }, ... ], succeeded: 2, failed: 0 }
+```
+
+`items` is an array of `EarnDepositParams` (or `EarnWithdrawParams`). `options` accepts:
+
+| **Option** | **Type** | **Default** | **Description** |
+| :--- | :--- | :--- | :--- |
+| `idempotencyKey` | `string?` |  | Batch-level deduplication key. |
+| `stopOnError` | `boolean?` | `false` | Halt on the first failure and throw `StableBulkError` instead of returning partial results. |
+
+Returns `BulkEarnResult` (`{ results, succeeded, failed, idempotencyKey? }`). Each entry in `results` is either `{ status: "fulfilled", txHash, vault?, idempotencyKey? }` or `{ status: "rejected", error, vault?, idempotencyKey? }`.
+
+### `forceWithdraw(params)` / `forceRedeem(params)`
+
+Withdraw or redeem with explicit control over which adapter positions to deallocate first. Use these when you need to choose the source markets yourself instead of the automatic selection in `withdraw` / `redeem`.
+
+```ts
+const { txHash } = await stable.earn.forceWithdraw({
+  amount: 1000,
+  deallocations: [{ adapter: "0xAdapter", amount: 1000 }],
+});
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+Both take a `deallocations: ForceDeallocation[]` array and an optional `tokenDecimals` (underlying asset decimals, used for the deallocation amounts; fetched on-chain when omitted). `forceWithdraw` takes `amount`; `forceRedeem` takes `shares` plus optional `shareDecimals`. Each `ForceDeallocation` is:
+
+| **Field** | **Type** | **Description** |
+| :--- | :--- | :--- |
+| `adapter` | `string` | Adapter contract to deallocate from. |
+| `amount` | `number` | Amount to deallocate, in underlying asset units. |
+| `marketParams` | `object?` | Required only for Morpho Blue market adapters: `{ loanToken, collateralToken, oracle, irm, lltv }` (`lltv` scaled by 1e18). Omit for vault adapters. |
+
+### `prepareDepositCalldata(params)` / `prepareWithdrawCalldata(params)` / `prepareRedeemCalldata(params)`
+
+Build the transaction calldata without signing or sending. Use these to route the transaction through a relayer, a gas-waiver flow, or a multisig.
+
+```ts
+const { steps, chainId } = await stable.earn.prepareDepositCalldata({ amount: 100 });
+```
+
+```text
+{ steps: [ { to: "0x...", data: "0x...", value: 0n } ], chainId: 988 }
+```
+
+`prepareDepositCalldata` returns `EarnDepositCalldata` (`{ steps, chainId }`), where `steps` is an ordered list of `{ to, data, value }` transactions: an optional token approval followed by the deposit. `prepareWithdrawCalldata` and `prepareRedeemCalldata` return `EarnWithdrawCalldata` (`{ to, data, value, chainId }`), a single transaction. They accept the same params as their signing counterparts.
+
+### `incentiveRewards`
+
+Fetch and claim Merkl reward tokens for the signer. These methods need a signer but not an `earn` vault config.
+
+```ts
+const { rewards } = await stable.earn.incentiveRewards.fetch();
+const { txHash, tokenCount } = await stable.earn.incentiveRewards.claim();
+```
+
+```text
+{ txHash: "0xabcd...7890", tokenCount: 1 }
+```
+
+`fetch()` returns `MerklRewardsResult` (`{ chainId, rewards: MerklReward[] }`) with the net claimable amount per token. `claim()` claims every reward committed to the current Merkl merkle tree and returns `MerklClaimResult` (`{ txHash, tokenCount }`).
+
+:::note
+Merkl commits rewards to its merkle tree roughly every two hours. Rewards that are still pending that update cannot be claimed yet. Calling `claim()` with nothing claimable throws `StableValidationError`.
+:::
+
+## `createStableReader(config)`
+
+Construct a read-only `StableReader` for vault yield and position data. No signer is needed, only the address you want to read.
+
+```ts
+import { createStableReader, Network } from "@stablechain/sdk";
+
+const reader = createStableReader({
+  network: Network.Mainnet,
+  address: "0xUserAddress",
+  earn: { vault: "0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08" },
+});
+```
+
+```text
+StableReader { earn: { getYield, position, preview, withdrawability, incentiveRewards } }
+```
+
+### `StableReaderConfig`
+
+| **Field** | **Type** | **Default** | **Description** |
+| :--- | :--- | :--- | :--- |
+| `address` | `string` |  | User address whose position and rewards to read. Required. |
+| `earn` | `{ vault: string }` |  | Vault to read. Required: `createStableReader` throws `StableValidationError` when it's missing. |
+| `network` | `Network?` | `Network.Mainnet` | Target network. |
+| `rpc` | `string?` | Public RPC | RPC override. |
+| `merklApiBase` | `string?` | `https://api.merkl.xyz` | Merkl rewards API base URL. |
+
+## `StableReader`
+
+### `getYield()`
+
+Return the vault's current net APY and fee breakdown.
+
+```ts
+const vaultYield = await reader.earn.getYield();
+```
+
+```text
+{ apy: 0.058, native: 0.041, rewards: [ { symbol: "MORPHO", address: "0x...", apr: 0.017 } ], performanceFee: 0.1, managementFee: 0 }
+```
+
+Returns `VaultYield`. `apy` is the total net APY after fees including reward boosts; `native` is the underlying market yield excluding rewards. All values are decimals (`0.05` = 5%).
+
+### `position()`
+
+Return the configured address's current vault position.
+
+```ts
+const position = await reader.earn.position();
+```
+
+```text
+{ shares: 100000000n, sharesFormatted: 100, shareDecimals: 6, assets: 101.2, tokenDecimals: 6, assetAddress: "0x..." }
+```
+
+Returns `VaultPosition` with the raw `shares` balance, its `sharesFormatted` human value, and the `assets` value of those shares in underlying units.
+
+### `preview(params)`
+
+Project the yield on an amount over a horizon, using the vault's live net APY.
+
+```ts
+const preview = await reader.earn.preview({ amount: 1000, horizonDays: 30 });
+```
+
+```text
+{ projectedYield: 4.64, apy: 0.058, horizonDays: 30 }
+```
+
+| **Param** | **Type** | **Description** |
+| :--- | :--- | :--- |
+| `amount` | `number` | Principal to project, human-readable. |
+| `horizonDays` | `number` | Projection horizon in days. |
+
+Returns `YieldPreview` (`{ projectedYield, apy, horizonDays }`).
+
+### `withdrawability(params)`
+
+Check whether an amount can be withdrawn instantly from the vault's idle liquidity.
+
+```ts
+const status = await reader.earn.withdrawability({ amount: 5000 });
+```
+
+```text
+{ isInstant: true, availableLiquidity: 12500.5, tokenDecimals: 6 }
+```
+
+| **Param** | **Type** | **Default** | **Description** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` |  | Amount to test, human-readable. |
+| `tokenDecimals` | `number?` | on-chain | Underlying asset decimals. |
+
+Returns `WithdrawStatus` (`{ isInstant, availableLiquidity, tokenDecimals }`). When `isInstant` is `false`, the withdrawal needs an adapter deallocation, which `stable.earn.withdraw` handles automatically.
+
+### `incentiveRewards.fetch()`
+
+Read pending Merkl rewards for the configured address. Read-only counterpart to `stable.earn.incentiveRewards.fetch`.
+
+```ts
+const { rewards } = await reader.earn.incentiveRewards.fetch();
+```
+
+```text
+{ chainId: 988, rewards: [ { token: { symbol: "MORPHO", ... }, amount: 1.25, rawAmount: "1250000...", proofs: [...] } ] }
+```
+
+Returns `MerklRewardsResult`.
+
 ## Enums
 
 ### `Network`
@@ -166,7 +441,7 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 ### `Chain`
 
-Used by `quoteBridge` and `bridge`. Each entry has a corresponding `CHAIN_CONFIGS` entry.
+Used by `quoteBridge` and `bridge`. Each entry has a corresponding `CHAIN_CONFIGS` entry. The two testnet entries are defined for completeness, but LI.FI rejects them: bridging works only between the mainnet chains.
 
 | **Enum** | **Network** | **Chain ID** |
 | :--- | :--- | :--- |
@@ -196,6 +471,24 @@ console.log(CHAIN_CONFIGS[Chain.Stable]);
 { id: 988, rpc: "https://rpc.stable.xyz", usdt: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", decimals: 6 }
 ```
 
+## Constants
+
+Canonical mainnet addresses, exported so you don't hard-code them.
+
+```ts
+import { STABLE_USDT_ADDRESS, STABLE_VAULT_ADDRESS } from "@stablechain/sdk";
+```
+
+```text
+STABLE_USDT_ADDRESS  0x779ded0c9e1022225f8e0630b35a9b54be713736
+STABLE_VAULT_ADDRESS 0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08
+```
+
+| **Constant** | **Description** |
+| :--- | :--- |
+| `STABLE_USDT_ADDRESS` | USDT token address on Stable mainnet. |
+| `STABLE_VAULT_ADDRESS` | Default Morpho V2 earn vault on Stable mainnet. Pass to `earn: { vault }`. |
+
 ## Errors
 
 All SDK errors extend `StableError`, which extends viem's `BaseError`. Errors carry structured metadata so you can branch on `error.name` or `instanceof`.
@@ -205,7 +498,8 @@ All SDK errors extend `StableError`, which extends viem's `BaseError`. Errors ca
 | `StableValidationError` | A parameter fails validation (bad address, non-finite amount, unsupported chain). | `field`, `value` |
 | `StableQuoteError` | A quote request to LI.FI fails. | `provider`, `httpStatus`, `providerCode`, `body` |
 | `StableTransactionError` | On-chain step fails: chain switch, approval, send, or revert. | `phase`, `txHash`, `chainId`, `revertReason` |
-| `StableNetworkError` | An underlying HTTP/RPC call fails. | `url` |
+| `StableNetworkError` | An underlying HTTP/RPC call fails (e.g. the Morpho or Merkl API). | `url` |
+| `StableBulkError` | A `bulkDeposit` or `bulkWithdraw` run with `stopOnError: true` hits its first failure. | `results`, `succeeded`, `failed` |
 
 ```ts
 import { StableTransactionError } from "@stablechain/sdk";

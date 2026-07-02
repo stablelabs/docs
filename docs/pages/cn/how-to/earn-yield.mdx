@@ -1,0 +1,178 @@
+---
+source_path: how-to/earn-yield.mdx
+source_sha: 03f36a00122cecc73b90075f5f9276cfd84121ee
+title: "用 SDK 赚取收益"
+description: "使用 Stable SDK 将 USDT0 存入 Morpho 资金库，读取年化收益率和头寸，提款，并领取 Merkl 奖励。"
+diataxis: "how-to"
+---
+
+# 用 SDK 赚取收益
+
+在 Stable 主网将 USDT0 存入 Morpho V2 资金库以赚取收益，然后读取您的头寸并提款。 `@stablechain/sdk` 的 `earn` 方法处理 ERC-20 授权、存款和提款时的适配器解除分配，因此您每个操作只需调用一个方法。
+
+涉及两个客户端。`createStable` 为您提供用于存款和提款的签名客户端。`createStableReader` 为您提供只读客户端，用于查询年化收益率、头寸和可提款性，无需签名器。
+
+## 先决条件
+
+- Node.js 20 或更高版本，以及已安装的 `@stablechain/sdk` 和 `viem`。请参阅 [SDK 快速入门](/cn/tutorial/sdk-quickstart)。
+- 具有 Stable 主网 USDT0 的签名器。要转入资金，请使用 [`stable.bridge`](/cn/reference/sdk#bridgeparams) 或其中一个[支持的桥接器](/cn/reference/bridges)。
+- 资金库地址。SDK 将默认主网资金库导出为 `STABLE_VAULT_ADDRESS`。
+
+:::note
+赚取收益的示例在主网上运行。SDK 不提供测试网资金库地址，因此 `Network.Testnet` 仅适用于您自己部署的资金库。
+:::
+
+## 1. 使用资金库创建签名客户端
+
+将 `earn: { vault }` 传递给 `createStable`。如果没有它，存款和提款方法将抛出 `StableValidationError`。
+
+```ts
+import { createStable, Network, STABLE_VAULT_ADDRESS } from "@stablechain/sdk";
+import { privateKeyToAccount } from "viem/accounts";
+
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
+
+const stable = createStable({
+  network: Network.Mainnet,
+  account,
+  earn: { vault: STABLE_VAULT_ADDRESS },
+});
+```
+
+```text
+StableClient { transfer, quoteBridge, bridge, quoteSwap, swap, earn }
+```
+
+## 2. 存款前查看年化收益率
+
+创建只读读取器并获取资金库当前的净年化收益率。读取器需要您要读取的地址和资金库，但不需要签名器。
+
+```ts
+import { createStableReader } from "@stablechain/sdk";
+
+const reader = createStableReader({
+  network: Network.Mainnet,
+  address: account.address,
+  earn: { vault: STABLE_VAULT_ADDRESS },
+});
+
+const { apy, native, rewards } = await reader.earn.getYield();
+console.log("净年化收益率:", (apy * 100).toFixed(2) + "%");
+```
+
+```text
+净年化收益率: 5.80%
+```
+
+`apy` 是扣除费用后的总净年化收益率，包括奖励提升。`native` 是底层市场的独立收益率，`rewards` 则分解了每个奖励代币的年化百分比贡献。所有值均为小数，因此 `0.058` 表示 5.8%。
+
+要估算一段时间内的收益，请使用 `preview`：
+
+```ts
+const { projectedYield } = await reader.earn.preview({ amount: 1000, horizonDays: 30 });
+console.log("1000 美元 30 天预测收益:", projectedYield.toFixed(2));
+```
+
+```text
+1000 美元 30 天预测收益: 4.64
+```
+
+## 3. 存款
+
+向资金库提供资产。SDK 发送授权（或钱包支持时的许可签名），然后是存款，并等待收据。
+
+```ts
+const { txHash } = await stable.earn.deposit({ amount: 100 });
+console.log("存款交易哈希:", txHash);
+```
+
+```text
+存款交易哈希: 0x8f3a...2d41
+```
+
+金额是人类可读的。除非您传递 `tokenDecimals`，否则底层资产的小数位将在链上获取。为了限制单次存款消耗的资金库闲置流动性，请传递 `depositBuffer`（例如 `0.8` 表示 80%）；如果金额超过上限，SDK 会在发送前抛出错误。
+
+:::tip
+传递 `idempotencyKey` 可使存款安全重试。如果使用相同键的调用已在进行中，SDK 将返回相同的 Promise，而不是发送第二个交易。
+:::
+
+## 4. 读取您的头寸
+
+获取您的份额余额及其当前资产价值。
+
+```ts
+const position = await reader.earn.position();
+console.log("份额:", position.sharesFormatted, "价值", position.assets);
+```
+
+```text
+份额: 100 价值 100.02
+```
+
+`shares` 是原始余额，`sharesFormatted` 是其人类可读值。`assets` 是这些份额目前以底层单位计的价值。
+
+## 5. 提款或赎回
+
+提取特定数量的底层资产，或赎回一定数量的份额。当资金库的闲置流动性不足时，SDK 会自动从资金库的适配器中解除分配以弥补差额。
+
+```ts
+const { txHash } = await stable.earn.withdraw({ amount: 50 });
+console.log("提款交易哈希:", txHash);
+```
+
+```text
+提款交易哈希: 0xabcd...7890
+```
+
+要按份额数量赎回，请使用 `stable.earn.redeem({ shares: 25 })`。要首先检查某个数量是否可以立即取出，请调用读取器：
+
+```ts
+const { isInstant, availableLiquidity } = await reader.earn.withdrawability({ amount: 50 });
+console.log("即时提款:", isInstant, "可用流动性:", availableLiquidity);
+```
+
+```text
+即时提款: true 可用流动性: 12500.5
+```
+
+当 `isInstant` 为 `false` 时，提款仍然成功；它只是需要适配器解除分配，这由 `withdraw` 和 `redeem` 为您处理。要手动控制从哪些适配器中提取，请使用 [`forceWithdraw` / `forceRedeem`](/cn/reference/sdk#forcewithdrawparams--forceredeemparams)。
+
+## 6. 领取奖励
+
+资金库除了原生收益外，还可以赚取 Merkl 奖励代币。获取待领取奖励，然后领取它们。这些方法需要签名器，但不需要 `earn` 资金库配置。
+
+```ts
+const { rewards } = await stable.earn.incentiveRewards.fetch();
+if (rewards.length > 0) {
+  const { txHash, tokenCount } = await stable.earn.incentiveRewards.claim();
+  console.log("已领取", tokenCount, "个代币:", txHash);
+}
+```
+
+```text
+已领取 1 个代币: 0xabcd...7890
+```
+
+:::note
+Merkl 大约每两小时将奖励提交到其 merkle 树。仍在等待更新的奖励尚不能领取，如果调用 `claim()` 时没有可领取的奖励，则会抛出 `StableValidationError`。对于浏览器，请将 `merklApiBase` 设置为您自己服务器上的代理，以避免 Merkl API 的 CORS 限制。
+:::
+
+## 不在 SDK 中签名？
+
+如果您在其他地方签名交易（一个中继器，一个免 gas 流程，或一个多重签名），构建 calldata 而不发送它：
+
+```ts
+const { steps, chainId } = await stable.earn.prepareDepositCalldata({ amount: 100 });
+```
+
+```text
+{ steps: [ { to: "0x...", data: "0x...", value: 0n } ], chainId: 988 }
+```
+
+`steps` 是一个有序的交易列表，一个可选的授权，然后是存款。`prepareWithdrawCalldata` 和 `prepareRedeemCalldata` 各自返回一个 `{ to, data, value, chainId }` 交易。
+
+## 接下来去哪里
+
+- [**SDK 参考**](/cn/reference/sdk#stableearn)：完整的赚取收益参数、返回类型和读取器方法。
+- [**与 wagmi 一起使用**](/cn/how-to/sdk-with-wagmi)：将 SDK 集成到 React 应用程序中，以便用户从浏览器钱包存款。
+- [**SDK 概述**](/cn/explanation/sdk-overview)：何时使用 SDK 以及签名模式如何工作。

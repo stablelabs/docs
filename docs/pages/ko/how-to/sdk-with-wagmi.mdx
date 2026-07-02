@@ -1,6 +1,6 @@
 ---
 source_path: how-to/sdk-with-wagmi.mdx
-source_sha: 396745c5590db9fb3f8b0677d67b69579aeeb55a
+source_sha: 2c4c2bcb4189c3ae47884b82bf8433ee0a18ae5e
 title: "wagmi와 함께 SDK 사용하기"
 description: "wagmi의 useWalletClient, useAccount, useChainId 훅을 사용하여 @stablechain/sdk를 React 앱에 연결합니다."
 diataxis: "how-to"
@@ -8,13 +8,13 @@ diataxis: "how-to"
 
 # wagmi와 함께 SDK 사용하기
 
-`createStable`은 wagmi의 `useWalletClient`가 반환하는 것과 정확히 같은 viem `WalletClient`를 받습니다. 평소처럼 wagmi를 통해 지갑을 연결한 다음, 지갑 클라이언트가 변경될 때마다 `StableClient`를 메모이제이션합니다.
+`createStable`은 viem `WalletClient`를 허용하며, 이는 wagmi의 `useWalletClient`가 반환하는 것과 정확히 같습니다. 평소와 같이 wagmi를 통해 지갑을 연결한 다음, 지갑 클라이언트가 변경될 때마다 `StableClient`를 메모화합니다.
 
-이 가이드는 wagmi v2와 `@tanstack/react-query`를 가정합니다.
+이 가이드는 wagmi v2 및 `@tanstack/react-query`를 가정합니다.
 
-## 1. wagmi 구성하기
+## 1. wagmi 구성
 
-Stable을 wagmi 구성에 추가합니다. viem은 두 네트워크에 대한 체인 정의를 제공합니다.
+wagmi 구성에 Stable을 추가합니다. viem은 두 네트워크에 대한 체인 정의를 제공합니다.
 
 ```ts
 import { http, createConfig } from "wagmi";
@@ -35,9 +35,9 @@ export const wagmiConfig = createConfig({
 WagmiConfig { chains: [988, 2201], connectors: [injected] }
 ```
 
-## 2. `StableClient`를 반환하는 훅 빌드하기
+## 2. `StableClient`를 반환하는 훅 빌드
 
-현재 `WalletClient`에 대해 `StableClient`를 메모이제이션합니다. 지갑 클라이언트 아이덴티티가 변경될 때마다 다시 생성합니다.
+현재 `WalletClient`에 대해 `StableClient`를 메모화합니다. 지갑 클라이언트 ID가 변경될 때 재생성합니다.
 
 ```tsx
 import { useMemo } from "react";
@@ -55,7 +55,7 @@ export function useStable(network: Network = Network.Mainnet): StableClient | nu
 ```
 
 :::warning
-`useWalletClient()`는 사용자가 연결하기 전에는 `undefined`를 반환합니다. SDK 메서드를 호출하기 전에 항상 보호 장치를 두어야 합니다. 그렇지 않으면 구조 분해된 `walletClient`가 거짓이 되고 `createStable`에 서명자가 없게 됩니다.
+사용자가 연결하기 전에 `useWalletClient()`는 `undefined`를 반환합니다. SDK 메서드를 호출하기 전에 항상 보호 장치를 설정해야 합니다. 그렇지 않으면 구조 분해된 `walletClient`는 falsy가 되고 `createStable`은 서명자를 가지지 못합니다.
 :::
 
 ## 3. 컴포넌트에서 사용하기
@@ -94,7 +94,7 @@ Sent: 0x8f3a...2d41
 
 ## 4. React에서 브릿지 및 스왑하기
 
-동일한 `stable` 인스턴스가 브릿지 및 스왑을 처리합니다. effect 또는 `useQuery`에서 견적을 가져온 다음 클릭 시 실행합니다.
+동일한 `stable` 인스턴스가 브릿지 및 스왑을 처리합니다. 이펙트 또는 `useQuery`에서 견적을 가져온 다음 클릭 시 실행합니다. `StableQuoteError`를 catch합니다. Stable에 대한 LI.FI의 DEX 범위는 여전히 제한적이며, 경로가 없는 쌍은 "No available quotes for the requested transfer"를 발생시킵니다.
 
 ```tsx
 const stable = useStable(Network.Mainnet);
@@ -123,11 +123,11 @@ const onSwap = async () => {
 ```
 
 :::note
-`useQuery`로 견적을 캐싱하는 것은 잘 작동합니다. `quoteSwap` / `quoteBridge`를 쿼리 함수로 전달하고 캐시된 `quote`를 `swap` / `bridge`에 전달합니다. SDK는 견적이 제공되면 내부 견적 호출을 건너뜁니다.
+`useQuery`로 견적을 캐시하는 것이 잘 작동합니다. `quoteSwap` / `quoteBridge`를 쿼리 함수로 전달하고 캐시된 `quote`를 `swap` / `bridge`로 전달합니다. SDK는 제공된 견적이 있을 때 내부 견적 호출을 건너뜁니다.
 :::
 
 ## 다음 권장 사항
 
 - [**SDK 참조**](/ko/reference/sdk): 모든 메서드, 구성 필드 및 오류 클래스.
 - [**viem과 함께 사용하기**](/ko/how-to/sdk-with-viem): 세 가지 서명 모드를 나란히 비교합니다.
-- [**SDK 퀵스타트**](/ko/tutorial/sdk-quickstart): 테스트넷에서 첫 번째 전송, 브릿지 및 스왑을 실행합니다.
+- [**SDK 퀵스타트**](/ko/tutorial/sdk-quickstart): 테스트넷에서 첫 전송, 브릿지 및 스왑을 실행합니다.
