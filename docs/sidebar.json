@@ -195,6 +195,10 @@
               "link": "/en/reference/sdk"
             },
             {
+              "text": "Earn Yield",
+              "link": "/en/how-to/earn-yield"
+            },
+            {
               "text": "Sdk With Viem",
               "link": "/en/how-to/sdk-with-viem"
             },

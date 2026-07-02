@@ -1,12 +1,12 @@
 ---
 title: "Stable SDK"
-description: "Use the typed TypeScript SDK to transfer USDT0, bridge between chains, and swap tokens on Stable in a few lines."
+description: "Use the typed TypeScript SDK to transfer USDT0, bridge between chains, swap tokens, and earn vault yield on Stable in a few lines."
 diataxis: "explanation"
 ---
 
 # Stable SDK
 
-`@stablechain/sdk` is the official TypeScript client for Stable. It wraps viem with a small, typed API for the operations you reach for most: transfer USDT0, bridge between chains, and swap tokens on Stable. Routing, approvals, decimals, and chain switching are handled for you.
+`@stablechain/sdk` is the official TypeScript client for Stable. It wraps viem with a small, typed API for the operations you reach for most: transfer USDT0, bridge between chains, swap tokens, and earn yield on Stable. Routing, approvals, decimals, and chain switching are handled for you.
 
 ```ts
 import { createStable, Network } from "@stablechain/sdk";
@@ -31,8 +31,10 @@ txHash: 0x8f3a...2d41
 ## What the SDK does
 
 - **`transfer`**: send native USDT0 or any ERC-20 on Stable. Gas is paid in USDT0 automatically.
-- **`quoteBridge` / `bridge`**: cross-chain transfers. LayerZero for USDT0 → USDT0, LI.FI for everything else. Route is picked for you.
+- **`quoteBridge` / `bridge`**: cross-chain transfers via LI.FI, which picks the bridge route for you. Approval and chain switching are handled internally.
 - **`quoteSwap` / `swap`**: same-chain token swaps via LI.FI, with ERC-20 approval handled internally.
+- **`earn`**: supply USDT0 into a Morpho V2 vault to earn yield, withdraw or redeem, and claim Merkl incentive rewards. Approvals and adapter deallocations are handled for you.
+- **`createStableReader`**: a read-only client for vault APY, your position, yield projections, and instant-withdrawability checks. No signer required.
 
 The SDK is published on npm as [`@stablechain/sdk`](https://www.npmjs.com/package/@stablechain/sdk) and requires `viem >= 2.0.0` as a peer dependency.
 
@@ -47,6 +49,7 @@ The SDK signs with any viem-compatible signer: a private-key `Account`, a browse
 ## Start here
 
 - [**Quickstart**](/en/tutorial/sdk-quickstart): Install the SDK and run your first transfer, bridge, and swap on testnet.
+- [**Earn yield with the SDK**](/en/how-to/earn-yield): Deposit into a vault, read your APY and position, withdraw, and claim rewards.
 - [**SDK reference**](/en/reference/sdk): Every method, config option, enum, and error class.
 - [**Use with viem**](/en/how-to/sdk-with-viem): Server-side accounts, browser wallets, and bring-your-own `WalletClient`.
 - [**Use with wagmi**](/en/how-to/sdk-with-wagmi): Wire the SDK into a React app with `useWalletClient` and hooks.
