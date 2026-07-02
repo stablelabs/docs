@@ -1,14 +1,14 @@
 ---
 source_path: how-to/sdk-with-wagmi.mdx
-source_sha: 396745c5590db9fb3f8b0677d67b69579aeeb55a
+source_sha: 2c4c2bcb4189c3ae47884b82bf8433ee0a18ae5e
 title: "将 SDK 与 wagmi 结合使用"
-description: "将 @stablechain/sdk 引入 React 应用中，使用 wagmi 的 useWalletClient, useAccount, 和 useChainId 钩子。"
+description: "将 @stablechain/sdk 接入 React 应用，使用 wagmi 的 useWalletClient、useAccount 和 useChainId 钩子。"
 diataxis: "how-to"
 ---
 
 # 将 SDK 与 wagmi 结合使用
 
-`createStable` 接受一个 viem `WalletClient`，这正是 wagmi 的 `useWalletClient` 返回的。您像往常一样通过 wagmi 连接钱包，然后在钱包客户端更改时记忆一个 `StableClient`。
+`createStable` 接受一个 viem `WalletClient`，这正是 wagmi 的 `useWalletClient` 返回的。像往常一样，你通过 wagmi 连接钱包，然后在钱包客户端更改时记忆一个 `StableClient`。
 
 本指南假设使用 wagmi v2 和 `@tanstack/react-query`。
 
@@ -35,9 +35,9 @@ export const wagmiConfig = createConfig({
 WagmiConfig { chains: [988, 2201], connectors: [injected] }
 ```
 
-## 2. 构建一个返回 `StableClient` 的 Hook
+## 2. 构建一个返回 `StableClient` 的钩子
 
-针对当前的 `WalletClient` 记忆一个 `StableClient`。当钱包客户端的身份发生变化时重新创建它。
+根据当前的 `WalletClient` 记忆一个 `StableClient`。当钱包客户端的身份发生变化时重新创建它。
 
 ```tsx
 import { useMemo } from "react";
@@ -55,7 +55,7 @@ export function useStable(network: Network = Network.Mainnet): StableClient | nu
 ```
 
 :::warning
-`useWalletClient()` 在用户连接之前返回 `undefined`。在调用 SDK 方法之前务必进行防御性检查，否则解构的 `walletClient` 将为假值，并且 `createStable` 将没有签名者。
+`useWalletClient()` 在用户连接之前返回 `undefined`。在调用 SDK 方法之前务必进行防御性编程，否则解构的 `walletClient` 将为假，并且 `createStable` 将没有签名者。
 :::
 
 ## 3. 在组件中使用它
@@ -82,7 +82,7 @@ export function PayButton() {
 
   return (
     <button disabled={!stable} onClick={onClick}>
-      支付 1 USDT0 （链 {chainId}）
+      Pay 1 USDT0 (chain {chainId})
     </button>
   );
 }
@@ -92,9 +92,9 @@ export function PayButton() {
 Sent: 0x8f3a...2d41
 ```
 
-## 4. 从 React 执行桥接和兑换
+## 4. 从 React 执行跨链桥接和兑换
 
-同一个 `stable` 实例处理桥接和兑换。在 effect 或 `useQuery` 中获取报价，然后点击执行。
+同一个 `stable` 实例处理跨链桥接和兑换。在 effect 或 `useQuery` 中获取报价，然后点击执行。捕获 `StableQuoteError`：LI.FI 在 Stable 上的 DEX 覆盖范围仍然有限，没有路由的交易对会抛出“No available quotes for the requested transfer”错误。
 
 ```tsx
 const stable = useStable(Network.Mainnet);
@@ -126,8 +126,8 @@ const onSwap = async () => {
 使用 `useQuery` 缓存报价效果很好：将 `quoteSwap` / `quoteBridge` 作为查询函数传递，并将缓存的 `quote` 转发到 `swap` / `bridge`。当提供了报价时，SDK 会跳过其内部的报价调用。
 :::
 
-## 下一步建议
+## 接下来推荐
 
 - [**SDK 参考**](/cn/reference/sdk)：每个方法、配置字段和错误类。
-- [**与 viem 结合使用**](/cn/how-to/sdk-with-viem)：并排比较三种签名模式。
-- [**SDK 快速入门**](/cn/tutorial/sdk-quickstart)：在测试网上运行您的首次转账、桥接和兑换。
+- [**与 viem 一起使用**](/cn/how-to/sdk-with-viem)：并排比较三种签名模式。
+- [**SDK 快速入门**](/cn/tutorial/sdk-quickstart)：在测试网上运行你的第一个转账、跨链桥接和兑换。

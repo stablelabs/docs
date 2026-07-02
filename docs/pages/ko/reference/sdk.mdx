@@ -1,14 +1,14 @@
 ---
 source_path: reference/sdk.mdx
-source_sha: 64d437cfd1ea8f5c39da592e6dfad6bb6ab8b3bf
+source_sha: cb2522d5ba3ff23ce6506a1bdc182e119b247b59
 title: "SDK 레퍼런스"
-description: "@stablechain/sdk에 대한 완전한 레퍼런스: createStable, StableClient 메서드, 열거형, 체인 구성, 오류 클래스."
+description: "@stablechain/sdk의 완전한 레퍼런스: createStable, createStableReader, transfer, bridge, swap, earn 및 yield 메서드, 열거형, 오류 클래스."
 diataxis: "reference"
 ---
 
 # SDK 레퍼런스
 
-`@stablechain/sdk`의 전체 표면. 자세한 내용은 [SDK 퀵스타트](/ko/tutorial/sdk-quickstart)를 참조하십시오.
+`@stablechain/sdk`의 전체 표면입니다. 여기에는 [`createStable`](#createstableconfig)의 서명 클라이언트, [`createStableReader`](#createstablereaderconfig)의 읽기 전용 클라이언트, 공유되는 열거형, 상수, 오류 클래스가 포함됩니다. 자세한 내용은 [SDK 퀵스타트](/ko/tutorial/sdk-quickstart)를 참조하십시오. 작업 중심의 수익 가이드에 대해서는 [SDK로 수익 얻기](/ko/how-to/earn-yield)를 참조하십시오.
 
 ## 설치
 
@@ -24,7 +24,7 @@ added 2 packages, audited 3 packages in 2s
 
 ## `createStable(config)`
 
-`StableClient`를 구성합니다. [`StableClient`](#stableclient) 아래에 나열된 메서드를 포함하는 객체를 반환합니다.
+`StableClient`를 구성합니다. [`StableClient`](#stableclient)에 나열된 메서드를 포함하는 객체를 반환합니다.
 
 ```ts
 import { createStable, Network } from "@stablechain/sdk";
@@ -33,7 +33,7 @@ const stable = createStable({ network: Network.Mainnet, account });
 ```
 
 ```text
-StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
+StableClient { transfer, quoteBridge, bridge, quoteSwap, swap, earn }
 ```
 
 ### `StableConfig`
@@ -42,17 +42,19 @@ StableClient { transfer, quoteBridge, bridge, quoteSwap, swap }
 | :--- | :--- | :--- | :--- |
 | `network` | `Network` | `Network.Mainnet` | 대상 네트워크. |
 | `rpc` | `string` | `network`의 공개 RPC | RPC 재정의. |
-| `account` | `viem.Account` | | 서버 측 서명자(예: `privateKeyToAccount`). |
-| `transport` | `viem.Transport` | | 브라우저-지갑 전송(예: `custom(window.ethereum)`). |
-| `walletClient` | `viem.WalletClient` | | 미리 빌드된 지갑 클라이언트. `account` 및 `transport`보다 우선합니다. |
+| `account` | `viem.Account` |  | 서버 측 서명자(예: `privateKeyToAccount`). |
+| `transport` | `viem.Transport` |  | 브라우저-지갑 전송(예: `custom(window.ethereum)`). |
+| `walletClient` | `viem.WalletClient` |  | 미리 빌드된 지갑 클라이언트. `account` 및 `transport`보다 우선합니다. |
+| `earn` | `{ vault: string }` |  | Morpho V2 볼트 구성. `stable.earn` 입금, 출금, 상환 및 calldata 준비 메서드를 호출하는 데 필요합니다. |
+| `merklApiBase` | `string` | `https://api.merkl.xyz` | Merkl 보상 API 기본 URL. 자체 서버를 통해 프록시하여 브라우저 CORS 제한을 피하려면 재정의하세요. |
 
-`account`, `transport` 또는 `walletClient` 중 하나를 제공하십시오.
+`account`, `transport`, `walletClient` 중 하나를 제공합니다. `earn` 필드는 선택 사항입니다. 이 필드 없이도 transfer, bridge, swap이 작동합니다. 볼트 입금 및 출금에는 이 필드가 필요하며, 구성된 볼트 없이 호출하면 SDK는 `StableValidationError`를 발생시킵니다.
 
 ## `StableClient`
 
 ### `transfer(params)`
 
-기본 USDT0 또는 Stable의 ERC-20을 보냅니다. 지갑을 Stable 체인으로 전환하고, 누락된 경우 온체인에서 토큰 소수 자릿수를 가져오고, 영수증을 기다립니다.
+네이티브 USDT0 또는 Stable의 모든 ERC-20을 보냅니다. 지갑을 Stable 체인으로 전환하고, 토큰 소수 자릿수가 누락된 경우 온체인에서 가져오며, 영수증을 기다립니다.
 
 ```ts
 const { txHash } = await stable.transfer({
@@ -70,35 +72,39 @@ const { txHash } = await stable.transfer({
 | :--- | :--- | :--- |
 | `from` | `string` | 발신자 주소. |
 | `to` | `string` | 수신자 주소. |
-| `amount` | `number` | 읽기 쉬운 양. |
-| `token` | `string?` | ERC-20 컨트랙트 주소. 기본 USDT0의 경우 생략합니다. |
+| `amount` | `number` | 읽기 쉬운 금액. |
+| `token` | `string?` | ERC-20 컨트랙트 주소. 네이티브 USDT0의 경우 생략. |
 | `tokenDecimals` | `number?` | 소수 자릿수. 생략 시 온체인에서 가져옵니다. |
 
 `OperationResult` (`{ txHash, toAmount? }`)를 반환합니다.
 
 ### `quoteBridge(params)`
 
-브릿지를 미리 봅니다. 읽기 전용. 서명, 가스 없음.
+브리지를 미리 봅니다. 읽기 전용. 서명 없음, 가스 없음.
 
 ```ts
 const quote = await stable.quoteBridge({
   fromChain: Chain.Ethereum,
   toChain: Chain.Stable,
-  fromToken: "0x6C96dE32CEa08842dcc4058c14d3aaAD7Fa41dee",
-  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+  fromToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", // 이더리움의 USDT
+  toToken: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", // Stable의 USDT0
   amount: 100,
 });
 ```
 
 ```text
-{ toAmount: 99.94 }
+{ toAmount: 99.73 }
 ```
 
 `BridgeQuote`를 반환합니다.
 
+:::note
+LI.FI는 [`Chain`](#chain) 열거형의 메인넷 체인에 대해서만 견적을 제공합니다. `Chain.Sepolia` 및 `Chain.StableTestnet`은 `StableQuoteError`와 함께 거부되며, `CHAIN_CONFIGS`의 일부 토큰 주소(예: 이더리움의 USDT0)는 LI.FI의 견적 거부 목록에 있습니다. 확실하지 않을 경우 체인의 정식 토큰으로 견적을 요청하십시오.
+:::
+
 ### `bridge(params)`
 
-토큰을 크로스체인으로 브릿지합니다. SDK는 경로를 선택합니다: USDT0 → USDT0의 경우 LayerZero, 나머지 모든 것의 경우 LI.FI. 내부 인용 호출을 건너뛰려면 미리 가져온 `quote`를 전달하십시오.
+LI.FI를 통해 토큰을 크로스체인 브리징하며, LI.FI가 브리지 경로를 선택합니다. SDK는 ERC-20 승인을 처리하고 전송 전에 지갑을 소스 체인으로 전환합니다. 미리 가져온 `quote`를 전달하여 내부 견적 호출을 건너뛸 수 있습니다.
 
 ```ts
 const { txHash } = await stable.bridge({ ...bridgeParams, quote });
@@ -114,14 +120,14 @@ const { txHash } = await stable.bridge({ ...bridgeParams, quote });
 | `toChain` | `Chain` | 대상 체인. |
 | `fromToken` | `string` | 소스 토큰 컨트랙트 주소. |
 | `toToken` | `string` | 대상 토큰 컨트랙트 주소. |
-| `amount` | `number` | 읽기 쉬운 양. |
+| `amount` | `number` | 읽기 쉬운 금액. |
 | `fromDecimals` | `number?` | 소스 토큰 소수 자릿수. 기본값은 `6`입니다. |
-| `recipient` | `string?` | 대상 주소. 기본값은 서명자입니다. |
-| `quote` | `BridgeQuote?` | 미리 가져온 인용. 내부 인용 호출을 건너뜁니다. |
+| `recipient` | `string?` | 대상 주소. 서명자로 기본 설정됩니다. |
+| `quote` | `BridgeQuote?` | 미리 가져온 견적. 내부 견적 호출을 건너뜁니다. |
 
 ### `quoteSwap(params)`
 
-Stable에서 LI.FI 스왑 인용을 가져옵니다. 미리 빌드된 트랜잭션 요청 및 승인 주소를 반환합니다.
+Stable에서 LI.FI 스왑 견적을 가져옵니다. 미리 빌드된 트랜잭션 요청과 승인 주소를 반환합니다.
 
 ```ts
 const quote = await stable.quoteSwap({
@@ -135,6 +141,10 @@ const quote = await stable.quoteSwap({
 ```text
 { toAmount: 99.81, fromAmount: 100000000n, fromToken: "0x8a2B...", approvalAddress: "0x...", transactionRequest: { ... } }
 ```
+
+:::note
+스왑 경로는 Stable의 LI.FI DEX 적용 범위에 따라 달라지며, 이는 아직 제한적입니다. 특정 페어에 대한 경로가 존재하지 않는 경우, `quoteSwap` 및 `swap`은 "요청된 전송에 대한 사용 가능한 견적이 없습니다"라는 메시지와 함께 `StableQuoteError`를 발생시킵니다.
+:::
 
 ### `swap(params)`
 
@@ -150,12 +160,277 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 | **매개변수** | **유형** | **기본값** | **설명** |
 | :--- | :--- | :--- | :--- |
-| `fromToken` | `string` | | 소스 토큰 주소. |
-| `toToken` | `string` | | 대상 토큰 주소. |
-| `amount` | `number` | | 읽기 쉬운 양. |
+| `fromToken` | `string` |  | 소스 토큰 주소. |
+| `toToken` | `string` |  | 대상 토큰 주소. |
+| `amount` | `number` |  | 읽기 쉬운 금액. |
 | `fromDecimals` | `number?` | `6` | 소스 토큰 소수 자릿수. |
-| `toAddress` | `string?` | signer | 수신자 주소. |
-| `quote` | `SwapQuote?` | | 미리 가져온 인용. LI.FI 호출을 건너뜁니다. |
+| `toAddress` | `string?` | 서명자 | 수신자 주소. |
+| `quote` | `SwapQuote?` |  | 미리 가져온 견적. LI.FI 호출을 건너뜁니다. |
+
+## `stable.earn`
+
+수익을 얻기 위해 USDT0을 Morpho V2 볼트에 공급하고 Merkl 인센티브 보상을 청구합니다. 모든 메서드는 `earn` 네임스페이스 아래에 있으며 서명자가 필요합니다. 입금, 출금, 상환 및 calldata 준비 메서드에는 [`StableConfig`](#stableconfig)에 `earn: { vault }`도 필요합니다.
+
+```ts
+const stable = createStable({
+  network: Network.Mainnet,
+  account,
+  earn: { vault: "0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08" },
+});
+```
+
+```text
+stable.earn { deposit, bulkDeposit, withdraw, bulkWithdraw, redeem, forceWithdraw, forceRedeem, prepareDepositCalldata, prepareWithdrawCalldata, prepareRedeemCalldata, incentiveRewards }
+```
+
+금액 및 주식 수는 사람이 읽을 수 있는 숫자입니다. 자산 및 주식 소수 자릿수가 생략되면 온체인에서 가져옵니다. 입금, 출금, 상환 및 강제 메서드는 `EarnResult` (`{ txHash, idempotencyKey? }`)를 반환하며, 해결되기 전에 영수증을 기다립니다. 일괄 메서드는 `BulkEarnResult`를 반환하고 `incentiveRewards.claim()`은 아래 섹션에서 설명된 `MerklClaimResult`를 반환합니다.
+
+### `deposit(params)`
+
+자산을 볼트에 공급합니다. ERC-20 승인(또는 지갑이 지원하는 경우 허가 서명) 및 입금을 한 번의 호출로 처리합니다.
+
+```ts
+const { txHash } = await stable.earn.deposit({ amount: 100 });
+```
+
+```text
+{ txHash: "0x8f3a...2d41" }
+```
+
+| **매개변수** | **유형** | **기본값** | **설명** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` |  | 예치할 기본 자산, 사람이 읽을 수 있는 형식. |
+| `vault` | `string?` | config vault | 볼트 주소 재정의. 여러 볼트의 `bulkDeposit`에서 항목당 필요합니다. |
+| `tokenDecimals` | `number?` | 온체인 | 기본 자산 소수점. |
+| `slippageTolerance` | `number?` | `0.0003` | 슬리피지(소수점 형식, 예: `0.003` = 0.3%). Morpho의 0.03%로 기본 설정됩니다. |
+| `depositBuffer` | `number?` |  | 이 예금이 사용할 수 있는 볼트 유휴 유동성의 최대 비율(예: `0.8` = 80%). `> 0` 및 `≤ 1`이어야 합니다. 초과하면 전송 전에 오류가 발생합니다. |
+| `idempotencyKey` | `string?` |  | 중복 제거 키. 진행 중인 키로 두 번째 호출을 하면 동일한 Promise가 반환됩니다. |
+
+### `withdraw(params)`
+
+주어진 금액의 기본 자산을 인출합니다. 유휴 볼트 유동성이 부족할 경우 SDK는 차액을 충당하기 위해 볼트 어댑터에서 자동으로 할당을 해제합니다.
+
+```ts
+const { txHash } = await stable.earn.withdraw({ amount: 50 });
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+| **매개변수** | **유형** | **기본값** | **설명** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` |  | 출금할 기본 자산, 사람이 읽을 수 있는 형식. |
+| `tokenDecimals` | `number?` | 온체인 | 기본 자산 소수점. |
+| `idempotencyKey` | `string?` |  | 중복 제거 키. |
+
+### `redeem(params)`
+
+주어진 수의 볼트 주식을 기본 자산으로 상환합니다. `withdraw`와 마찬가지로 유휴 유동성이 부족할 경우 어댑터에서 자동으로 할당을 해제합니다.
+
+```ts
+const { txHash } = await stable.earn.redeem({ shares: 25 });
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+| **매개변수** | **유형** | **기본값** | **설명** |
+| :--- | :--- | :--- | :--- |
+| `shares` | `number` |  | 상환할 볼트 주식, 사람이 읽을 수 있는 형식. |
+| `shareDecimals` | `number?` | 온체인 | 볼트 주식 소수점. |
+| `idempotencyKey` | `string?` |  | 중복 제거 키. |
+
+### `bulkDeposit(items, options?)` / `bulkWithdraw(items, options?)`
+
+여러 입금 또는 출금을 순차적으로 실행합니다. 기본적으로 배치는 모든 항목을 시도하고 부분 결과를 반환합니다. `stopOnError: true`를 설정하면 첫 번째 실패 시 중지하고 `StableBulkError`를 발생시킵니다.
+
+```ts
+const result = await stable.earn.bulkDeposit([
+  { amount: 100 },
+  { amount: 250, vault: "0xAnotherVault" },
+]);
+```
+
+```text
+{ results: [ { status: "fulfilled", txHash: "0x..." }, ... ], succeeded: 2, failed: 0  }
+```
+
+`items`는 `EarnDepositParams` (또는 `EarnWithdrawParams`)의 배열입니다. `options`에는 다음이 허용됩니다.
+
+| **옵션** | **유형** | **기본값** | **설명** |
+| :--- | :--- | :--- | :--- |
+| `idempotencyKey` | `string?` |  | 배치 수준 중복 제거 키. |
+| `stopOnError` | `boolean?` | `false` | 부분 결과를 반환하는 대신 첫 번째 실패 시 중지하고 `StableBulkError`를 발생시킵니다. |
+
+`BulkEarnResult` (`{ results, succeeded, failed, idempotencyKey? }`)를 반환합니다. `results`의 각 항목은 `{ status: "fulfilled", txHash, vault?, idempotencyKey? }` 또는 `{ status: "rejected", error, vault?, idempotencyKey? }`입니다.
+
+### `forceWithdraw(params)` / `forceRedeem(params)`
+
+어떤 어댑터 포지션부터 할당 해제할지 명시적으로 제어하면서 인출 또는 상환합니다. `withdraw` / `redeem`의 자동 선택 대신 직접 소스 시장을 선택해야 할 때 사용합니다.
+
+```ts
+const { txHash } = await stable.earn.forceWithdraw({
+  amount: 1000,
+  deallocations: [{ adapter: "0xAdapter", amount: 1000 }],
+});
+```
+
+```text
+{ txHash: "0xabcd...7890" }
+```
+
+둘 다 `deallocations: ForceDeallocation[]` 배열과 선택적 `tokenDecimals`(할당 해제 금액에 사용되는 기본 자산 소수점; 생략 시 온체인에서 가져옴)를 받습니다. `forceWithdraw`는 `amount`를 받고, `forceRedeem`은 `shares`와 선택적인 `shareDecimals`를 받습니다. 각 `ForceDeallocation`은 다음과 같습니다.
+
+| **필드** | **유형** | **설명** |
+| :--- | :--- | :--- |
+| `adapter` | `string` | 할당 해제할 어댑터 컨트랙트. |
+| `amount` | `number` | 기본 자산 단위로 할당 해제할 금액. |
+| `marketParams` | `object?` | Morpho Blue 시장 어댑터에만 필요: `{ loanToken, collateralToken, oracle, irm, lltv }` (`lltv`는 1e18로 스케일링됨). 볼트 어댑터의 경우 생략합니다. |
+
+### `prepareDepositCalldata(params)` / `prepareWithdrawCalldata(params)` / `prepareRedeemCalldata(params)`
+
+서명하거나 전송하지 않고 트랜잭션 calldata를 빌드합니다. 이를 사용하여 릴레이어, 가스 면제 흐름 또는 멀티시그를 통해 트랜잭션을 라우팅하십시오.
+
+```ts
+const { steps, chainId } = await stable.earn.prepareDepositCalldata({ amount: 100 });
+```
+
+```text
+{ steps: [ { to: "0x...", data: "0x...", value: 0n } ], chainId: 988 }
+```
+
+`prepareDepositCalldata`는 `EarnDepositCalldata` (`{ steps, chainId }`)를 반환하며, 여기서 `steps`는 `{ to, data, value }` 트랜잭션의 정렬된 목록입니다. 선택적 토큰 승인 후 입금이 이어집니다. `prepareWithdrawCalldata` 및 `prepareRedeemCalldata`는 `EarnWithdrawCalldata` (`{ to, data, value, chainId }`)라는 단일 트랜잭션을 반환합니다. 이들은 해당 서명 메서드와 동일한 매개변수를 허용합니다.
+
+### `incentiveRewards`
+
+서명자에 대한 Merkl 보상 토큰을 가져와 청구합니다. 이 메서드에는 서명자가 필요하지만 `earn` 볼트 구성은 필요하지 않습니다.
+
+```ts
+const { rewards } = await stable.earn.incentiveRewards.fetch();
+const { txHash, tokenCount } = await stable.earn.incentiveRewards.claim();
+```
+
+```text
+{ txHash: "0xabcd...7890", tokenCount: 1 }
+```
+
+`fetch()`는 `MerklRewardsResult` (`{ chainId, rewards: MerklReward[] }`)를 반환하며, 토큰당 순 청구 가능 금액을 포함합니다. `claim()`은 현재 Merkl Merkle 트리에 커밋된 모든 보상을 청구하고 `MerklClaimResult` (`{ txHash, tokenCount }`)를 반환합니다.
+
+:::note
+Merkl은 약 2시간마다 Merkle 트리에 보상을 커밋합니다. 해당 업데이트가 아직 보류 중인 보상은 아직 청구할 수 없습니다. 청구할 수 없는 상태에서 `claim()`을 호출하면 `StableValidationError`가 발생합니다.
+:::
+
+## `createStableReader(config)`
+
+볼트 수익률 및 포지션 데이터를 위한 읽기 전용 `StableReader`를 구성합니다. 서명자는 필요 없고, 읽으려는 주소만 필요합니다.
+
+```ts
+import { createStableReader, Network } from "@stablechain/sdk";
+
+const reader = createStableReader({
+  network: Network.Mainnet,
+  address: "0xUserAddress",
+  earn: { vault: "0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08" },
+});
+```
+
+```text
+StableReader { earn: { getYield, position, preview, withdrawability, incentiveRewards } }
+```
+
+### `StableReaderConfig`
+
+| **필드** | **유형** | **기본값** | **설명** |
+| :--- | :--- | :--- | :--- |
+| `address` | `string` |  | 포지션과 보상을 읽을 사용자 주소. 필수. |
+| `earn` | `{ vault: string }` |  | 읽을 볼트. 필수: 누락 시 `createStableReader`는 `StableValidationError`를 발생시킵니다. |
+| `network` | `Network?` | `Network.Mainnet` | 대상 네트워크. |
+| `rpc` | `string?` | 공개 RPC | RPC 재정의. |
+| `merklApiBase` | `string?` | `https://api.merkl.xyz` | Merkl 보상 API 기본 URL. |
+
+## `StableReader`
+
+### `getYield()`
+
+볼트의 현재 순 APY 및 수수료 분석을 반환합니다.
+
+```ts
+const vaultYield = await reader.earn.getYield();
+```
+
+```text
+{ apy: 0.058, native: 0.041, rewards: [ { symbol: "MORPHO", address: "0x...", apr: 0.017 } ], performanceFee: 0.1, managementFee: 0 }
+```
+
+`VaultYield`를 반환합니다. `apy`는 보상 부스트를 포함한 수수료 후 총 순 APY이며, `native`는 보상을 제외한 기본 시장 수익률입니다. 모든 값은 소수점(예: `0.05` = 5%)입니다.
+
+### `position()`
+
+설정된 주소의 현재 볼트 포지션을 반환합니다.
+
+```ts
+const position = await reader.earn.position();
+```
+
+```text
+{ shares: 100000000n, sharesFormatted: 100, shareDecimals: 6, assets: 101.2, tokenDecimals: 6, assetAddress: "0x..." }
+```
+
+원시 `shares` 잔액, 포맷된 `sharesFormatted` 사람의 값, 기본 단위로 표현된 `assets` 값을 포함하는 `VaultPosition`을 반환합니다.
+
+### `preview(params)`
+
+볼트의 실시간 순 APY를 사용하여 특정 금액에 대한 수익률을 일정 기간 동안 예측합니다.
+
+```ts
+const preview = await reader.earn.preview({ amount: 1000, horizonDays: 30 });
+```
+
+```text
+{ projectedYield: 4.64, apy: 0.058, horizonDays: 30 }
+```
+
+| **매개변수** | **유형** | **설명** |
+| :--- | :--- | :--- |
+| `amount` | `number` | 예측할 원금, 사람이 읽을 수 있는 형식. |
+| `horizonDays` | `number` | 예측 기간(일). |
+
+`YieldPreview` (`{ projectedYield, apy, horizonDays }`)를 반환합니다.
+
+### `withdrawability(params)`
+
+볼트의 유휴 유동성에서 특정 금액을 즉시 인출할 수 있는지 확인합니다.
+
+```ts
+const status = await reader.earn.withdrawability({ amount: 5000 });
+```
+
+```text
+{ isInstant: true, availableLiquidity: 12500.5, tokenDecimals: 6 }
+```
+
+| **매개변수** | **유형** | **기본값** | **설명** |
+| :--- | :--- | :--- | :--- |
+| `amount` | `number` | 테스트할 금액, 사람이 읽을 수 있는 형식. |
+| `tokenDecimals` | `number?` | 온체인 | 기본 자산 소수점. |
+
+`WithdrawStatus` (`{ isInstant, availableLiquidity, tokenDecimals }`)를 반환합니다. `isInstant`가 `false`인 경우, 인출에는 어댑터 할당 해제가 필요하며, 이는 `stable.earn.withdraw`가 자동으로 처리합니다.
+
+### `incentiveRewards.fetch()`
+
+설정된 주소에 대한 보류 중인 Merkl 보상을 읽습니다. `stable.earn.incentiveRewards.fetch`의 읽기 전용 대응책입니다.
+
+```ts
+const { rewards } = await reader.earn.incentiveRewards.fetch();
+```
+
+```text
+{ chainId: 988, rewards: [ { token: { symbol: "MORPHO", ... }, amount: 1.25, rawAmount: "1250000...", proofs: [...] } ] }
+```
+
+`MerklRewardsResult`를 반환합니다.
 
 ## 열거형
 
@@ -168,25 +443,25 @@ const { txHash, toAmount } = await stable.swap({ ...swapParams, quote });
 
 ### `Chain`
 
-`quoteBridge` 및 `bridge`에서 사용됩니다. 각 항목에는 해당 `CHAIN_CONFIGS` 항목이 있습니다.
+`quoteBridge` 및 `bridge`에서 사용됩니다. 각 항목에는 해당 `CHAIN_CONFIGS` 항목이 있습니다. 두 개의 테스트넷 항목은 완전성을 위해 정의되었지만 LI.FI는 이를 거부합니다. 브리징은 메인넷 체인 간에만 작동합니다.
 
 | **열거형** | **네트워크** | **체인 ID** |
 | :--- | :--- | :--- |
-| `Chain.Sepolia` | Ethereum Sepolia | 11155111 |
-| `Chain.StableTestnet` | Stable Testnet | 2201 |
-| `Chain.Stable` | Stable Mainnet | 988 |
-| `Chain.Ethereum` | Ethereum | 1 |
-| `Chain.Arbitrum` | Arbitrum One | 42161 |
-| `Chain.Ink` | Ink | 57073 |
-| `Chain.Bera` | Berachain | 80094 |
-| `Chain.MegaETH` | MegaETH | 4326 |
-| `Chain.Base` | Base | 8453 |
+| `Chain.Sepolia` | 이더리움 세폴리아 | 11155111 |
+| `Chain.StableTestnet` | Stable 테스트넷 | 2201 |
+| `Chain.Stable` | Stable 메인넷 | 988 |
+| `Chain.Ethereum` | 이더리움 | 1 |
+| `Chain.Arbitrum` | 아비트럼 원 | 42161 |
+| `Chain.Ink` | 잉크 | 57073 |
+| `Chain.Bera` | 베라체인 | 80094 |
+| `Chain.MegaETH` | 메가EVM | 4326 |
+| `Chain.Base` | 베이스 | 8453 |
 | `Chain.BSC` | BNB Smart Chain | 56 |
-| `Chain.HyperEVM` | HyperEVM | 999 |
+| `Chain.HyperEVM` | 하이퍼EVM | 999 |
 
 ## `CHAIN_CONFIGS`
 
-`Chain` 열거형으로 키가 지정된 `Partial<Record<Chain, ChainConfig>>`. 각 항목은 `id`, `rpc`, `usdt` 및 `decimals`를 노출합니다. 하드코딩하지 않고 지원되는 체인에서 표준 USDT 주소가 필요할 때 사용하십시오.
+`Chain` 열거형으로 키가 지정된 `Partial<Record<Chain, ChainConfig>>`입니다. 각 항목은 `id`, `rpc`, `usdt`, `decimals`를 노출합니다. 지원되는 체인의 정식 USDT 주소가 필요하지만 하드코딩하고 싶지 않을 때 사용하십시오.
 
 ```ts
 import { CHAIN_CONFIGS, Chain } from "@stablechain/sdk";
@@ -198,16 +473,35 @@ console.log(CHAIN_CONFIGS[Chain.Stable]);
 { id: 988, rpc: "https://rpc.stable.xyz", usdt: "0x779Ded0c9e1022225f8E0630b35a9b54bE713736", decimals: 6 }
 ```
 
+## 상수
+
+하드코딩을 피하기 위해 내보낸 정식 메인넷 주소.
+
+```ts
+import { STABLE_USDT_ADDRESS, STABLE_VAULT_ADDRESS } from "@stablechain/sdk";
+```
+
+```text
+STABLE_USDT_ADDRESS  0x779ded0c9e1022225f8e0630b35a9b54be713736
+STABLE_VAULT_ADDRESS 0xb7Df8db22A5DBBFA9ebeb94b3910aec6a4f05c08
+```
+
+| **상수** | **설명** |
+| :--- | :--- |
+| `STABLE_USDT_ADDRESS` | Stable 메인넷의 USDT 토큰 주소입니다. |
+| `STABLE_VAULT_ADDRESS` | Stable 메인넷의 기본 Morpho V2 수익 볼트입니다. `earn: { vault }`에 전달합니다. |
+
 ## 오류
 
-모든 SDK 오류는 viem의 `BaseError`를 확장하는 `StableError`를 확장합니다. 오류는 구조화된 메타데이터를 전달하므로 `error.name` 또는 `instanceof`를 기준으로 분기할 수 있습니다.
+모든 SDK 오류는 viem의 `BaseError`를 확장하는 `StableError`를 확장합니다. 오류는 구조화된 메타데이터를 포함하므로 `error.name` 또는 `instanceof`에 따라 분기할 수 있습니다.
 
 | **클래스** | **발생 시점** | **유용한 필드** |
 | :--- | :--- | :--- |
-| `StableValidationError` | 매개변수가 유효성 검사에 실패함(잘못된 주소, 유한하지 않은 금액, 지원되지 않는 체인). | `field`, `value` |
-| `StableQuoteError` | LI.FI에 대한 견적 요청이 실패함. | `provider`, `httpStatus`, `providerCode`, `body` |
-| `StableTransactionError` | 온체인 단계가 실패함: 체인 전환, 승인, 전송 또는 되돌리기. | `phase`, `txHash`, `chainId`, `revertReason` |
-| `StableNetworkError` | 기본 HTTP/RPC 호출이 실패함. | `url` |
+| `StableValidationError` | 매개변수 유효성 검사 실패(잘못된 주소, 비유한 금액, 지원되지 않는 체인). | `field`, `value` |
+| `StableQuoteError` | LI.FI에 대한 견적 요청 실패. | `provider`, `httpStatus`, `providerCode`, `body` |
+| `StableTransactionError` | 온체인 단계 실패: 체인 전환, 승인, 전송 또는 되돌리기. | `phase`, `txHash`, `chainId`, `revertReason` |
+| `StableNetworkError` | 기본 HTTP/RPC 호출 실패(예: Morpho 또는 Merkl API). | `url` |
+| `StableBulkError` | `stopOnError: true`로 실행된 `bulkDeposit` 또는 `bulkWithdraw`가 첫 번째 실패에 도달. | `results`, `succeeded`, `failed` |
 
 ```ts
 import { StableTransactionError } from "@stablechain/sdk";
@@ -216,7 +510,7 @@ try {
   await stable.transfer({ from, to, amount: 1 });
 } catch (err) {
   if (err instanceof StableTransactionError && err.phase === "switch_chain") {
-    // 사용자가 체인 전환을 거부했습니다.
+    // 사용자가 체인 전환을 거부함
   }
   throw err;
 }
@@ -231,5 +525,5 @@ StableTransactionError: transfer: wallet rejected or failed to switch to chain 9
 ## 다음 권장 사항
 
 - [**SDK 퀵스타트**](/ko/tutorial/sdk-quickstart): SDK를 설치하고 테스트넷에서 첫 번째 전송을 실행합니다.
-- [**viem과 함께 사용**](/ko/how-to/sdk-with-viem): 개인 키, 브라우저 지갑 및 미리 빌드된 서명자 간에 전환합니다.
-- [**wagmi와 함께 사용**](/ko/how-to/sdk-with-wagmi): 훅을 사용하여 SDK를 React 앱에 연결합니다.
+- [**viem과 함께 사용**](/ko/how-to/sdk-with-viem): 비공개 키, 브라우저 지갑 및 미리 빌드된 서명자 간 전환.
+- [**wagmi와 함께 사용**](/ko/how-to/sdk-with-wagmi): 훅스를 사용하여 React 앱에 SDK를 연결합니다.
